@@ -109,6 +109,7 @@ function Index() {
             boxes={boxes}
             colorKeys={["a", "b", "c"]}
             spin
+            stagger={0.12}
             className="h-[380px]"
           />
         </div>

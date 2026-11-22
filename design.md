@@ -233,6 +233,7 @@ sin textura ni bisel. El esténcil del wordmark y las líneas del símbolo son e
 - Duración 120–200 ms, `ease-out`. Sin rebotes ni parallax.
 - La única animación permitida del logo es un fade de 200 ms al cargar.
 - El visor 3D del landing gira solo y lento (`autoRotate`, velocidad 0.35) y sigue siendo arrastrable; en las vistas de planificación no gira.
+- En la landing la carga se monta caja por caja: 120 ms entre bultos, cada uno cae 50 cm y crece en 300 ms. Con `prefers-reduced-motion` se muestran todas de inmediato.
 
 ---
 

@@ -78,7 +78,7 @@ const roles = [
 
 export function RoleBenefits() {
   return (
-    <section className="border-b border-border bg-secondary/15">
+    <section className="bg-secondary/15">
       <div className="mx-auto max-w-6xl px-4 py-16">
         <div className="max-w-2xl">
           <p className="font-mono text-xs uppercase tracking-widest text-primary">

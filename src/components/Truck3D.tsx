@@ -1,5 +1,13 @@
-import { Canvas, useThree } from "@react-three/fiber";
-import { Component, Suspense, useEffect, useLayoutEffect, useMemo, type ReactNode } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import {
+  Component,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from "react";
 import { OrbitControls, Edges, Environment, Lightformer, Html, useGLTF } from "@react-three/drei";
 import { Box3, Mesh, Vector3, type Object3D } from "three";
 import type { Placed } from "@/lib/packing";
@@ -43,6 +51,8 @@ type Props = {
   className?: string;
   /** Rotación lenta, solo en la landing (design.md §4.4). */
   spin?: boolean;
+  /** Segundos entre cajas para que la carga se vaya montando (0 = sin animación). */
+  stagger?: number;
 };
 
 // Look estándar (specs/002-vistas-3d.md): canvas transparente, sin fondo ni
@@ -57,6 +67,7 @@ export default function Truck3D({
   className,
   highlightedOrder,
   spin = false,
+  stagger = 0,
 }: Props) {
   const L = length / 100,
     W = width / 100,
@@ -65,6 +76,14 @@ export default function Truck3D({
   const open = kind === "pickup" || kind === "auto";
   const span = Math.max(L + s.cabL, 4);
   const ghost = boxes.length > 0;
+  const reduceMotion = useMemo(
+    () =>
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    [],
+  );
+  const step = reduceMotion ? 0 : stagger;
   return (
     <div className={className}>
       <Canvas
@@ -114,33 +133,18 @@ export default function Truck3D({
               <planeGeometry args={[L, W]} />
               <meshStandardMaterial color="#5b4a36" roughness={0.9} />
             </mesh>
-            {boxes.map((b) => {
+            {boxes.map((b, index) => {
               const ci = Math.max(0, colorKeys.indexOf(b.pkgId));
+              const delay = step > 0 ? index * step : 0;
               return (
-                <mesh
+                <CargoBox
                   key={`${b.pkgId}-${b.unit}`}
-                  position={[(b.x + b.l / 2) / 100, (b.z + b.h / 2) / 100, (b.y + b.w / 2) / 100]}
-                  castShadow
-                >
-                  <boxGeometry args={[b.l / 100 - 0.01, b.h / 100 - 0.01, b.w / 100 - 0.01]} />
-                  <meshStandardMaterial
-                    color={PALETTE[ci % PALETTE.length] ?? "#f2c230"}
-                    roughness={0.7}
-                    transparent={highlightedOrder !== undefined && b.loadOrder !== highlightedOrder}
-                    opacity={
-                      highlightedOrder !== undefined && b.loadOrder !== highlightedOrder ? 0.3 : 1
-                    }
-                  />
-                  <Edges
-                    color={
-                      b.fragile
-                        ? "#ff3b3b"
-                        : b.loadOrder === highlightedOrder
-                          ? "#f2c230"
-                          : "#1a1a1a"
-                    }
-                  />
-                </mesh>
+                  b={b}
+                  color={PALETTE[ci % PALETTE.length] ?? "#f2c230"}
+                  dimmed={highlightedOrder !== undefined && b.loadOrder !== highlightedOrder}
+                  highlighted={b.loadOrder === highlightedOrder}
+                  delay={delay}
+                />
               );
             })}
             <Html position={[L, H + 0.15, W / 2]} center>
@@ -625,6 +629,61 @@ function SemiBody({ L, W, cabL, chassis }: Dims) {
         </mesh>
       ))}
     </group>
+  );
+}
+
+function CargoBox({
+  b,
+  color,
+  dimmed,
+  highlighted,
+  delay,
+}: {
+  b: Placed;
+  color: string;
+  dimmed: boolean;
+  highlighted: boolean;
+  delay: number;
+}) {
+  const ref = useRef<Mesh>(null);
+  const time = useRef(0);
+  const done = useRef(delay <= 0);
+  const targetY = (b.z + b.h / 2) / 100;
+
+  useFrame((_, delta) => {
+    const mesh = ref.current;
+    if (!mesh || delay <= 0 || done.current) return;
+    time.current += delta;
+    const local = time.current - delay;
+    if (local < 0) {
+      mesh.visible = false;
+      return;
+    }
+    mesh.visible = true;
+    const p = Math.min(1, local / 0.3);
+    const eased = 1 - Math.pow(1 - p, 3);
+    // Cae desde un poco más arriba y crece: se lee como si la estuvieran montando.
+    mesh.scale.setScalar(0.4 + 0.6 * eased);
+    mesh.position.y = targetY + (1 - eased) * 0.5;
+    if (p >= 1) done.current = true;
+  });
+
+  return (
+    <mesh
+      ref={ref}
+      position={[(b.x + b.l / 2) / 100, targetY, (b.y + b.w / 2) / 100]}
+      visible={delay <= 0}
+      castShadow
+    >
+      <boxGeometry args={[b.l / 100 - 0.01, b.h / 100 - 0.01, b.w / 100 - 0.01]} />
+      <meshStandardMaterial
+        color={color}
+        roughness={0.7}
+        transparent={dimmed}
+        opacity={dimmed ? 0.3 : 1}
+      />
+      <Edges color={b.fragile ? "#ff3b3b" : highlighted ? "#f2c230" : "#1a1a1a"} />
+    </mesh>
   );
 }
 
