@@ -14,6 +14,9 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RetornosRouteImport } from './routes/retornos'
 import { Route as AuthenticatedVehiculosRouteImport } from './routes/_authenticated/vehiculos'
+import { Route as BolsaIndexRouteImport } from './routes/bolsa/index'
+import { Route as BolsaOfferIdRouteImport } from './routes/bolsa/$offerId'
+import { Route as PagosRequestIdRouteImport } from './routes/pagos/$requestId'
 import { Route as RecogidasTokenRouteImport } from './routes/recogidas/$token'
 import { Route as AuthenticatedViajesIndexRouteImport } from './routes/_authenticated/viajes/index'
 import { Route as AuthenticatedViajesIdRouteImport } from './routes/_authenticated/viajes/$id'
@@ -43,6 +46,21 @@ const AuthenticatedVehiculosRoute = AuthenticatedVehiculosRouteImport.update({
   path: '/vehiculos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const BolsaIndexRoute = BolsaIndexRouteImport.update({
+  id: '/bolsa/',
+  path: '/bolsa/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BolsaOfferIdRoute = BolsaOfferIdRouteImport.update({
+  id: '/bolsa/$offerId',
+  path: '/bolsa/$offerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PagosRequestIdRoute = PagosRequestIdRouteImport.update({
+  id: '/pagos/$requestId',
+  path: '/pagos/$requestId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecogidasTokenRoute = RecogidasTokenRouteImport.update({
   id: '/recogidas/$token',
   path: '/recogidas/$token',
@@ -71,7 +89,10 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/retornos': typeof RetornosRoute
   '/vehiculos': typeof AuthenticatedVehiculosRoute
+  '/bolsa/$offerId': typeof BolsaOfferIdRoute
+  '/pagos/$requestId': typeof PagosRequestIdRoute
   '/recogidas/$token': typeof RecogidasTokenRoute
+  '/bolsa/': typeof BolsaIndexRoute
   '/viajes/$id': typeof AuthenticatedViajesIdRoute
   '/viajes/nuevo': typeof AuthenticatedViajesNuevoRoute
   '/viajes/': typeof AuthenticatedViajesIndexRoute
@@ -81,7 +102,10 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/retornos': typeof RetornosRoute
   '/vehiculos': typeof AuthenticatedVehiculosRoute
+  '/bolsa/$offerId': typeof BolsaOfferIdRoute
+  '/pagos/$requestId': typeof PagosRequestIdRoute
   '/recogidas/$token': typeof RecogidasTokenRoute
+  '/bolsa': typeof BolsaIndexRoute
   '/viajes/$id': typeof AuthenticatedViajesIdRoute
   '/viajes/nuevo': typeof AuthenticatedViajesNuevoRoute
   '/viajes': typeof AuthenticatedViajesIndexRoute
@@ -93,7 +117,10 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/retornos': typeof RetornosRoute
   '/_authenticated/vehiculos': typeof AuthenticatedVehiculosRoute
+  '/bolsa/$offerId': typeof BolsaOfferIdRoute
+  '/pagos/$requestId': typeof PagosRequestIdRoute
   '/recogidas/$token': typeof RecogidasTokenRoute
+  '/bolsa/': typeof BolsaIndexRoute
   '/_authenticated/viajes/$id': typeof AuthenticatedViajesIdRoute
   '/_authenticated/viajes/nuevo': typeof AuthenticatedViajesNuevoRoute
   '/_authenticated/viajes/': typeof AuthenticatedViajesIndexRoute
@@ -105,7 +132,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/retornos'
     | '/vehiculos'
+    | '/bolsa/$offerId'
+    | '/pagos/$requestId'
     | '/recogidas/$token'
+    | '/bolsa/'
     | '/viajes/$id'
     | '/viajes/nuevo'
     | '/viajes/'
@@ -115,7 +145,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/retornos'
     | '/vehiculos'
+    | '/bolsa/$offerId'
+    | '/pagos/$requestId'
     | '/recogidas/$token'
+    | '/bolsa'
     | '/viajes/$id'
     | '/viajes/nuevo'
     | '/viajes'
@@ -126,7 +159,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/retornos'
     | '/_authenticated/vehiculos'
+    | '/bolsa/$offerId'
+    | '/pagos/$requestId'
     | '/recogidas/$token'
+    | '/bolsa/'
     | '/_authenticated/viajes/$id'
     | '/_authenticated/viajes/nuevo'
     | '/_authenticated/viajes/'
@@ -137,7 +173,10 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   RetornosRoute: typeof RetornosRoute
+  BolsaOfferIdRoute: typeof BolsaOfferIdRoute
+  PagosRequestIdRoute: typeof PagosRequestIdRoute
   RecogidasTokenRoute: typeof RecogidasTokenRoute
+  BolsaIndexRoute: typeof BolsaIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -176,6 +215,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/vehiculos'
       preLoaderRoute: typeof AuthenticatedVehiculosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/bolsa/': {
+      id: '/bolsa/'
+      path: '/bolsa'
+      fullPath: '/bolsa/'
+      preLoaderRoute: typeof BolsaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bolsa/$offerId': {
+      id: '/bolsa/$offerId'
+      path: '/bolsa/$offerId'
+      fullPath: '/bolsa/$offerId'
+      preLoaderRoute: typeof BolsaOfferIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pagos/$requestId': {
+      id: '/pagos/$requestId'
+      path: '/pagos/$requestId'
+      fullPath: '/pagos/$requestId'
+      preLoaderRoute: typeof PagosRequestIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/recogidas/$token': {
       id: '/recogidas/$token'
@@ -230,7 +290,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   RetornosRoute: RetornosRoute,
+  BolsaOfferIdRoute: BolsaOfferIdRoute,
+  PagosRequestIdRoute: PagosRequestIdRoute,
   RecogidasTokenRoute: RecogidasTokenRoute,
+  BolsaIndexRoute: BolsaIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

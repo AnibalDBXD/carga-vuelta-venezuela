@@ -25,14 +25,14 @@ export type Database = {
           Tables: {
             "package_requests": {
                   Row: {
-                    "created_at": string,"decided_at": string | null,"delivery_address": string,"id": string,"notes": string,"package": NonNullable<Json>,"phone": string,"pickup_address": string,"sender_name": string,"status": string,"trip_id": string
+                    "amount_usd": number | null,"created_at": string,"decided_at": string | null,"delivery_address": string,"email": string,"id": string,"notes": string,"notified_at": string | null,"package": NonNullable<Json>,"paid_at": string | null,"payment_expires_at": string | null,"phone": string,"pickup_address": string,"proof_path": string | null,"proof_submitted_at": string | null,"sender_name": string,"status": string,"trip_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"decided_at"?: string | null,"delivery_address": string,"id"?: string,"notes"?: string,"package": NonNullable<Json>,"phone": string,"pickup_address": string,"sender_name": string,"status"?: string,"trip_id": string
+                    "amount_usd"?: number | null,"created_at"?: string,"decided_at"?: string | null,"delivery_address": string,"email"?: string,"id"?: string,"notes"?: string,"notified_at"?: string | null,"package": NonNullable<Json>,"paid_at"?: string | null,"payment_expires_at"?: string | null,"phone": string,"pickup_address": string,"proof_path"?: string | null,"proof_submitted_at"?: string | null,"sender_name": string,"status"?: string,"trip_id": string
                   }
                   Update: {
-                    "created_at"?: string,"decided_at"?: string | null,"delivery_address"?: string,"id"?: string,"notes"?: string,"package"?: NonNullable<Json>,"phone"?: string,"pickup_address"?: string,"sender_name"?: string,"status"?: string,"trip_id"?: string
+                    "amount_usd"?: number | null,"created_at"?: string,"decided_at"?: string | null,"delivery_address"?: string,"email"?: string,"id"?: string,"notes"?: string,"notified_at"?: string | null,"package"?: NonNullable<Json>,"paid_at"?: string | null,"payment_expires_at"?: string | null,"phone"?: string,"pickup_address"?: string,"proof_path"?: string | null,"proof_submitted_at"?: string | null,"sender_name"?: string,"status"?: string,"trip_id"?: string
                   }
                   Relationships: [
                     {
@@ -40,6 +40,26 @@ export type Database = {
       columns: ["trip_id"]
 isOneToOne: false
       referencedRelation: "trips"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"push_subscriptions": {
+                  Row: {
+                    "auth": string,"created_at": string,"endpoint": string,"id": string,"p256dh": string,"request_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "auth": string,"created_at"?: string,"endpoint": string,"id"?: string,"p256dh": string,"request_id": string
+                  }
+                  Update: {
+                    "auth"?: string,"created_at"?: string,"endpoint"?: string,"id"?: string,"p256dh"?: string,"request_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "push_subscriptions_request_id_fkey"
+      columns: ["request_id"]
+isOneToOne: false
+      referencedRelation: "package_requests"
       referencedColumns: ["id"]
     }
                   ]
@@ -129,14 +149,29 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "decide_package_request":
-{ Args: { "p_accept": boolean,"p_id": string }; Returns: string
+            "attach_push_subscription":
+{ Args: { "p_auth": string,"p_endpoint": string,"p_p256dh": string,"p_request": string }; Returns: undefined
+                           },
+"confirm_payment":
+{ Args: { "p_request": string }; Returns: string
+                           },
+"decide_package_request":
+{ Args: { "p_accept": boolean,"p_amount"?: number,"p_id": string }; Returns: string
+                           },
+"insert_package_request":
+{ Args: { "p_delivery": string,"p_email"?: string,"p_notes"?: string,"p_package": Json,"p_phone": string,"p_pickup": string,"p_sender": string,"p_trip": string }; Returns: string
+                           },
+"payment_summary":
+{ Args: { "p_request": string }; Returns: Json
                            },
 "shared_trip":
 { Args: { "p_token": string }; Returns: Json
                            },
-"submit_package_request":
-{ Args: { "p_delivery": string,"p_notes"?: string,"p_package": Json,"p_phone": string,"p_pickup": string,"p_sender": string,"p_token": string }; Returns: string
+"submit_offer_request":
+{ Args: { "p_delivery": string,"p_email"?: string,"p_notes"?: string,"p_offer": string,"p_package": Json,"p_phone": string,"p_pickup": string,"p_sender": string }; Returns: string
+                           },
+"submit_payment_proof":
+{ Args: { "p_path": string,"p_request": string }; Returns: undefined
                            }
           }
           Enums: {

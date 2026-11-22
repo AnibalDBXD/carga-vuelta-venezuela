@@ -25,7 +25,7 @@ export function AppHeader() {
           CargaRuta
         </Link>
         <nav className="hidden items-center gap-5 md:flex">
-          <Link to="/retornos" className={link}>Bolsa de retornos</Link>
+          <Link to="/bolsa" className={link}>Bolsa de viajes</Link>
           {session && (<>
             <Link to="/viajes" className={link}>Mis viajes</Link>
             <Link to="/vehiculos" className={link}>Mis vehículos</Link>
@@ -44,7 +44,7 @@ export function AppHeader() {
         <nav className="flex gap-4 overflow-x-auto border-t border-border px-4 py-2 md:hidden">
           <Link to="/viajes" className={link}>Viajes</Link>
           <Link to="/vehiculos" className={link}>Vehículos</Link>
-          <Link to="/retornos" className={link}>Retornos</Link>
+          <Link to="/bolsa" className={link}>Bolsa</Link>
         </nav>
       )}
     </header>

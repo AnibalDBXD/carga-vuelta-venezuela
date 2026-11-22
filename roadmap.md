@@ -2,4 +2,4 @@
 - [x] Verificar pasos, capas y visualización en escritorio y móvil.
 - [x] Compartir el regreso guardado mediante un enlace público y recibir solicitudes privadas de paquetes.
 - [x] Aceptar o rechazar solicitudes; incorporar las aceptadas al viaje y a la guía 3D.
-- [x] Verificar el flujo completo y sus permisos.
+- [x] Verificar el flujo completo y sus permisos.- [x] Cobrar el espacio aceptado: correo + push al solicitante, página de pago con QR pago móvil (Bs a tasa BCV), comprobante subido y confirmación automática.

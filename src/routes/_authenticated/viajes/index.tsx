@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Copy, Repeat } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cityName } from "@/lib/venezuela";
-import type { Pkg } from "@/lib/packing";
+import { packCargo, type Pkg } from "@/lib/packing";
 import { Button } from "@/components/ui/button";
 import { ShareTrip } from "@/components/TripRequests";
 
@@ -16,7 +16,7 @@ function Viajes() {
   const { data = [], isLoading } = useQuery({
     queryKey: ["trips"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("trips").select("*, vehicles(name)").order("departure_date", { ascending: false });
+      const { data, error } = await supabase.from("trips").select("*, vehicles(*)").order("departure_date", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -32,6 +32,9 @@ function Viajes() {
         {!isLoading && data.length === 0 && <p className="text-muted-foreground">Todavía no has planificado viajes.</p>}
         {data.map((t) => {
           const pk = (t.packages as unknown as Pkg[]) ?? [];
+          const free = t.vehicles
+            ? packCargo({ length: t.vehicles.length_cm, width: t.vehicles.width_cm, height: t.vehicles.height_cm, maxKg: t.vehicles.max_kg }, pk)
+            : null;
           return (
             <div key={t.id} className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4">
               <Link to="/viajes/$id" params={{ id: t.id }} className="min-w-0 flex-1">
@@ -39,7 +42,7 @@ function Viajes() {
                 <p className="text-sm text-muted-foreground">{t.departure_date} · {t.vehicles?.name ?? "Sin vehículo"} · {pk.reduce((s, p) => s + p.qty, 0)} bultos</p>
               </Link>
               <Button asChild size="sm" variant="outline"><Link to="/viajes/nuevo" search={{ from: t.id }}><Copy /> Repetir</Link></Button>
-              {t.is_return ? <ShareTrip trip={t} /> : <Button asChild size="sm" variant="outline"><Link to="/viajes/nuevo" search={{ from: t.id, regreso: true }}><Repeat /> Planear regreso</Link></Button>}
+              {t.is_return ? <ShareTrip trip={t} vehicle={t.vehicles} freeM3={free?.freeM3} freeKg={free?.freeKg} /> : <Button asChild size="sm" variant="outline"><Link to="/viajes/nuevo" search={{ from: t.id, regreso: true }}><Repeat /> Planear regreso</Link></Button>}
             </div>
           );
         })}

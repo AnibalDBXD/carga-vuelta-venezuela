@@ -37,7 +37,7 @@ function Index() {
             <p className="mt-5 max-w-lg text-lg text-muted-foreground">Describe tu camión y tus paquetes. CargaRuta acomoda la carga en 3D, estima la ruta por la ARC y publica tu viaje de regreso para que otros te contraten.</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg"><Link to="/viajes/nuevo">Planificar un viaje <ArrowRight /></Link></Button>
-              <Button asChild size="lg" variant="outline"><Link to="/retornos">Buscar camión de retorno</Link></Button>
+              <Button asChild size="lg" variant="outline"><Link to="/bolsa">Buscar camión</Link></Button>
             </div>
           </div>
           <Truck3DView kind="camion350" length={420} width={200} height={200} boxes={boxes} colorKeys={["a", "b", "c"]} className="h-[380px] overflow-hidden rounded-lg border border-border" />
@@ -47,7 +47,7 @@ function Index() {
         {[
           { icon: Boxes, t: "Carga optimizada", d: "Lo que entregas último va al fondo, lo pesado abajo y nada encima de lo frágil." },
           { icon: RouteIcon, t: "Rutas venezolanas", d: "Distancias, tiempo estimado, peajes y alcabalas aproximadas en la red troncal." },
-          { icon: Repeat, t: "Carga de retorno", d: "Comparte tu espacio libre por WhatsApp y aparece en la bolsa de retornos." },
+          { icon: Repeat, t: "Carga de retorno", d: "Publica tu espacio libre y recibe solicitudes de carga en la bolsa de viajes." },
         ].map(({ icon: I, t, d }) => (
           <div key={t} className="rounded-lg border border-border bg-card p-6">
             <I className="h-6 w-6 text-primary" />

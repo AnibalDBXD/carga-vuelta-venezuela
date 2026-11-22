@@ -24,7 +24,8 @@ dist-ssr
 supabase/.branches/
 supabase/.temp/
 
-# Environment variables are committed for the hackathon demo (local Supabase keys only, no secrets)
+# Environment variables
+.env
 
 # Editor directories and files
 .vscode/*

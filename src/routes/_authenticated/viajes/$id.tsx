@@ -52,7 +52,7 @@ function Trip() {
       {route && <p className="mt-2 text-sm text-muted-foreground">≈ {route.km} km · {route.hours} h de manejo · {route.via} · ~{route.checkpoints} alcabalas · ~{route.tolls} peajes</p>}
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        {trip.is_return && <ShareTrip trip={trip} />}
+        {trip.is_return && <ShareTrip trip={trip} vehicle={v} freeM3={result.freeM3} freeKg={result.freeKg} />}
         <Button disabled={steps.length === 0} onClick={() => { setLayer(null); setStep(1); }}><ListOrdered /> {step === null ? "Guiar montaje paso a paso" : "Reiniciar guía"}</Button>
         <Label htmlFor="cargo-layer" className="flex items-center gap-2"><Layers className="h-4 w-4" /> Capas</Label>
         <select id="cargo-layer" className="h-9 max-w-full rounded-md border border-input bg-background px-3 text-sm text-foreground" value={layer === null ? "all" : String(layer)} onChange={(e) => setLayer(e.target.value === "all" ? null : Number(e.target.value))}>
@@ -140,7 +140,7 @@ function Stat({ label, value, pct }: { label: string; value: string; pct: number
   );
 }
 
-type TripRow = { id: string; origin: string; destination: string; departure_date: string };
+type TripRow = { id: string; origin: string; destination: string; departure_date: string; vehicle_id: string | null };
 
 function ShareReturn({ trip, kind, freeM3, maxKg }: { trip: TripRow; kind: string; freeM3: number; maxKg: number }) {
   const qc = useQueryClient();
@@ -151,16 +151,28 @@ function ShareReturn({ trip, kind, freeM3, maxKg }: { trip: TripRow; kind: strin
   const [notes, setNotes] = useState("");
   const publish = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Las solicitudes de la bolsa cargan sobre el viaje de regreso: búscalo o créalo.
+    const { data: existing } = await supabase.from("trips").select("id").eq("parent_trip_id", trip.id).eq("is_return", true).maybeSingle();
+    let returnTripId = existing?.id;
+    if (!returnTripId) {
+      const { data: created, error: tripError } = await supabase.from("trips").insert({
+        origin: trip.destination, destination: trip.origin, departure_date: date,
+        vehicle_id: trip.vehicle_id, is_return: true, parent_trip_id: trip.id, packages: [],
+      }).select("id").single();
+      if (tripError || !created) return void toast.error("No se pudo crear el viaje de regreso");
+      returnTripId = created.id;
+    }
     const { error } = await supabase.from("return_offers").insert({
-      trip_id: trip.id, driver_name: name, phone, origin: trip.destination, destination: trip.origin,
+      trip_id: returnTripId, driver_name: name, phone, origin: trip.destination, destination: trip.origin,
       available_date: date, vehicle_kind: kind, free_m3: freeM3, free_kg: maxKg, notes: notes || null,
     });
     if (error) return void toast.error("No se pudo publicar");
     qc.invalidateQueries({ queryKey: ["return_offers"] });
+    qc.invalidateQueries({ queryKey: ["trips"] });
     setOpen(false);
-    const url = `${window.location.origin}/retornos`;
-    const text = `🚚 Disponible para carga de retorno ${cityName(trip.destination)} → ${cityName(trip.origin)} el ${date}. Espacio: ${freeM3} m³ / ${maxKg} kg. Contacto: ${name} +${phone.replace(/\D/g, "")}. ${url}`;
-    toast.success("Publicado en la bolsa de retornos");
+    const url = `${window.location.origin}/bolsa`;
+    const text = `🚚 Camión con espacio libre ${cityName(trip.destination)} → ${cityName(trip.origin)} el ${date}. Espacio: ${freeM3} m³ / ${maxKg} kg. Solicita tu recogida: ${url}`;
+    toast.success("Publicado en la bolsa de viajes");
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
   return (

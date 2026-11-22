@@ -8,7 +8,7 @@ App de logística para camioneros en Venezuela (base Valencia). El objetivo clav
 
 - TanStack Start v1 (React 19, Vite, SSR). Rutas en `src/routes`; nunca usar react-router-dom ni App.tsx.
 - Tailwind CSS v4 vía `src/styles.css` (tokens semánticos; no hardcodear colores en componentes).
-- Backend: Supabase local vía Supabase CLI (`bun run db:start`, requiere podman/docker; `DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock` con podman). Migraciones en `supabase/migrations/`; regenerar tipos con `bun run db:types`. Cliente navegador: `@/integrations/supabase/client`. Lógica de servidor con `createServerFn`; nada de Supabase Edge Functions. Credenciales de dev en `.env` (committeado a propósito).
+- Backend: Supabase local vía Supabase CLI (`bun run db:start`, requiere podman/docker; `DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock` con podman). Migraciones en `supabase/migrations/`; regenerar tipos con `bun run db:types`. Cliente navegador: `@/integrations/supabase/client`. Lógica de servidor con `createServerFn`; nada de Supabase Edge Functions. Credenciales de dev en `.env` (no committeado; ver `.env.example`).
 - 3D: three.js + @react-three/fiber/drei, solo en cliente.
 - Tests: vitest (`bunx vitest run`). Typecheck: `bun run typecheck` (`tsc --noEmit`).
 
@@ -18,18 +18,21 @@ App de logística para camioneros en Venezuela (base Valencia). El objetivo clav
 - `/auth` — login/registro (email + Google).
 - `/viajes` — historial de viajes; `/viajes/nuevo` — formulario de viaje (origen/destino, fecha, vehículo, paquetes); `/viajes/$id` — plan de carga: 3D, guía de montaje paso a paso, filtro por capas, tabla de orden de carga, solicitudes de recogida.
 - `/vehiculos` — CRUD de vehículos con presets venezolanos (pickup, furgón 350/NPR, 750, gandola) y visor 3D.
-- `/retornos` — bolsa pública de cargas de retorno.
-- `/recogidas/$token` — formulario público (sin cuenta) para solicitar recogida en un viaje de regreso compartido.
+- `/bolsa` — "Bolsa de viajes": bolsa pública de camiones con espacio libre (`/retornos` redirige aquí); `/bolsa/$offerId` muestra el espacio del camión en 3D con vista previa del paquete del cliente y el formulario de solicitud. Nunca mencionar "retorno/regreso" en la cara al cliente.
+- `/recogidas/$token` — enlaces viejos (trip_shares): solo redirige a `/bolsa/$offerId` de la oferta del viaje.
 - Área privada bajo `src/routes/_authenticated/`.
 
 ## Datos (Supabase)
 
 - `vehicles` — tipo, nombre, placa, medidas internas (cm) y carga máx. (kg) por usuario.
 - `trips` — origen/destino (slugs de ciudad), fecha, vehículo, `is_return`, y `packages` como JSON.
-- `return_offers` — ofertas públicas de espacio de retorno (lectura pública).
-- `trip_shares` — enlace compartible por viaje de regreso (token = id aleatorio, flag `active`).
-- `package_requests` — solicitudes de recogida; solo las lee el dueño del viaje. Aceptar/rechazar vía RPC `decide_package_request`.
-- RLS habilitado en todo; paquetes aceptados se añaden al JSON del viaje.
+- `return_offers` — ofertas públicas de espacio libre (lectura pública de columnas limitadas; `phone`/`trip_id`/`user_id` no son públicos). `trip_id` apunta al viaje de regreso (`is_return`), creado al publicar la oferta.
+- `trip_shares` — legado: tokens de enlaces viejos; solo los lee el RPC `shared_trip` para redirigir a la oferta. Los enlaces nuevos son `/bolsa/<offer_id>` (ShareTrip crea/reusa la `return_offers` del viaje).
+- `package_requests` — solicitudes de recogida; solo las lee el dueño del viaje. Llegan por la bolsa (RPC `submit_offer_request` con id de oferta). Requieren `email`. Aceptar/rechazar vía RPC `decide_package_request` (con `p_amount` en USD al aceptar). Estados: `pending → awaiting_payment → payment_review → paid` (también `rejected`/`expired`).
+- El pago móvil que ve el pagador es el de la plataforma (la empresa cobra y luego liquida al conductor): env `PAGO_MOVIL_*`, adjuntado en el server fn `getPaymentSummary` — el RPC `payment_summary` lo devuelve en NULL.
+- `push_subscriptions` — suscripciones Web Push ligadas a una solicitud; solo las escribe el RPC `attach_push_subscription` y las lee service_role.
+- Bucket `payment-proofs` (privado) — comprobantes en `<request_id>/<uuid>`; subida anónima por signed URL de servidor, lectura solo del dueño del viaje.
+- RLS habilitado en todo; los paquetes se añaden al JSON del viaje solo cuando `confirm_payment` marca `paid` (~2 s tras subir el comprobante, verificación simulada).
 
 ## Reglas de arquitectura
 
@@ -37,7 +40,8 @@ App de logística para camioneros en Venezuela (base Valencia). El objetivo clav
 - The 3D truck (`src/components/Truck3D.tsx`) is loaded only via `Truck3DLazy` (ClientOnly + lazy) — three.js must not run during SSR.
 - Trip packages are stored as JSON on `trips.packages` so a trip can be duplicated/reversed in one read.
 - Cargo layers and guided loading visibility live in pure TS `src/lib/loading-guide.ts`; presentation filters never modify the packing result or saved cargo.
-- Shared return-trip links use random capability tokens and narrowly scoped database RPCs; request rows remain owner-readable only, and accepting a pending request appends its package atomically under trip/request locks to prevent duplicates.
+- Shared links (trip_shares token), board offers (return_offers id) and payment pages (/pagos/<request_id>) are capabilities resolved only inside narrowly scoped database RPCs; request rows remain owner-readable only, and confirming a paid request appends its package atomically under trip/request locks to prevent duplicates.
+- Payments: driver sets price in USD; the requester pays the platform's pago móvil in Bs at the BCV rate, fetched and converted only server-side (`src/lib/bcv.ts`, `payments.functions.ts`). Notifications (mail via `SMTP_URL`/Mailpit, Web Push via VAPID) fire once from the `notifyRequester` server fn guarded by `notified_at`. Service-role access lives only in server fns (`SUPABASE_SECRET_KEY`, never `VITE_`). Spec: `specs/001-pago-movil.md`.
 - Route estimates (km, hours, tolls, checkpoints) are a preloaded matrix in `src/lib/venezuela.ts` — approximations, not official data; no external maps API.
 - WhatsApp sharing uses `wa.me` links with prefilled text.
 

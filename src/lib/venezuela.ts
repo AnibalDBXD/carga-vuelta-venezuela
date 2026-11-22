@@ -69,12 +69,33 @@ export function estimateRoute(fromId: string, toId: string): RouteEstimate | nul
   };
 }
 
+/** Cities near the straight-line corridor between two endpoints, ordered along the route. */
+export function suggestStops(fromId: string, toId: string): City[] {
+  const a = CITIES.find((c) => c.id === fromId);
+  const b = CITIES.find((c) => c.id === toId);
+  if (!a || !b || a.id === b.id) return [];
+  const dx = b.lng - a.lng;
+  const dy = b.lat - a.lat;
+  const len2 = dx * dx + dy * dy;
+  const cos = Math.cos(((a.lat + b.lat) / 2) * (Math.PI / 180));
+  return CITIES.map((c) => {
+    const t = ((c.lng - a.lng) * dx + (c.lat - a.lat) * dy) / len2;
+    const px = a.lng + t * dx;
+    const py = a.lat + t * dy;
+    const perpKm = Math.hypot((c.lng - px) * cos * 111.32, (c.lat - py) * 110.57);
+    return { city: c, t, perpKm };
+  })
+    .filter(({ city, t, perpKm }) => city.id !== a.id && city.id !== b.id && t > 0.08 && t < 0.92 && perpKm <= 45)
+    .sort((x, y) => x.t - y.t)
+    .map(({ city }) => city);
+}
+
 export type VehicleKind = "auto" | "pickup" | "furgon" | "camion350" | "camion750" | "gandola";
 
 export const VEHICLE_PRESETS: Record<VehicleKind, { label: string; length_cm: number; width_cm: number; height_cm: number; max_kg: number; example: string }> = {
-  auto: { label: "Auto / maletero", length_cm: 100, width_cm: 100, height_cm: 50, max_kg: 300, example: "Sedán" },
+  auto: { label: "Auto / maletero", length_cm: 100, width_cm: 130, height_cm: 40, max_kg: 400, example: "Toyota Corolla, Chevrolet Aveo, Renault Logan" },
   pickup: { label: "Camioneta pickup", length_cm: 160, width_cm: 150, height_cm: 50, max_kg: 1000, example: "Toyota Hilux, Ford Ranger" },
-  furgon: { label: "Furgoneta / van", length_cm: 300, width_cm: 170, height_cm: 170, max_kg: 1500, example: "Chevrolet N300, Ford Transit" },
+  furgon: { label: "Furgoneta / van", length_cm: 280, width_cm: 160, height_cm: 150, max_kg: 1000, example: "Chevrolet N300, Mitsubishi L300, Toyota Hiace" },
   camion350: { label: "Camión 350 (furgón)", length_cm: 420, width_cm: 200, height_cm: 200, max_kg: 3500, example: "Ford 350, Chevrolet NPR" },
   camion750: { label: "Camión 750 / Toronto", length_cm: 650, width_cm: 240, height_cm: 240, max_kg: 8000, example: "Ford F-750, Chevrolet NKR/FVR" },
   gandola: { label: "Gandola (semirremolque)", length_cm: 1300, width_cm: 245, height_cm: 260, max_kg: 30000, example: "Mack, Freightliner + batea/furgón" },
