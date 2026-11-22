@@ -24,6 +24,8 @@ export function CityField({
   onChange,
   placeholder = "Ciudad o lugar",
   allowEmpty = false,
+  invalid = false,
+  error,
 }: {
   id: string;
   label: string;
@@ -32,6 +34,9 @@ export function CityField({
   onChange: (cityId: string) => void;
   placeholder?: string;
   allowEmpty?: boolean;
+  /** Marca el campo en rojo cuando la validación falló. */
+  invalid?: boolean | undefined;
+  error?: string | undefined;
 }) {
   const token = import.meta.env["VITE_MAPBOX_TOKEN"] as string | undefined;
   const [text, setText] = useState(() => (value ? cityName(value) : ""));
@@ -148,6 +153,13 @@ export function CityField({
           }}
           onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
           aria-expanded={open}
+          aria-invalid={invalid || undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
+          className={
+            invalid
+              ? "border-destructive focus-visible:ring-destructive aria-invalid:border-destructive"
+              : undefined
+          }
           role="combobox"
         />
         {allowEmpty && text !== "" && (
@@ -174,6 +186,11 @@ export function CityField({
           </Button>
         )}
       </div>
+      {error && (
+        <p id={`${id}-error`} className="mt-1 text-xs text-destructive">
+          {error}
+        </p>
+      )}
       {open && (
         <ul
           role="listbox"
