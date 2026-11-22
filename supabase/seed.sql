@@ -279,4 +279,53 @@ VALUES
   '', 'expired', now() - interval '4 days', now() - interval '4 days',
   20.00, 25.00, NULL, NULL, NULL, now() - interval '3 days');
 
+-- -------------------------------------------------- cuenta test@test.com --
+--
+-- Datos del usuario de pruebas test@test.com. Estos INSERT ... SELECT solo
+-- corren si la cuenta existe (se crea a mano en /auth, no viene en el seed).
+
+INSERT INTO public.vehicles (id, user_id, name, kind, brand, model, plate,
+                             length_cm, width_cm, height_cm, max_kg)
+SELECT '88880000-0000-0000-0000-000000000001', id,
+       'La Burrita', 'pickup', 'Toyota', 'Hilux', 'D33-KL78', 160, 150, 50, 1000
+FROM auth.users WHERE email = 'test@test.com';
+
+INSERT INTO public.vehicles (id, user_id, name, kind, brand, model, plate,
+                             length_cm, width_cm, height_cm, max_kg)
+SELECT '88880000-0000-0000-0000-000000000002', id,
+       'La Blanca', 'furgon', 'Chevrolet', 'N300', 'E90-MN12', 280, 160, 150, 1000
+FROM auth.users WHERE email = 'test@test.com';
+
+INSERT INTO public.trips (id, user_id, vehicle_id, origin, destination,
+                          departure_date, departure_time, packages, notes,
+                          is_return, parent_trip_id, completed_at)
+SELECT '88880000-0000-0000-0000-000000000011', id,
+       '88880000-0000-0000-0000-000000000001', 'valencia', 'puerto-cabello',
+       CURRENT_DATE - 3, '07:30',
+       '[{"id":"seed-test-1","name":"Cajas de mercancía general","length":60,"width":50,"height":40,"weight":20,"qty":6,"fragile":false,"deadline":"","recipient":"Puerto seco"}]'::jsonb,
+       'Entrega rápida al puerto', false, NULL,
+       (CURRENT_DATE - 3 + interval '3 hours')
+FROM auth.users WHERE email = 'test@test.com';
+
+INSERT INTO public.trips (id, user_id, vehicle_id, origin, destination,
+                          departure_date, departure_time, packages, notes,
+                          is_return, parent_trip_id, completed_at)
+SELECT '88880000-0000-0000-0000-000000000012', id,
+       '88880000-0000-0000-0000-000000000002', 'valencia', 'barquisimeto',
+       CURRENT_DATE + 1, '06:00',
+       '[{"id":"seed-test-2","name":"Paquetería de farmacia","length":40,"width":35,"height":30,"weight":9,"qty":8,"fragile":true,"deadline":"","recipient":"Farmacia del Oeste"},
+         {"id":"seed-test-3","name":"Material de oficina","length":50,"width":40,"height":35,"weight":14,"qty":4,"fragile":false,"deadline":"","recipient":"Librería Central"}]'::jsonb,
+       'Cliente nuevo, confirmar dirección antes de salir', false, NULL, NULL
+FROM auth.users WHERE email = 'test@test.com';
+
+INSERT INTO public.trips (id, user_id, vehicle_id, origin, destination,
+                          departure_date, departure_time, packages, notes,
+                          is_return, parent_trip_id, completed_at)
+SELECT '88880000-0000-0000-0000-000000000013', id,
+       '88880000-0000-0000-0000-000000000002', 'maracay', 'caracas',
+       CURRENT_DATE + 4, '15:00', '[]'::jsonb,
+       'Regreso de la entrega en Maracay', true,
+       '88880000-0000-0000-0000-000000000012', NULL
+FROM auth.users WHERE email = 'test@test.com';
+
 COMMIT;
