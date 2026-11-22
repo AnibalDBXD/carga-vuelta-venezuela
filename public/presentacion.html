@@ -654,6 +654,48 @@
         color: var(--yellow);
       }
 
+      /* ---------- hackathon ---------- */
+
+      .hack {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(1rem, 2.4vw, 2.2rem);
+      }
+
+      .hack-card {
+        display: grid;
+        gap: 0.55rem;
+        align-content: start;
+        border-top: 2px solid var(--yellow);
+        padding-top: clamp(0.6rem, 1.4vh, 0.9rem);
+      }
+
+      .hack-tag {
+        margin: 0;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: clamp(0.55rem, 0.8vw, 0.68rem);
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--yellow);
+      }
+
+      .hack-card h3 {
+        margin: 0;
+        font-size: clamp(0.98rem, 1.45vw, 1.3rem);
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: 1.2;
+        max-width: 22ch;
+      }
+
+      .hack-card p {
+        margin: 0;
+        font-size: clamp(0.78rem, 1.05vw, 0.94rem);
+        line-height: 1.45;
+        color: var(--muted);
+        max-width: 32ch;
+      }
+
       /* ---------- navegación ---------- */
 
       .hud {
@@ -741,6 +783,10 @@
         .slide {
           overflow-y: auto;
           padding-bottom: 4.2rem;
+        }
+        .hack {
+          grid-template-columns: 1fr;
+          gap: 0.9rem;
         }
         .body {
           justify-content: flex-start;
@@ -870,7 +916,7 @@
               <div class="qr-card">
                 <img
                   src="presentacion-assets/qr.svg"
-                  alt="Código QR que abre CargaRuta en carga-vuelta-venezuela.vercel.app"
+                  alt="Código QR que abre CargaRuta en cargaruta.vercel.app"
                 />
                 <span class="qr-badge" aria-hidden="true">
                   <svg viewBox="0 0 64 64" focusable="false">
@@ -889,7 +935,7 @@
                 </span>
               </div>
               <p class="qr-caption">Escanea y abre la app</p>
-              <p class="qr-url">carga-vuelta-venezuela.vercel.app</p>
+              <p class="qr-url">cargaruta.vercel.app</p>
             </div>
           </div>
         </div>
@@ -1153,13 +1199,74 @@
           </div>
         </div>
       </section>
+
+      <!-- 06 · HACKATHON -->
+      <section class="slide" data-label="Hackathon">
+        <header class="topbar">
+          <span class="logo">
+            <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+              <g fill="none" stroke-linecap="round">
+                <path d="M21 58A37 37 0 0 1 58 21" stroke="#eec22c" stroke-width="5.6" />
+                <path d="M43 58A15 15 0 0 1 58 43" stroke="#eec22c" stroke-width="5.6" />
+                <path
+                  d="M32 58A26 26 0 0 1 58 32"
+                  stroke="#f2f0e7"
+                  stroke-width="4.4"
+                  stroke-dasharray="9 6.92"
+                  stroke-linecap="butt"
+                />
+              </g>
+            </svg>
+            <span class="logo-word">Carga<span>Ruta</span></span>
+          </span>
+          <span class="page-total"></span>
+        </header>
+
+        <div class="body">
+          <p class="kicker">05 · Hackathon ValenValley 2026</p>
+          <h2><em>24 horas</em> para construir tres productos.</h2>
+
+          <div class="hack">
+            <article class="hack-card">
+              <p class="hack-tag">PWA</p>
+              <h3>La app en el teléfono</h3>
+              <p>
+                Instalable, con notificaciones push y acceso directo. La misma app, sin tienda de
+                por medio.
+              </p>
+            </article>
+
+            <article class="hack-card">
+              <p class="hack-tag">Telegram</p>
+              <h3>El asistente que toma la solicitud</h3>
+              <p>
+                Entiende el pedido por chat, estima los bultos por foto, pasa los datos de pago y el
+                conductor acepta con botones.
+              </p>
+            </article>
+
+            <article class="hack-card">
+              <p class="hack-tag">MCP</p>
+              <h3>Las herramientas para agentes</h3>
+              <p>
+                Expone las mismas funciones a agentes externos, con clave por conductor y permisos
+                acotados.
+              </p>
+            </article>
+          </div>
+
+          <p class="footnote">
+            Mismo backend (TanStack Start + Supabase), tres formas de entrar: web instalable, chat y
+            API para agentes. Todo en 24 horas de hackathon.
+          </p>
+        </div>
+      </section>
     </div>
 
     <div class="dots" id="dots"></div>
     <div class="hud">
       <button class="nav" id="prev" aria-label="Lámina anterior">←</button>
-      <button class="nav" id="next" aria-label="Lámina siguiente">→</button>
-    </div>
+      <button class="nav" id="next" aria-label="Lámina siguiente">→</button>    </div>
     <div class="bar" id="bar"></div>
 
     <script>
