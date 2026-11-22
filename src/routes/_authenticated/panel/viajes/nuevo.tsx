@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AlertCircle, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { CITIES } from "@/lib/venezuela";
+import { CITIES, CARGO_PRESETS, type CargoPreset } from "@/lib/venezuela";
 import { estimateAsTripRoute, tripRouteQuery } from "@/lib/routes.functions";
 import { RouteMapView } from "@/components/RouteMapLazy";
 import { CityField } from "@/components/CityField";
@@ -47,6 +47,15 @@ const newPkg = (): Pkg => ({
   fragile: false,
   deadline: "",
   recipient: "",
+});
+const pkgFromPreset = (p: CargoPreset): Pkg => ({
+  ...newPkg(),
+  name: p.name,
+  length: p.length,
+  width: p.width,
+  height: p.height,
+  weight: p.weight,
+  fragile: p.fragile,
 });
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -184,9 +193,7 @@ function NuevoViaje() {
   const upd = (id: string, patch: Partial<Pkg>) => {
     setPkgs((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
     setErrors((prev) =>
-      Object.fromEntries(
-        Object.entries(prev).filter(([key]) => !key.startsWith(`pkg-${id}-`)),
-      ),
+      Object.fromEntries(Object.entries(prev).filter(([key]) => !key.startsWith(`pkg-${id}-`))),
     );
   };
 
@@ -228,18 +235,26 @@ function NuevoViaje() {
     if (origin && destination && origin === destination)
       next["destination"] = "El destino debe ser distinto del origen.";
     if (!date) next["date"] = "Indica la fecha de salida.";
-    else if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(new Date(`${date}T12:00:00`).getTime()))
+    else if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+      Number.isNaN(new Date(`${date}T12:00:00`).getTime())
+    )
       next["date"] = "La fecha de salida no es válida.";
     if (!time) next["time"] = "Indica la hora de salida del origen.";
     if (!vehicleId) next["vehicle"] = "Selecciona el vehículo con el que harás el viaje.";
 
     pkgs.forEach((p, index) => {
       const n = index + 1;
-      if (!(p.length > 0)) next[`pkg-${p.id}-length`] = `El largo del paquete #${n} debe ser mayor que 0.`;
-      if (!(p.width > 0)) next[`pkg-${p.id}-width`] = `El ancho del paquete #${n} debe ser mayor que 0.`;
-      if (!(p.height > 0)) next[`pkg-${p.id}-height`] = `El alto del paquete #${n} debe ser mayor que 0.`;
-      if (!(p.weight >= 0)) next[`pkg-${p.id}-weight`] = `El peso del paquete #${n} no puede ser negativo.`;
-      if (!(p.qty >= 1)) next[`pkg-${p.id}-qty`] = `La cantidad del paquete #${n} debe ser al menos 1.`;
+      if (!(p.length > 0))
+        next[`pkg-${p.id}-length`] = `El largo del paquete #${n} debe ser mayor que 0.`;
+      if (!(p.width > 0))
+        next[`pkg-${p.id}-width`] = `El ancho del paquete #${n} debe ser mayor que 0.`;
+      if (!(p.height > 0))
+        next[`pkg-${p.id}-height`] = `El alto del paquete #${n} debe ser mayor que 0.`;
+      if (!(p.weight >= 0))
+        next[`pkg-${p.id}-weight`] = `El peso del paquete #${n} no puede ser negativo.`;
+      if (!(p.qty >= 1))
+        next[`pkg-${p.id}-qty`] = `La cantidad del paquete #${n} debe ser al menos 1.`;
     });
 
     setErrors(next);
@@ -247,7 +262,9 @@ function NuevoViaje() {
     if (firstKey) {
       const count = Object.keys(next).length;
       toast.error(
-        count === 1 ? "Revisa el campo marcado en rojo" : `Revisa los ${count} campos marcados en rojo`,
+        count === 1
+          ? "Revisa el campo marcado en rojo"
+          : `Revisa los ${count} campos marcados en rojo`,
       );
       // Un solo movimiento: llevar el primer campo inválido a la vista y enfocarlo sin
       // que el navegador vuelva a desplazar la página (eso causaba el salto).
@@ -302,7 +319,10 @@ function NuevoViaje() {
     if (error || !data) {
       const explained = error
         ? describeSaveError(error)
-        : { summary: "La base de datos no devolvió el viaje guardado.", detail: "Intenta de nuevo." };
+        : {
+            summary: "La base de datos no devolvió el viaje guardado.",
+            detail: "Intenta de nuevo.",
+          };
       setSaveError(explained);
       if (explained.field) setErrors({ [explained.field]: explained.summary });
       if (explained.field)
@@ -417,7 +437,10 @@ function NuevoViaje() {
             <Label htmlFor="vehicle">Vehículo</Label>
             <select
               {...fieldProps("vehicle")}
-              className={cn(sel, errors["vehicle"] && "border-destructive focus-visible:ring-destructive")}
+              className={cn(
+                sel,
+                errors["vehicle"] && "border-destructive focus-visible:ring-destructive",
+              )}
               value={vehicleId}
               onChange={(e) => {
                 setVehicleId(e.target.value);
@@ -464,6 +487,19 @@ function NuevoViaje() {
             >
               <Plus /> Agregar
             </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {CARGO_PRESETS.map((p) => (
+              <Button
+                key={p.label}
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => setPkgs([...pkgs, pkgFromPreset(p)])}
+              >
+                <Plus /> {p.label}
+              </Button>
+            ))}
           </div>
           {pkgs.map((p, i) => (
             <div
@@ -538,15 +574,6 @@ function NuevoViaje() {
                 />
                 {fieldError(`pkg-${p.id}-qty`)}
               </div>
-              <div className="col-span-2 md:col-span-2">
-                <Label htmlFor={`pkg-${p.id}-deadline`}>Entregar antes de</Label>
-                <Input
-                  id={`pkg-${p.id}-deadline`}
-                  type="datetime-local"
-                  value={p.deadline}
-                  onChange={(e) => upd(p.id, { deadline: e.target.value })}
-                />
-              </div>
               <div className="flex items-end gap-2 pb-2">
                 <Switch
                   checked={p.fragile}
@@ -554,13 +581,6 @@ function NuevoViaje() {
                   id={`f${p.id}`}
                 />
                 <Label htmlFor={`f${p.id}`}>Frágil</Label>
-              </div>
-              <div className="col-span-2 md:col-span-11">
-                <Label>Destinatario / dirección</Label>
-                <Input
-                  value={p.recipient}
-                  onChange={(e) => upd(p.id, { recipient: e.target.value })}
-                />
               </div>
               <div className="flex items-end justify-end">
                 <Button
@@ -573,6 +593,29 @@ function NuevoViaje() {
                   <Trash2 />
                 </Button>
               </div>
+              <details className="col-span-2 md:col-span-12">
+                <summary className="cursor-pointer text-sm text-muted-foreground">
+                  Plazo y destinatario (opcional)
+                </summary>
+                <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-12">
+                  <div className="col-span-2 md:col-span-5">
+                    <Label htmlFor={`pkg-${p.id}-deadline`}>Entregar antes de</Label>
+                    <Input
+                      id={`pkg-${p.id}-deadline`}
+                      type="datetime-local"
+                      value={p.deadline}
+                      onChange={(e) => upd(p.id, { deadline: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-span-2 md:col-span-7">
+                    <Label>Destinatario / dirección</Label>
+                    <Input
+                      value={p.recipient}
+                      onChange={(e) => upd(p.id, { recipient: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </details>
             </div>
           ))}
           <p className="text-xs text-muted-foreground">Medidas en centímetros.</p>

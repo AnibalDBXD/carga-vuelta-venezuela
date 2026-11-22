@@ -12,6 +12,7 @@ import { OrbitControls, Edges, Environment, Lightformer, Html, useGLTF } from "@
 import { Box3, Mesh, Vector3, type Object3D } from "three";
 import type { Placed } from "@/lib/packing";
 import type { VehicleKind } from "@/lib/venezuela";
+import { boxTextures } from "./cardboard";
 
 const PALETTE = [
   "#f2c230",
@@ -174,6 +175,37 @@ export default function Truck3D({
 }
 
 export { PALETTE };
+
+/** Bulto de cartón: la cinta lleva el color del bulto; frágil = etiqueta FRÁGIL. */
+function CargoBox({
+  b,
+  color,
+  dim,
+  highlighted,
+}: {
+  b: Placed;
+  color: string;
+  dim: boolean;
+  highlighted: boolean;
+}) {
+  const tex = useMemo(() => boxTextures(color, b.fragile), [color, b.fragile]);
+  const face = { roughness: 0.85, transparent: dim, opacity: dim ? 0.3 : 1 };
+  return (
+    <mesh
+      position={[(b.x + b.l / 2) / 100, (b.z + b.h / 2) / 100, (b.y + b.w / 2) / 100]}
+      castShadow
+    >
+      <boxGeometry args={[b.l / 100 - 0.01, b.h / 100 - 0.01, b.w / 100 - 0.01]} />
+      <meshStandardMaterial attach="material-0" map={tex.side} {...face} />
+      <meshStandardMaterial attach="material-1" map={tex.side} {...face} />
+      <meshStandardMaterial attach="material-2" map={tex.top} {...face} />
+      <meshStandardMaterial attach="material-3" map={tex.bottom} {...face} />
+      <meshStandardMaterial attach="material-4" map={tex.side} {...face} />
+      <meshStandardMaterial attach="material-5" map={tex.side} {...face} />
+      <Edges color={b.fragile ? "#ff3b3b" : highlighted ? "#f2c230" : "#1a1a1a"} />
+    </mesh>
+  );
+}
 
 type Dims = { L: number; W: number; H: number; cabL: number; chassis: number };
 

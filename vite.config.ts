@@ -30,7 +30,7 @@ export default defineConfig(async ({ command, mode }) => {
 
   if (command === "build") {
     const { nitro } = await import("nitro/vite");
-    plugins.push(nitro({ defaultPreset: "cloudflare-module" }));
+    plugins.push(nitro({ defaultPreset: "vercel" }));
   }
 
   plugins.push(viteReact());
@@ -64,7 +64,7 @@ export default defineConfig(async ({ command, mode }) => {
       ],
       ignoreOutdatedRequests: true,
     },
-    server: { host: "::", port: 5173, strictPort: true },
+    server: { host: "::", port: 5173, strictPort: true, allowedHosts: [".trycloudflare.com"] },
     plugins,
   };
 

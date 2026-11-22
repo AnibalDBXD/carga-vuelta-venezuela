@@ -17,14 +17,10 @@ export function offerDeparted(o: OfferTimes, now: Date = new Date()): boolean {
   return offerDepartureAt(o).getTime() <= now.getTime();
 }
 
-// Fracción de tiempo que le queda a la oferta dentro de su ventana
-// (created_at → salida): 1 recién publicada, 0 al llegar la hora.
-export function offerProgress(
-  o: OfferTimes & { created_at: string },
-  now: Date = new Date(),
-): number {
-  const end = offerDepartureAt(o).getTime();
-  const start = new Date(o.created_at).getTime();
-  if (!Number.isFinite(start) || end <= start) return 0;
-  return Math.min(1, Math.max(0, (end - now.getTime()) / (end - start)));
+// Escala fija de urgencia: la barra va llena cuando faltan ~20 h o más y llega
+// a 0 a la hora de salida (1 h restante ≈ 5%, ya en rojo).
+export const OFFER_BAR_FULL_MS = 20 * 60 * 60 * 1000;
+export function offerProgress(o: OfferTimes, now: Date = new Date()): number {
+  const remaining = offerDepartureAt(o).getTime() - now.getTime();
+  return Math.min(1, Math.max(0, remaining / OFFER_BAR_FULL_MS));
 }

@@ -51,6 +51,24 @@ function Viajes() {
     void qc.invalidateQueries({ queryKey: ["return_offers"] });
     toast.success(done ? "Viaje marcado como completado" : "Viaje reabierto");
   };
+  // Bandeja de entrada: solicitudes pendientes por viaje (RLS deja solo las propias).
+  const tripIds = data.map((t) => t.id);
+  const { data: pendingCounts = {} } = useQuery({
+    queryKey: ["pending-requests", tripIds],
+    enabled: tripIds.length > 0,
+    refetchInterval: 30000,
+    queryFn: async () => {
+      const { data: rows, error } = await supabase
+        .from("package_requests")
+        .select("trip_id")
+        .eq("status", "pending")
+        .in("trip_id", tripIds);
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      for (const r of rows) counts[r.trip_id] = (counts[r.trip_id] ?? 0) + 1;
+      return counts;
+    },
+  });
   // Agrupa por camión + día para mostrar cuando está haciendo ida y vuelta.
   const groups = groupTrips(data);
 
@@ -83,6 +101,11 @@ function Viajes() {
                 Completado
               </span>
             )}
+            {(pendingCounts[t.id] ?? 0) > 0 && (
+              <span className="rounded border border-primary bg-primary px-2 py-0.5 font-mono text-xs font-bold text-primary-foreground">
+                {pendingCounts[t.id]} {pendingCounts[t.id] === 1 ? "solicitud" : "solicitudes"}
+              </span>
+            )}
           </p>
           <p className="text-sm text-muted-foreground">
             {t.departure_date} ·{" "}
@@ -106,14 +129,10 @@ function Viajes() {
             <Copy /> Repetir
           </Link>
         </Button>
-        {t.is_return ? (
-          <ShareTrip
-            trip={t}
-            vehicle={t.vehicles}
-            freeM3={free?.freeM3}
-            freeKg={free?.freeKg}
-          />
-        ) : (
+        {t.completed_at === null && (
+          <ShareTrip trip={t} vehicle={t.vehicles} freeM3={free?.freeM3} freeKg={free?.freeKg} />
+        )}
+        {!t.is_return && t.completed_at === null && (
           <Button asChild size="sm" variant="outline">
             <Link to="/panel/viajes/nuevo" search={{ from: t.id, regreso: true }}>
               <Repeat /> Planear regreso

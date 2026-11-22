@@ -194,3 +194,71 @@ export const VEHICLE_PRESETS: Record<
     example: "Mack, Freightliner + batea/furgón",
   },
 };
+
+// Bultos típicos de encomienda en Venezuela: precargan nombre, medidas, peso y
+// fragilidad en los formularios; todos los campos quedan editables al aplicar.
+export type CargoPreset = {
+  label: string;
+  name: string;
+  length: number;
+  width: number;
+  height: number;
+  weight: number;
+  fragile: boolean;
+};
+export const CARGO_PRESETS: CargoPreset[] = [
+  {
+    label: "Saco 50 kg",
+    name: "Saco de 50 kg",
+    length: 80,
+    width: 50,
+    height: 30,
+    weight: 50,
+    fragile: false,
+  },
+  {
+    label: "Caja mediana",
+    name: "Caja mediana",
+    length: 60,
+    width: 40,
+    height: 40,
+    weight: 15,
+    fragile: false,
+  },
+  {
+    label: "Caja grande",
+    name: "Caja grande",
+    length: 80,
+    width: 60,
+    height: 50,
+    weight: 25,
+    fragile: false,
+  },
+  {
+    label: "Maleta",
+    name: "Maleta / equipaje",
+    length: 60,
+    width: 40,
+    height: 25,
+    weight: 20,
+    fragile: false,
+  },
+  {
+    label: "Televisor",
+    name: "Televisor",
+    length: 125,
+    width: 75,
+    height: 15,
+    weight: 15,
+    fragile: true,
+  },
+  {
+    label: "Nevera",
+    name: "Nevera",
+    length: 70,
+    width: 70,
+    height: 170,
+    weight: 65,
+    fragile: true,
+  },
+];

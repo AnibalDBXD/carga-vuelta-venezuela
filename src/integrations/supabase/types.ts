@@ -380,6 +380,7 @@ export type Database = {
         Returns: string;
       };
       submit_payment_proof: { Args: { p_path: string; p_request: string }; Returns: undefined };
+      trip_window_closed: { Args: { p_trip: string }; Returns: boolean };
     };
     Enums: {
       [_ in never]: never;

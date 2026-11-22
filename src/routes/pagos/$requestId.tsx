@@ -147,11 +147,14 @@ function PaymentPage() {
       </section>
 
       {s.status === "awaiting_payment" && (
-        <PaySection
-          requestId={requestId}
-          summary={s}
-          onUploaded={() => qc.invalidateQueries({ queryKey: ["payment-summary", requestId] })}
-        />
+        <>
+          {s.payment_expires_at && <PaymentCountdown expiresAt={s.payment_expires_at} />}
+          <PaySection
+            requestId={requestId}
+            summary={s}
+            onUploaded={() => qc.invalidateQueries({ queryKey: ["payment-summary", requestId] })}
+          />
+        </>
       )}
       {s.status === "payment_review" && (
         <Notice
@@ -177,18 +180,41 @@ function PaymentPage() {
       {s.status === "expired" && (
         <Notice
           icon={<AlertTriangle className="h-10 w-10 text-destructive" />}
-          title="El plazo de pago venció"
-          text="Paso demasiado tiempo sin pagar. Habla con el conductor para que revise tu caso."
+          title="Esta solicitud venció"
+          text="El viaje ya salió o el plazo de pago venció sin confirmarse. Busca otro camión con espacio en la bolsa."
         />
       )}
       {s.status === "rejected" && (
         <Notice
           icon={<XCircle className="h-10 w-10 text-destructive" />}
           title="Solicitud rechazada"
-          text="El conductor no pudo tomar tu carga en este viaje."
+          text="El conductor no pudo tomar tu carga en este viaje. Busca otro camión disponible en la bolsa."
         />
       )}
     </main>
+  );
+}
+
+// Cuenta regresiva del plazo de pago (24 h desde que el conductor acepta): el
+// vencimiento real lo decide el servidor; aquí solo se muestra el tiempo que
+// queda para que el pagador no se confíe.
+function PaymentCountdown({ expiresAt }: { expiresAt: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  const minutes = Math.round((new Date(expiresAt).getTime() - now) / 60_000);
+  const label =
+    minutes <= 0
+      ? "El plazo está por vencer o ya venció — se confirmará al actualizar."
+      : minutes >= 120
+        ? `Te quedan ${Math.floor(minutes / 60)} h ${minutes % 60} min para pagar`
+        : `Te quedan ${minutes} min para pagar`;
+  return (
+    <p className="mt-6 flex items-center gap-2 font-mono text-sm text-muted-foreground">
+      <AlertTriangle className="h-4 w-4 shrink-0 text-primary" /> {label}
+    </p>
   );
 }
 
