@@ -44,6 +44,11 @@ export type SharedTrip = {
 };
 export type RequestStatus =
   "pending" | "awaiting_payment" | "payment_review" | "paid" | "rejected" | "expired";
+// Comisión de la plataforma: el solicitante paga amount_usd * (1 + PLATFORM_FEE).
+export const PLATFORM_FEE = 0.25;
+// Lo que paga el cliente: total_usd congelado en la fila o amount_usd × 1.25.
+export const clientTotalUsd = (amountUsd: number | null, totalUsd?: number | null) =>
+  totalUsd ?? (amountUsd == null ? null : Math.round(amountUsd * (1 + PLATFORM_FEE) * 100) / 100);
 export type RequestPaymentMethod = {
   bank: string;
   phone: string;
@@ -58,6 +63,7 @@ export type PaymentSummary = {
   package: (Pkg & { pickup?: string; recipient?: string })[];
   sender_name: string;
   amount_usd: number | null;
+  total_usd: number | null;
   status: RequestStatus;
   has_proof: boolean;
   payment_expires_at: string | null;
@@ -74,17 +80,7 @@ export type PublicOffer = {
   free_kg: number;
   driver_name: string;
   notes: string | null;
+  created_at: string;
 };
 export const PUBLIC_OFFER_COLUMNS =
-  "id,origin,destination,available_date,available_time,vehicle_kind,free_m3,free_kg,driver_name,notes";
-export function requestPackages(
-  id: string,
-  input: PackageRequestBody,
-): (Pkg & { pickup: string })[] {
-  return input.packages.map((pkg, i) => ({
-    ...pkg,
-    id: `${id}-${i + 1}`,
-    pickup: input.pickup,
-    recipient: input.delivery,
-  }));
-}
+  "id,origin,destination,available_date,available_time,vehicle_kind,free_m3,free_kg,driver_name,notes,created_at";

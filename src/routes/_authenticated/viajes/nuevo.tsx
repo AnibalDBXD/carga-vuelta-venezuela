@@ -279,11 +279,14 @@ function NuevoViaje() {
     navigate({ to: "/viajes/$id", params: { id: data.id } });
   };
 
-  const sel = "h-9 w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+  const sel =
+    "h-9 w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
   if (!isLoading && vehicles.length === 0)
     return (
       <main className="mx-auto max-w-xl px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold">Primero registra tu vehículo</h1>
+        <h1 className="text-2xl font-bold" style={{ viewTransitionName: "page-title" }}>
+          Primero registra tu vehículo
+        </h1>
         <p className="mt-2 text-muted-foreground">
           Necesitamos las medidas del espacio de carga para acomodar los paquetes.
         </p>
@@ -295,7 +298,12 @@ function NuevoViaje() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="text-4xl font-bold leading-[1.1] tracking-[-0.02em]">{regreso ? "Planear viaje de regreso" : "Nuevo viaje"}</h1>
+      <h1
+        className="text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
+        style={{ viewTransitionName: "page-title" }}
+      >
+        {regreso ? "Planear viaje de regreso" : "Nuevo viaje"}
+      </h1>
       <form onSubmit={submit} className="mt-6 space-y-6" noValidate>
         {saveError && (
           <div

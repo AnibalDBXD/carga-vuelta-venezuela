@@ -22,7 +22,7 @@ import { packCargo, type Container, type Pkg } from "@/lib/packing";
 import { canvasToBlob, PROMO_FORMATS, renderPromoCard, type PromoFormat } from "@/lib/promo-image";
 import { useSession } from "@/hooks/use-session";
 import { formatBs, formatUsd } from "@/lib/pago-movil";
-import type { RequestStatus } from "@/lib/package-request";
+import { clientTotalUsd, type RequestStatus } from "@/lib/package-request";
 import { getExchangeRate, notifyRequester } from "@/lib/payments.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-type Trip = { id: string; origin: string; destination: string; departure_date: string; departure_time: string | null };
+type Trip = {
+  id: string;
+  origin: string;
+  destination: string;
+  departure_date: string;
+  departure_time: string | null;
+};
 type ShareVehicle = {
   name: string;
   kind: string;
@@ -429,7 +435,7 @@ export function TripRequests({
   const qc = useQueryClient();
   const notify = useServerFn(notifyRequester);
   const [busy, setBusy] = useState<string | null>(null);
-  const [filter, setFilter] = useState("pending");
+  const [filter, setFilter] = useState("all");
   const [accepting, setAccepting] = useState<RequestRow | null>(null);
   const {
     data = [],
@@ -454,6 +460,38 @@ export function TripRequests({
       qc.invalidateQueries({ queryKey: ["trip", tripId] }),
       qc.invalidateQueries({ queryKey: ["trips"] }),
     ]);
+  // Si el pagador cierra su página tras subir el comprobante, la verificación
+  // simulada (~2 s) igual corre desde el lado del conductor: el RPC confirm_payment
+  // está otorgado a authenticated y confirma bajo locks como en /pagos.
+  const reviewKey = data
+    .filter((r) => r.status === "payment_review")
+    .map((r) => r.id)
+    .join(",");
+  useEffect(() => {
+    if (!reviewKey) return;
+    const ids = reviewKey.split(",");
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const attempt = async (tries: number) => {
+      for (const id of ids) {
+        const { data: result, error } = await supabase.rpc("confirm_payment", {
+          p_request: id,
+        });
+        if (!cancelled && !error && result === "paid") {
+          void refresh();
+          toast.success("Pago confirmado: la carga entró al viaje");
+          return;
+        }
+      }
+      if (!cancelled && tries > 0) timer = setTimeout(() => void attempt(tries - 1), 2500);
+    };
+    void attempt(10);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refresh() se redeclara por render; las keys de la query son estables por tripId.
+  }, [reviewKey, tripId, qc]);
   const decide = async (id: string, accept: boolean, amount?: number) => {
     setBusy(id);
     const { error } = await supabase.rpc("decide_package_request", {
@@ -484,7 +522,18 @@ export function TripRequests({
     if (error || !data) return void toast.error("No se pudo abrir el comprobante");
     window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
-  const list = data.filter((r) => filter === "all" || r.status === filter);
+  // En "Todas" las pendientes van primero (sort estable: conserva el orden por fecha).
+  const list = data
+    .filter((r) => filter === "all" || r.status === filter)
+    .sort((a, b) => Number(b.status === "pending") - Number(a.status === "pending"));
+  // Resumen sobre todas las solicitudes (no la lista filtrada): amount_usd es
+  // el neto del conductor; el solicitante paga amount_usd + 25% de servicio.
+  const ganado = data
+    .filter((r) => r.status === "paid")
+    .reduce((sum, r) => sum + Number(r.amount_usd ?? 0), 0);
+  const porConfirmar = data
+    .filter((r) => r.status === "awaiting_payment" || r.status === "payment_review")
+    .reduce((sum, r) => sum + Number(r.amount_usd ?? 0), 0);
   return (
     <section className="mt-10 border-t border-border pt-6" aria-label="Solicitudes de recogida">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -507,6 +556,17 @@ export function TripRequests({
           ))}
         </select>
       </div>
+      {(ganado > 0 || porConfirmar > 0) && (
+        <div className="mt-4 rounded-lg border border-border bg-card p-4">
+          <p className="font-mono text-xs uppercase text-muted-foreground">Ganado en este viaje</p>
+          <p className="mt-1 text-2xl font-bold">${formatUsd(ganado)} USD</p>
+          {porConfirmar > 0 && (
+            <p className="mt-1 text-sm text-muted-foreground">
+              +${formatUsd(porConfirmar)} por confirmar
+            </p>
+          )}
+        </div>
+      )}
       {isLoading && <p className="mt-4 text-muted-foreground">Cargando solicitudes…</p>}
       {isError && (
         <p className="mt-4 text-destructive">No se pudieron consultar las solicitudes.</p>
@@ -550,7 +610,8 @@ export function TripRequests({
               </ul>
               {r.amount_usd != null && (
                 <p className="mt-1 font-mono text-sm font-semibold">
-                  ${formatUsd(r.amount_usd)} USD
+                  ${formatUsd(r.amount_usd)} USD{" "}
+                  <span className="font-normal text-muted-foreground">· para ti</span>
                 </p>
               )}
               <p className="mt-3 flex items-start gap-2 text-sm">
@@ -663,8 +724,9 @@ function AcceptDialog({
         {request && (
           <>
             <p className="text-sm text-muted-foreground">
-              El solicitante deberá pagar este monto por pago móvil. La carga entra al viaje cuando
-              el pago se confirme.
+              {valid
+                ? `El solicitante paga $${formatUsd(clientTotalUsd(usd) ?? usd)} por pago móvil (tu monto + 25% de servicio). La carga entra al viaje cuando el pago se confirme.`
+                : "El solicitante paga tu monto + 25% de servicio por pago móvil. La carga entra al viaje cuando el pago se confirme."}
             </p>
             <div>
               <Label htmlFor="accept-amount">Monto (USD)</Label>
@@ -680,7 +742,7 @@ function AcceptDialog({
               />
               {valid && rate && (
                 <p className="mt-2 font-mono text-sm text-muted-foreground">
-                  ≈ Bs {formatBs(usd * rate.rate)}{" "}
+                  el solicitante paga ≈ Bs {formatBs(usd * 1.25 * rate.rate)}{" "}
                   <span className="text-xs">(tasa BCV {formatBs(rate.rate)})</span>
                 </p>
               )}

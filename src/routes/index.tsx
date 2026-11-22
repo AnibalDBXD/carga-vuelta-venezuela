@@ -9,9 +9,17 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "CargaRuta — Optimiza tu carga y no regreses vacío" },
-      { name: "description", content: "App para camioneros en Venezuela: planifica rutas desde Valencia, acomoda la carga en 3D y consigue carga de retorno." },
+      {
+        name: "description",
+        content:
+          "App para camioneros en Venezuela: planifica rutas desde Valencia, acomoda la carga en 3D y consigue carga de retorno.",
+      },
       { property: "og:title", content: "CargaRuta — Optimiza tu carga y no regreses vacío" },
-      { property: "og:description", content: "Planifica rutas desde Valencia, acomoda la carga en 3D y consigue carga de retorno." },
+      {
+        property: "og:description",
+        content:
+          "Planifica rutas desde Valencia, acomoda la carga en 3D y consigue carga de retorno.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -21,9 +29,42 @@ export const Route = createFileRoute("/")({
 
 const demoBoxes = () =>
   packCargo({ length: 420, width: 200, height: 200, maxKg: 3500 }, [
-    { id: "a", name: "Harina", length: 100, width: 120, height: 90, weight: 400, qty: 4, fragile: false, deadline: "", recipient: "" },
-    { id: "b", name: "Electrodomésticos", length: 60, width: 60, height: 80, weight: 40, qty: 6, fragile: true, deadline: "", recipient: "" },
-    { id: "c", name: "Repuestos", length: 50, width: 40, height: 40, weight: 20, qty: 10, fragile: false, deadline: "", recipient: "" },
+    {
+      id: "a",
+      name: "Harina",
+      length: 100,
+      width: 120,
+      height: 90,
+      weight: 400,
+      qty: 4,
+      fragile: false,
+      deadline: "",
+      recipient: "",
+    },
+    {
+      id: "b",
+      name: "Electrodomésticos",
+      length: 60,
+      width: 60,
+      height: 80,
+      weight: 40,
+      qty: 6,
+      fragile: true,
+      deadline: "",
+      recipient: "",
+    },
+    {
+      id: "c",
+      name: "Repuestos",
+      length: 50,
+      width: 40,
+      height: 40,
+      weight: 20,
+      qty: 10,
+      fragile: false,
+      deadline: "",
+      recipient: "",
+    },
   ]).placed;
 
 function Index() {
@@ -33,15 +74,42 @@ function Index() {
       <section className="grid-asphalt border-b border-border">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 lg:grid-cols-2">
           <div>
-            <p className="font-mono text-xs uppercase tracking-widest text-primary">Valencia · Caracas · Puerto Cabello</p>
-            <h1 className="mt-3 text-4xl font-bold leading-tight md:text-6xl">Carga más.<br />No regreses vacío.</h1>
-            <p className="mt-5 max-w-lg text-lg text-muted-foreground">Describe tu camión y tus paquetes. CargaRuta acomoda la carga en 3D, traza tu ruta y publica el espacio libre de tus viajes de ida y vuelta para que otros te contraten.</p>
+            <p className="font-mono text-xs uppercase tracking-widest text-primary">
+              Valencia · Caracas · Puerto Cabello
+            </p>
+            <h1
+              className="mt-3 text-4xl font-bold leading-tight md:text-6xl"
+              style={{ viewTransitionName: "page-title" }}
+            >
+              Carga más.
+              <br />
+              No regreses vacío.
+            </h1>
+            <p className="mt-5 max-w-lg text-lg text-muted-foreground">
+              Describe tu camión y tus paquetes. CargaRuta acomoda la carga en 3D, traza tu ruta y
+              publica el espacio libre de tus viajes de ida y vuelta para que otros te contraten.
+            </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg"><Link to="/viajes/nuevo">Planificar un viaje <ArrowRight /></Link></Button>
-              <Button asChild size="lg" variant="outline"><Link to="/bolsa">Buscar espacio</Link></Button>
+              <Button asChild size="lg">
+                <Link to="/viajes/nuevo">
+                  Planificar un viaje <ArrowRight />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link to="/bolsa">Buscar espacio</Link>
+              </Button>
             </div>
           </div>
-          <Truck3DView kind="camion350" length={420} width={200} height={200} boxes={boxes} colorKeys={["a", "b", "c"]} spin className="h-[380px]" />
+          <Truck3DView
+            kind="camion350"
+            length={420}
+            width={200}
+            height={200}
+            boxes={boxes}
+            colorKeys={["a", "b", "c"]}
+            spin
+            className="h-[380px]"
+          />
         </div>
       </section>
       <RouteMatch />
@@ -49,12 +117,14 @@ function Index() {
         <div className="mx-auto max-w-6xl px-4 py-14">
           <div className="max-w-2xl">
             <p className="font-mono text-xs uppercase tracking-widest text-primary">El modelo</p>
-            <h2 className="mt-3 text-3xl font-bold leading-tight md:text-4xl">Dos lados, el mismo viaje.</h2>
+            <h2 className="mt-3 text-3xl font-bold leading-tight md:text-4xl">
+              Dos lados, el mismo viaje.
+            </h2>
             <p className="mt-3 text-muted-foreground">
               El camión ya tiene que salir y la carga ya tiene que llegar. CargaRuta los pone en la
               misma ruta: el conductor publica el espacio que le sobra, quien necesita mover algo
-              envía su solicitud y, cuando el conductor fija el precio, se paga en la plataforma.
-              El paquete entra en el viaje cuando el pago se confirma.
+              envía su solicitud y, cuando el conductor fija el precio, se paga en la plataforma. El
+              paquete entra en el viaje cuando el pago se confirma.
             </p>
           </div>
           <p className="mt-6 max-w-2xl text-sm text-muted-foreground">

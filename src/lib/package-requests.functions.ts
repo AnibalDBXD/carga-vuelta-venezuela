@@ -8,6 +8,7 @@ import {
   type PublicOffer,
   type SharedTrip,
 } from "./package-request";
+import { offerDeparted } from "./offer-time";
 
 // Capability-only RPCs expose route details and accept submissions, never private rows.
 export function publicClient(url: string | undefined, key: string | undefined) {
@@ -48,6 +49,7 @@ export const getOffer = createServerFn({ method: "GET" })
       .eq("active", true)
       .maybeSingle();
     if (error) throw new Error("No se pudo consultar el viaje");
+    if (offer && offerDeparted(offer)) return null;
     return offer as PublicOffer | null;
   });
 export const submitOfferRequest = createServerFn({ method: "POST" })

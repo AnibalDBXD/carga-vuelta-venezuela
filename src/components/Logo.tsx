@@ -14,8 +14,18 @@ export function LogoMark({ className }: { className?: string }) {
       className={cn("h-8 w-8 shrink-0", className)}
     >
       <g fill="none" strokeLinecap="round">
-        <path d="M21 58A37 37 0 0 1 58 21" stroke="currentColor" strokeWidth="5.6" className="text-primary" />
-        <path d="M43 58A15 15 0 0 1 58 43" stroke="currentColor" strokeWidth="5.6" className="text-primary" />
+        <path
+          d="M21 58A37 37 0 0 1 58 21"
+          stroke="currentColor"
+          strokeWidth="5.6"
+          className="text-primary"
+        />
+        <path
+          d="M43 58A15 15 0 0 1 58 43"
+          stroke="currentColor"
+          strokeWidth="5.6"
+          className="text-primary"
+        />
         <path
           d="M32 58A26 26 0 0 1 58 32"
           stroke="currentColor"

@@ -53,7 +53,9 @@ function AuthPage() {
   return (
     <main className="grid min-h-[calc(100vh-3.75rem)] place-items-center grid-asphalt px-4">
       <div className="w-full max-w-sm rounded-lg border border-border bg-card p-6 shadow-xl">
-        <h1 className="text-2xl font-bold">{mode === "in" ? "Entrar" : "Crear cuenta"}</h1>
+        <h1 className="text-2xl font-bold" style={{ viewTransitionName: "page-title" }}>
+          {mode === "in" ? "Entrar" : "Crear cuenta"}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">Para camioneros y transportistas.</p>
         <form onSubmit={submit} className="mt-6 space-y-3">
           <div>

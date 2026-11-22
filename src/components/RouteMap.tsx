@@ -80,10 +80,8 @@ export default function RouteMap({ corridors, markers, onPick, className }: Rout
     });
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-right");
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right");
-    if (onPick) {
-      map.getCanvas().style.cursor = "crosshair";
-      map.on("click", (e) => onPickRef.current?.({ lng: e.lngLat.lng, lat: e.lngLat.lat }));
-    }
+    map.getCanvas().style.cursor = onPickRef.current ? "crosshair" : "";
+    map.on("click", (e) => onPickRef.current?.({ lng: e.lngLat.lng, lat: e.lngLat.lat }));
     map.on("load", () => setReady(true));
     mapRef.current = map;
     return () => {
@@ -93,7 +91,6 @@ export default function RouteMap({ corridors, markers, onPick, className }: Rout
     };
   }, []);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- deps son las claves serializadas
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready) return;

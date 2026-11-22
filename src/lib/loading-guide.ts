@@ -6,8 +6,8 @@ export function cargoLayers(boxes: Placed[]): number[] {
 }
 
 export function visibleCargo(boxes: Placed[], layer: number | null, step: number | null): Placed[] {
-  return boxes.filter((box) =>
-    (layer === null || box.z === layer) && (step === null || box.loadOrder <= step),
+  return boxes.filter(
+    (box) => (layer === null || box.z === layer) && (step === null || box.loadOrder <= step),
   );
 }
 

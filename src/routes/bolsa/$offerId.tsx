@@ -70,15 +70,22 @@ function OfferPage() {
       </main>
     );
   const preset = VEHICLE_PRESETS[offer.vehicle_kind as VehicleKind];
+  // La vista previa usa el espacio LIBRE ofertado, no la capacidad total del
+  // camión: el volumen ocupado no se puede modelar, pero el peso sí se limita.
   const container = preset
     ? {
         length: preset.length_cm,
         width: preset.width_cm,
         height: preset.height_cm,
-        maxKg: preset.max_kg,
+        maxKg: Math.min(preset.max_kg, offer.free_kg),
       }
     : null;
   const packed = preview.length > 0 && container ? packCargo(container, preview) : null;
+  const previewM3 =
+    Math.round(
+      preview.reduce((s, p) => s + ((p.length * p.width * p.height) / 1e6) * p.qty, 0) * 100,
+    ) / 100;
+  const overVolume = preview.length > 0 && previewM3 > offer.free_m3;
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
@@ -90,7 +97,10 @@ function OfferPage() {
         <Truck className="h-4 w-4" /> Espacio disponible · {offer.available_date}
         {offer.available_time ? ` · ${offer.available_time.slice(0, 5)}` : ""}
       </p>
-      <h1 className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]">
+      <h1
+        className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
+        style={{ viewTransitionName: `offer-title-${offerId}` }}
+      >
         {cityName(offer.origin)} → {cityName(offer.destination)}
       </h1>
       {(() => {
@@ -129,7 +139,10 @@ function OfferPage() {
           <p className="text-sm text-muted-foreground">
             {offer.driver_name} · {preset?.label ?? offer.vehicle_kind}
           </p>
-          <div className="mt-3 flex gap-6 font-mono text-sm">
+          <div
+            className="mt-3 flex gap-6 font-mono text-sm"
+            style={{ viewTransitionName: `offer-space-${offerId}` }}
+          >
             <span>{offer.free_m3} m³ libres</span>
             <span>{offer.free_kg.toLocaleString("es-VE")} kg libres</span>
           </div>
@@ -156,6 +169,12 @@ function OfferPage() {
             <p className="mt-3 flex items-center gap-2 text-sm text-destructive">
               <AlertTriangle className="h-4 w-4 shrink-0" /> {packed.unplaced.length} bulto(s) no
               caben en el espacio disponible.
+            </p>
+          )}
+          {overVolume && (
+            <p className="mt-3 flex items-center gap-2 text-sm text-destructive">
+              <AlertTriangle className="h-4 w-4 shrink-0" /> Tu carga ocupa {previewM3} m³ y el
+              camión solo ofrece {offer.free_m3} m³ libres.
             </p>
           )}
         </div>

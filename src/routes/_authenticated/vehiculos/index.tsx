@@ -71,7 +71,10 @@ function Vehiculos() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="font-mono text-xs uppercase tracking-widest text-primary">Flota</p>
-          <h1 className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]">
+          <h1
+            className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
+            style={{ viewTransitionName: "page-title" }}
+          >
             {open ? "Agregar vehículo" : "Mis vehículos"}
           </h1>
           <p className="mt-2 text-muted-foreground">
@@ -143,7 +146,12 @@ function Vehiculos() {
                     </div>
                     <div className="p-4">
                       <div className="flex items-start justify-between gap-2">
-                        <h2 className="text-lg font-bold leading-tight">{v.name}</h2>
+                        <h2
+                          className="text-lg font-bold leading-tight"
+                          style={{ viewTransitionName: `vehicle-title-${v.id}` }}
+                        >
+                          {v.name}
+                        </h2>
                         <Button
                           size="icon"
                           variant="ghost"

@@ -6,7 +6,15 @@ import type { VehicleKind } from "@/lib/venezuela";
  */
 const TRUCKS: Record<
   Exclude<VehicleKind, "auto">,
-  { cabW: number; cabH: number; boxW: number; boxH: number; bed?: boolean; gap?: number; third?: boolean }
+  {
+    cabW: number;
+    cabH: number;
+    boxW: number;
+    boxH: number;
+    bed?: boolean;
+    gap?: number;
+    third?: boolean;
+  }
 > = {
   pickup: { cabW: 48, cabH: 36, boxW: 66, boxH: 26, bed: true },
   furgon: { cabW: 26, cabH: 40, boxW: 116, boxH: 54 },
@@ -33,8 +41,22 @@ export function VehicleThumb({ kind, className }: { kind: VehicleKind; className
           fill="var(--background)"
           opacity="0.55"
         />
-        <circle cx="82" cy="90" r="10" fill="var(--background)" stroke="var(--foreground)" strokeWidth="4" />
-        <circle cx="168" cy="90" r="10" fill="var(--background)" stroke="var(--foreground)" strokeWidth="4" />
+        <circle
+          cx="82"
+          cy="90"
+          r="10"
+          fill="var(--background)"
+          stroke="var(--foreground)"
+          strokeWidth="4"
+        />
+        <circle
+          cx="168"
+          cy="90"
+          r="10"
+          fill="var(--background)"
+          stroke="var(--foreground)"
+          strokeWidth="4"
+        />
       </svg>
     );
   }
@@ -64,13 +86,41 @@ export function VehicleThumb({ kind, className }: { kind: VehicleKind; className
       {/* carrocería */}
       {t.bed ? (
         <>
-          <rect x={boxX0} y={GROUND - t.boxH} width={t.boxW} height={t.boxH} fill="var(--foreground)" opacity="0.9" />
-          <rect x={boxX0} y={GROUND - t.boxH} width={t.boxW} height="5" fill="var(--background)" opacity="0.25" />
+          <rect
+            x={boxX0}
+            y={GROUND - t.boxH}
+            width={t.boxW}
+            height={t.boxH}
+            fill="var(--foreground)"
+            opacity="0.9"
+          />
+          <rect
+            x={boxX0}
+            y={GROUND - t.boxH}
+            width={t.boxW}
+            height="5"
+            fill="var(--background)"
+            opacity="0.25"
+          />
         </>
       ) : (
         <>
-          <rect x={boxX0} y={boxTop} width={t.boxW} height={t.boxH} fill="var(--foreground)" opacity="0.9" />
-          <rect x={boxX0 + 8} y={boxTop + 8} width={t.boxW - 16} height="2" fill="var(--background)" opacity="0.18" />
+          <rect
+            x={boxX0}
+            y={boxTop}
+            width={t.boxW}
+            height={t.boxH}
+            fill="var(--foreground)"
+            opacity="0.9"
+          />
+          <rect
+            x={boxX0 + 8}
+            y={boxTop + 8}
+            width={t.boxW - 16}
+            height="2"
+            fill="var(--background)"
+            opacity="0.18"
+          />
         </>
       )}
       {/* ruedas */}

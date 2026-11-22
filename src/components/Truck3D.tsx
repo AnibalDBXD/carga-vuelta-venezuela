@@ -5,7 +5,16 @@ import { Box3, Mesh, Vector3, type Object3D } from "three";
 import type { Placed } from "@/lib/packing";
 import type { VehicleKind } from "@/lib/venezuela";
 
-const PALETTE = ["#f2c230", "#4aa3df", "#5cc88a", "#e57a44", "#c86bd4", "#e0e0e0", "#ff6b6b", "#8fd3c8"];
+const PALETTE = [
+  "#f2c230",
+  "#4aa3df",
+  "#5cc88a",
+  "#e57a44",
+  "#c86bd4",
+  "#e0e0e0",
+  "#ff6b6b",
+  "#8fd3c8",
+];
 const BODY = "#f2c230";
 const GLASS = "#9fd3ff";
 const FRAME = "#24262b";
@@ -20,11 +29,14 @@ const MODELS: Record<VehicleKind, string> = {
   camion750: "/models/kenney-delivery.glb",
   gandola: "/models/tevy-semi-truck.glb",
 };
-Object.values(MODELS).forEach((u) => useGLTF.preload(u));
+// Solo se precarga el modelo del vehículo mostrado (ver VehicleGLB): precargar
+// los 6 GLB de golpe descarga megabytes que casi nunca se usan.
 
 type Props = {
   kind: VehicleKind;
-  length: number; width: number; height: number; // cm
+  length: number;
+  width: number;
+  height: number; // cm
   boxes?: Placed[];
   colorKeys?: string[];
   highlightedOrder?: number;
@@ -35,24 +47,53 @@ type Props = {
 
 // Look estándar (specs/002-vistas-3d.md): canvas transparente, sin fondo ni
 // piso — el camión flota sobre la página.
-export default function Truck3D({ kind, length, width, height, boxes = [], colorKeys = [], className, highlightedOrder, spin = false }: Props) {
-  const L = length / 100, W = width / 100, H = height / 100;
+export default function Truck3D({
+  kind,
+  length,
+  width,
+  height,
+  boxes = [],
+  colorKeys = [],
+  className,
+  highlightedOrder,
+  spin = false,
+}: Props) {
+  const L = length / 100,
+    W = width / 100,
+    H = height / 100;
   const s = spec(kind, L, W);
   const open = kind === "pickup" || kind === "auto";
   const span = Math.max(L + s.cabL, 4);
   const ghost = boxes.length > 0;
   return (
     <div className={className}>
-      <Canvas camera={{ position: [span * 0.9, span * 0.55, span * 0.9], fov: 40 }} shadows dpr={[1, 2]} gl={{ alpha: true }}>
+      <Canvas
+        camera={{ position: [span * 0.9, span * 0.55, span * 0.9], fov: 40 }}
+        shadows
+        dpr={[1, 2]}
+        gl={{ alpha: true }}
+      >
         <FitCamera span={span} />
         <ambientLight intensity={0.5} />
         <directionalLight position={[5, 10, 5]} intensity={1.4} castShadow />
         <Environment resolution={64}>
           <Lightformer intensity={2} position={[0, 5, 0]} scale={[10, 10, 1]} />
-          <Lightformer intensity={1} position={[-5, 1, -1]} rotation-y={Math.PI / 2} scale={[20, 1, 1]} />
+          <Lightformer
+            intensity={1}
+            position={[-5, 1, -1]}
+            rotation-y={Math.PI / 2}
+            scale={[20, 1, 1]}
+          />
         </Environment>
         <group position={[-(L - s.cabL) / 2, 0, 0]}>
-          <ModelBoundary fallback={<><Body kind={kind} L={L} W={W} H={H} cabL={s.cabL} chassis={s.chassis} /><Wheels axles={s.axles} track={s.track} r={s.wheelR} w={s.wheelW} /></>}>
+          <ModelBoundary
+            fallback={
+              <>
+                <Body kind={kind} L={L} W={W} H={H} cabL={s.cabL} chassis={s.chassis} />
+                <Wheels axles={s.axles} track={s.track} r={s.wheelR} w={s.wheelW} />
+              </>
+            }
+          >
             <Suspense fallback={null}>
               <VehicleGLB kind={kind} L={L} cabL={s.cabL} ghost={ghost} />
             </Suspense>
@@ -61,7 +102,12 @@ export default function Truck3D({ kind, length, width, height, boxes = [], color
           <group position={[0, s.chassis, -W / 2]}>
             <mesh position={[L / 2, H / 2, W / 2]}>
               <boxGeometry args={[L, H, W]} />
-              <meshStandardMaterial color={open ? "#888" : "#d9dde3"} transparent opacity={open ? 0.06 : 0.12} depthWrite={false} />
+              <meshStandardMaterial
+                color={open ? "#888" : "#d9dde3"}
+                transparent
+                opacity={open ? 0.06 : 0.12}
+                depthWrite={false}
+              />
               <Edges color="#f2c230" />
             </mesh>
             <mesh position={[L / 2, 0.01, W / 2]} rotation-x={-Math.PI / 2}>
@@ -71,19 +117,53 @@ export default function Truck3D({ kind, length, width, height, boxes = [], color
             {boxes.map((b) => {
               const ci = Math.max(0, colorKeys.indexOf(b.pkgId));
               return (
-                <mesh key={`${b.pkgId}-${b.unit}`} position={[(b.x + b.l / 2) / 100, (b.z + b.h / 2) / 100, (b.y + b.w / 2) / 100]} castShadow>
+                <mesh
+                  key={`${b.pkgId}-${b.unit}`}
+                  position={[(b.x + b.l / 2) / 100, (b.z + b.h / 2) / 100, (b.y + b.w / 2) / 100]}
+                  castShadow
+                >
                   <boxGeometry args={[b.l / 100 - 0.01, b.h / 100 - 0.01, b.w / 100 - 0.01]} />
-                  <meshStandardMaterial color={PALETTE[ci % PALETTE.length] ?? "#f2c230"} roughness={0.7} transparent={highlightedOrder !== undefined && b.loadOrder !== highlightedOrder} opacity={highlightedOrder !== undefined && b.loadOrder !== highlightedOrder ? 0.3 : 1} />
-                  <Edges color={b.fragile ? "#ff3b3b" : b.loadOrder === highlightedOrder ? "#f2c230" : "#1a1a1a"} />
+                  <meshStandardMaterial
+                    color={PALETTE[ci % PALETTE.length] ?? "#f2c230"}
+                    roughness={0.7}
+                    transparent={highlightedOrder !== undefined && b.loadOrder !== highlightedOrder}
+                    opacity={
+                      highlightedOrder !== undefined && b.loadOrder !== highlightedOrder ? 0.3 : 1
+                    }
+                  />
+                  <Edges
+                    color={
+                      b.fragile
+                        ? "#ff3b3b"
+                        : b.loadOrder === highlightedOrder
+                          ? "#f2c230"
+                          : "#1a1a1a"
+                    }
+                  />
                 </mesh>
               );
             })}
             <Html position={[L, H + 0.15, W / 2]} center>
-              <span style={{ fontFamily: "IBM Plex Mono", fontSize: 11, color: "#f2c230", whiteSpace: "nowrap" }}>{kind === "auto" ? "MALETERO ▸" : "PUERTA ▸"}</span>
+              <span
+                style={{
+                  fontFamily: "IBM Plex Mono",
+                  fontSize: 11,
+                  color: "#f2c230",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {kind === "auto" ? "MALETERO ▸" : "PUERTA ▸"}
+              </span>
             </Html>
           </group>
         </group>
-        <OrbitControls makeDefault target={[0, 1, 0]} maxPolarAngle={Math.PI / 2.05} autoRotate={spin} autoRotateSpeed={0.35} />
+        <OrbitControls
+          makeDefault
+          target={[0, 1, 0]}
+          maxPolarAngle={Math.PI / 2.05}
+          autoRotate={spin}
+          autoRotateSpeed={0.35}
+        />
       </Canvas>
     </div>
   );
@@ -96,20 +176,62 @@ type Dims = { L: number; W: number; H: number; cabL: number; chassis: number };
 function spec(kind: VehicleKind, L: number, W: number) {
   switch (kind) {
     case "auto":
-      return { cabL: 2.9, chassis: 0.5, wheelR: 0.32, wheelW: 0.22, track: W / 2 + 0.2, axles: [-2.1, -0.5] };
+      return {
+        cabL: 2.9,
+        chassis: 0.5,
+        wheelR: 0.32,
+        wheelW: 0.22,
+        track: W / 2 + 0.2,
+        axles: [-2.1, -0.5],
+      };
     case "pickup":
-      return { cabL: 1.9, chassis: 0.85, wheelR: 0.38, wheelW: 0.28, track: W / 2 + 0.15, axles: [-1.35, L * 0.68] };
+      return {
+        cabL: 1.9,
+        chassis: 0.85,
+        wheelR: 0.38,
+        wheelW: 0.28,
+        track: W / 2 + 0.15,
+        axles: [-1.35, L * 0.68],
+      };
     case "furgon":
-      return { cabL: 1.5, chassis: 0.55, wheelR: 0.34, wheelW: 0.24, track: W / 2 + 0.12, axles: [-0.95, L * 0.66] };
+      return {
+        cabL: 1.5,
+        chassis: 0.55,
+        wheelR: 0.34,
+        wheelW: 0.24,
+        track: W / 2 + 0.12,
+        axles: [-0.95, L * 0.66],
+      };
     case "camion750": {
       const cabL = Math.min(2.2, Math.max(1.6, L * 0.35));
-      return { cabL, chassis: 0.95, wheelR: 0.5, wheelW: 0.38, track: W / 2 + 0.05, axles: [-cabL + 0.7, L * 0.62, L * 0.85] };
+      return {
+        cabL,
+        chassis: 0.95,
+        wheelR: 0.5,
+        wheelW: 0.38,
+        track: W / 2 + 0.05,
+        axles: [-cabL + 0.7, L * 0.62, L * 0.85],
+      };
     }
     case "gandola":
-      return { cabL: 2.7, chassis: 1.15, wheelR: 0.5, wheelW: 0.38, track: W / 2 - 0.05, axles: [-2.15, -0.95, -0.35, L - 1.9, L - 0.6] };
+      return {
+        cabL: 2.7,
+        chassis: 1.15,
+        wheelR: 0.5,
+        wheelW: 0.38,
+        track: W / 2 - 0.05,
+        axles: [-2.15, -0.95, -0.35, L - 1.9, L - 0.6],
+      };
     default: {
       const cabL = Math.min(2, Math.max(1.4, L * 0.4));
-      return { cabL, chassis: 0.9, wheelR: 0.45, wheelW: 0.34, track: W / 2 + 0.05, axles: [-cabL + 0.6, L * 0.72] };
+      return {
+        cabL,
+        chassis: 0.9,
+        wheelR: 0.45,
+        wheelW: 0.34,
+        track: W / 2 + 0.05,
+        axles: [-cabL + 0.6, L * 0.72],
+      };
     }
   }
 }
@@ -117,9 +239,9 @@ function spec(kind: VehicleKind, L: number, W: number) {
 function Wheels({ axles, track, r, w }: { axles: number[]; track: number; r: number; w: number }) {
   return (
     <>
-      {axles.flatMap((x) => [-1, 1].map((s) => (
-        <Wheel key={`${x}${s}`} x={x} z={s * track} r={r} w={w} />
-      )))}
+      {axles.flatMap((x) =>
+        [-1, 1].map((s) => <Wheel key={`${x}${s}`} x={x} z={s * track} r={r} w={w} />),
+      )}
     </>
   );
 }
@@ -139,10 +261,17 @@ function Wheel({ x, z, r, w }: { x: number; z: number; r: number; w: number }) {
   );
 }
 
-class ModelBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+class ModelBoundary extends Component<
+  { fallback: ReactNode; children: ReactNode },
+  { failed: boolean }
+> {
   override state = { failed: false };
-  static getDerivedStateFromError() { return { failed: true }; }
-  override render() { return this.state.failed ? this.props.fallback : this.props.children; }
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  override render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
 }
 
 /** Nodos del GLB que se vuelven fantasma: todo excepto el tractor de la gandola. */
@@ -150,20 +279,39 @@ function isGhostTarget(kind: VehicleKind, o: Object3D) {
   if (kind !== "gandola") return true;
   let n: Object3D | null = o;
   while (n) {
-    if (n.name === "trailer" || n.name.startsWith("trailer_") || n.name.startsWith("door_rear") || n.name.startsWith("landing_leg")) return true;
+    if (
+      n.name === "trailer" ||
+      n.name.startsWith("trailer_") ||
+      n.name.startsWith("door_rear") ||
+      n.name.startsWith("landing_leg")
+    )
+      return true;
     n = n.parent;
   }
   return false;
 }
 
-function VehicleGLB({ kind, L, cabL, ghost }: { kind: VehicleKind; L: number; cabL: number; ghost: boolean }) {
+function VehicleGLB({
+  kind,
+  L,
+  cabL,
+  ghost,
+}: {
+  kind: VehicleKind;
+  L: number;
+  cabL: number;
+  ghost: boolean;
+}) {
+  useGLTF.preload(MODELS[kind]);
   const { scene } = useGLTF(MODELS[kind]);
   const model = useMemo(() => {
     const cloned = scene.clone(true);
     cloned.traverse((o) => {
       if (o instanceof Mesh) {
         o.castShadow = true;
-        o.material = Array.isArray(o.material) ? o.material.map((m) => m.clone()) : o.material.clone();
+        o.material = Array.isArray(o.material)
+          ? o.material.map((m) => m.clone())
+          : o.material.clone();
       }
     });
     return cloned;
@@ -187,17 +335,30 @@ function VehicleGLB({ kind, L, cabL, ghost }: { kind: VehicleKind; L: number; ca
       }
     });
   }, [model, ghost, kind]);
-  return <primitive object={model} rotation-y={-Math.PI / 2} scale={xform.s} position={[xform.x, xform.y, xform.z]} />;
+  return (
+    <primitive
+      object={model}
+      rotation-y={-Math.PI / 2}
+      scale={xform.s}
+      position={[xform.x, xform.y, xform.z]}
+    />
+  );
 }
 
 function Body({ kind, ...dims }: Dims & { kind: VehicleKind }) {
   switch (kind) {
-    case "auto": return <CarBody {...dims} />;
-    case "pickup": return <PickupBody {...dims} />;
-    case "furgon": return <VanBody {...dims} />;
-    case "gandola": return <SemiBody {...dims} />;
-    case "camion750": return <BoxTruckBody {...dims} big />;
-    default: return <BoxTruckBody {...dims} big={false} />;
+    case "auto":
+      return <CarBody {...dims} />;
+    case "pickup":
+      return <PickupBody {...dims} />;
+    case "furgon":
+      return <VanBody {...dims} />;
+    case "gandola":
+      return <SemiBody {...dims} />;
+    case "camion750":
+      return <BoxTruckBody {...dims} big />;
+    default:
+      return <BoxTruckBody {...dims} big={false} />;
   }
 }
 
@@ -217,7 +378,8 @@ function Headlights({ x, y, z }: { x: number; y: number; z: number }) {
 /** Sedán: capó + cabina acristalada + maletero (la zona de carga). */
 function CarBody({ L, W, cabL }: Dims) {
   const bw = W + 0.45;
-  const x1 = -cabL + 1.0, x2 = -0.15;
+  const x1 = -cabL + 1.0,
+    x2 = -0.15;
   return (
     <group>
       <mesh position={[(L - cabL) / 2, 0.3, 0]} castShadow>
@@ -469,7 +631,7 @@ function SemiBody({ L, W, cabL, chassis }: Dims) {
 function FitCamera({ span }: { span: number }) {
   const { camera, size, invalidate } = useThree();
   useEffect(() => {
-    const factor = Math.max(1, 1.3 * size.height / Math.max(1, size.width));
+    const factor = Math.max(1, (1.3 * size.height) / Math.max(1, size.width));
     camera.position.set(span * 0.9 * factor, span * 0.55 * factor, span * 0.9 * factor);
     camera.lookAt(0, 1, 0);
     camera.updateProjectionMatrix();

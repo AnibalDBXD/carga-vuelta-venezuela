@@ -33,7 +33,7 @@ export async function searchPlaces(query: string, token: string): Promise<Geocod
     limit: "5",
     types: "address,street,place,locality,neighborhood",
   }).toString();
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
   if (!res.ok) return [];
   const json = (await res.json()) as { features?: Feature[] };
   return (json.features ?? [])
@@ -61,7 +61,7 @@ export async function reversePlace(
     types: "address,street,place,locality,neighborhood",
   }).toString();
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     if (!res.ok) return null;
     const json = (await res.json()) as { features?: Feature[] };
     return labelOf(json.features?.[0] ?? {});

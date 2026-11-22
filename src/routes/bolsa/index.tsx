@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Package } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cityName, VEHICLE_PRESETS, type VehicleKind } from "@/lib/venezuela";
 import { CityField } from "@/components/CityField";
+import { OfferDepartureBar } from "@/components/OfferDepartureBar";
+import { offerDeparted } from "@/lib/offer-time";
 import { PUBLIC_OFFER_COLUMNS, type PublicOffer } from "@/lib/package-request";
 import { Button } from "@/components/ui/button";
 
@@ -33,25 +35,36 @@ export const Route = createFileRoute("/bolsa/")({
 function Bolsa() {
   const [origin, setOrigin] = useState("");
   const [dest, setDest] = useState("");
-  const { data = [], isLoading } = useQuery({
+  const {
+    data = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["return_offers"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("return_offers")
         .select(PUBLIC_OFFER_COLUMNS)
         .eq("active", true)
+        .gte("available_date", new Date().toISOString().slice(0, 10))
         .order("available_date");
       if (error) throw error;
       return data as PublicOffer[];
     },
   });
   const list = data.filter(
-    (o) => (!origin || o.origin === origin) && (!dest || o.destination === dest),
+    (o) =>
+      (!origin || o.origin === origin) && (!dest || o.destination === dest) && !offerDeparted(o),
   );
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
       <p className="font-mono text-xs uppercase tracking-widest text-primary">Espacio disponible</p>
-      <h1 className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]">Bolsa de viajes</h1>
+      <h1
+        className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
+        style={{ viewTransitionName: "page-title" }}
+      >
+        Bolsa de viajes
+      </h1>
       <p className="mt-2 text-muted-foreground">
         Camiones con espacio libre para tu carga. Envía tu solicitud y el conductor te contactará.
       </p>
@@ -79,7 +92,8 @@ function Bolsa() {
       </div>
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         {isLoading && <p className="text-muted-foreground">Cargando…</p>}
-        {!isLoading && list.length === 0 && (
+        {isError && <p className="text-destructive">No se pudo consultar la bolsa de viajes.</p>}
+        {!isLoading && !isError && list.length === 0 && (
           <p className="text-muted-foreground">
             No hay camiones disponibles para esa ruta todavía.
           </p>
@@ -93,10 +107,17 @@ function Bolsa() {
 }
 
 function OfferCard({ offer: o }: { offer: PublicOffer }) {
+  // La página puede quedar abierta: la tarjeta se oculta sola al llegar la hora.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  if (offerDeparted(o, new Date(now))) return null;
   return (
     <article className="rounded-lg border border-border bg-card p-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold">
+        <h2 className="text-lg font-bold" style={{ viewTransitionName: `offer-title-${o.id}` }}>
           {cityName(o.origin)} → {cityName(o.destination)}
         </h2>
         <span className="font-mono text-xs text-primary">
@@ -107,10 +128,14 @@ function OfferCard({ offer: o }: { offer: PublicOffer }) {
       <p className="mt-1 text-sm text-muted-foreground">
         {o.driver_name} · {VEHICLE_PRESETS[o.vehicle_kind as VehicleKind]?.label ?? o.vehicle_kind}
       </p>
-      <div className="mt-3 flex gap-6 font-mono text-sm">
+      <div
+        className="mt-3 flex gap-6 font-mono text-sm"
+        style={{ viewTransitionName: `offer-space-${o.id}` }}
+      >
         <span>{o.free_m3} m³ libres</span>
         <span>{o.free_kg.toLocaleString("es-VE")} kg libres</span>
       </div>
+      <OfferDepartureBar offer={o} />
       {o.notes && <p className="mt-3 text-sm">{o.notes}</p>}
       <Button asChild size="sm" className="mt-4">
         <Link to="/bolsa/$offerId" params={{ offerId: o.id }}>
