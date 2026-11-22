@@ -111,18 +111,23 @@ function PaymentPage() {
         aria-label="Resumen de la carga"
       >
         <h2 className="flex items-center gap-2 font-bold">
-          <Package className="h-4 w-4" /> {s.package.name} · {s.package.qty} bulto(s)
+          <Package className="h-4 w-4" /> Tu carga · {s.package.reduce((sum, p) => sum + p.qty, 0)}{" "}
+          bulto(s)
         </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {s.package.length} × {s.package.width} × {s.package.height} cm · {s.package.weight} kg c/u
-          {s.package.fragile ? " · Frágil" : ""}
-        </p>
+        <ul className="mt-1 space-y-1 text-sm text-muted-foreground">
+          {s.package.map((p) => (
+            <li key={p.id}>
+              {p.name} · {p.qty} × {p.length} × {p.width} × {p.height} cm · {p.weight} kg c/u
+              {p.fragile ? " · Frágil" : ""}
+            </li>
+          ))}
+        </ul>
         <p className="mt-3 flex items-start gap-2 text-sm">
           <MapPin className="h-4 w-4 shrink-0" />
           <span className="break-words">
-            <strong>Recogida:</strong> {s.package.pickup}
+            <strong>Recogida:</strong> {s.package[0]?.pickup}
             <br />
-            <strong>Entrega:</strong> {s.package.recipient}
+            <strong>Entrega:</strong> {s.package[0]?.recipient}
           </span>
         </p>
         {s.amount_usd != null && (

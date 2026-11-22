@@ -29,10 +29,11 @@ type Props = {
   colorKeys?: string[];
   highlightedOrder?: number;
   className?: string;
-  bare?: boolean; // sin fondo ni piso: el camión flota sobre la página
 };
 
-export default function Truck3D({ kind, length, width, height, boxes = [], colorKeys = [], className, highlightedOrder, bare = false }: Props) {
+// Look estándar (specs/002-vistas-3d.md): canvas transparente, sin fondo ni
+// piso — el camión flota sobre la página.
+export default function Truck3D({ kind, length, width, height, boxes = [], colorKeys = [], className, highlightedOrder }: Props) {
   const L = length / 100, W = width / 100, H = height / 100;
   const s = spec(kind, L, W);
   const open = kind === "pickup" || kind === "auto";
@@ -40,9 +41,8 @@ export default function Truck3D({ kind, length, width, height, boxes = [], color
   const ghost = boxes.length > 0;
   return (
     <div className={className}>
-      <Canvas camera={{ position: [span * 0.9, span * 0.55, span * 0.9], fov: 40 }} shadows dpr={[1, 2]} gl={{ alpha: bare }}>
+      <Canvas camera={{ position: [span * 0.9, span * 0.55, span * 0.9], fov: 40 }} shadows dpr={[1, 2]} gl={{ alpha: true }}>
         <FitCamera span={span} />
-        {!bare && <color attach="background" args={["#1d1f24"]} />}
         <ambientLight intensity={0.5} />
         <directionalLight position={[5, 10, 5]} intensity={1.4} castShadow />
         <Environment resolution={64}>
@@ -50,14 +50,6 @@ export default function Truck3D({ kind, length, width, height, boxes = [], color
           <Lightformer intensity={1} position={[-5, 1, -1]} rotation-y={Math.PI / 2} scale={[20, 1, 1]} />
         </Environment>
         <group position={[-(L - s.cabL) / 2, 0, 0]}>
-          {/* ground */}
-          {!bare && <>
-            <mesh rotation-x={-Math.PI / 2} position={[L / 2 - s.cabL / 2, 0, 0]} receiveShadow>
-              <planeGeometry args={[span * 3, span * 3]} />
-              <meshStandardMaterial color="#2a2c31" roughness={0.95} />
-            </mesh>
-            <gridHelper args={[span * 3, Math.round(span * 3), "#3a3d44", "#30333a"]} position={[L / 2 - s.cabL / 2, 0.002, 0]} />
-          </>}
           <ModelBoundary fallback={<><Body kind={kind} L={L} W={W} H={H} cabL={s.cabL} chassis={s.chassis} /><Wheels axles={s.axles} track={s.track} r={s.wheelR} w={s.wheelW} /></>}>
             <Suspense fallback={null}>
               <VehicleGLB kind={kind} L={L} cabL={s.cabL} ghost={ghost} />

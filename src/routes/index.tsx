@@ -40,7 +40,7 @@ function Index() {
               <Button asChild size="lg" variant="outline"><Link to="/bolsa">Buscar camión</Link></Button>
             </div>
           </div>
-          <Truck3DView kind="camion350" length={420} width={200} height={200} boxes={boxes} colorKeys={["a", "b", "c"]} className="h-[380px] overflow-hidden rounded-lg border border-border" />
+          <Truck3DView kind="camion350" length={420} width={200} height={200} boxes={boxes} colorKeys={["a", "b", "c"]} className="h-[380px]" />
         </div>
       </section>
       <section className="mx-auto grid max-w-6xl gap-6 px-4 py-14 md:grid-cols-3">

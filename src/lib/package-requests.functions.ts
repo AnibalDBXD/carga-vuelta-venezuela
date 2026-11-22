@@ -63,7 +63,7 @@ export const submitOfferRequest = createServerFn({ method: "POST" })
       p_email: data.email,
       p_pickup: data.pickup,
       p_delivery: data.delivery,
-      p_package: data.package,
+      p_package: data.packages,
       p_notes: data.notes,
     });
     if (error || !requestId)

@@ -1,13 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { AlertTriangle, ArrowLeft, Truck } from "lucide-react";
 import { getOffer, submitOfferRequest } from "@/lib/package-requests.functions";
-import { cityName, VEHICLE_PRESETS, type VehicleKind } from "@/lib/venezuela";
+import { CITIES, cityName, suggestStops, VEHICLE_PRESETS, type VehicleKind } from "@/lib/venezuela";
+import { citiesAlongGeometry } from "@/lib/route-geometry";
+import { tripRouteQuery } from "@/lib/routes.functions";
 import { packCargo, type Pkg } from "@/lib/packing";
 import { Truck3DView } from "@/components/Truck3DLazy";
+import { RouteMapView } from "@/components/RouteMapLazy";
 import { PackageRequestForm } from "@/components/PackageRequestForm";
+import type { GeoPoint } from "@/components/AddressField";
 import { Button } from "@/components/ui/button";
 
 const offerQuery = (offerId: string) =>
@@ -49,7 +53,10 @@ function OfferPage() {
   const { offerId } = Route.useParams();
   const { data: offer } = useSuspenseQuery(offerQuery(offerId));
   const send = useServerFn(submitOfferRequest);
-  const [preview, setPreview] = useState<Pkg | null>(null);
+  const [preview, setPreview] = useState<Pkg[]>([]);
+  const [pickupPoint, setPickupPoint] = useState<GeoPoint | null>(null);
+  const [deliveryPoint, setDeliveryPoint] = useState<GeoPoint | null>(null);
+  const { data: route } = useQuery(tripRouteQuery(offer?.origin ?? "", offer?.destination ?? ""));
   if (!offer)
     return (
       <main className="mx-auto max-w-2xl px-4 py-12">
@@ -71,7 +78,7 @@ function OfferPage() {
         maxKg: preset.max_kg,
       }
     : null;
-  const packed = preview && container ? packCargo(container, [preview]) : null;
+  const packed = preview.length > 0 && container ? packCargo(container, preview) : null;
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
@@ -81,10 +88,42 @@ function OfferPage() {
       </Button>
       <p className="mt-4 flex items-center gap-2 font-mono text-xs uppercase text-primary">
         <Truck className="h-4 w-4" /> Espacio disponible · {offer.available_date}
+        {offer.available_time ? ` · ${offer.available_time.slice(0, 5)}` : ""}
       </p>
       <h1 className="mt-2 text-3xl font-bold">
         {cityName(offer.origin)} → {cityName(offer.destination)}
       </h1>
+      {(() => {
+        const fromCity = CITIES.find((c) => c.id === offer.origin);
+        const toCity = CITIES.find((c) => c.id === offer.destination);
+        if (!fromCity || !toCity) return null;
+        const via = (
+          route?.geometry
+            ? citiesAlongGeometry(route.geometry, offer.origin, offer.destination)
+            : suggestStops(offer.origin, offer.destination)
+        ).map((c) => ({ lng: c.lng, lat: c.lat, label: c.name }));
+        return (
+          <RouteMapView
+            className="mt-6 h-64 w-full overflow-hidden rounded-lg border border-border"
+            corridors={[
+              {
+                from: { lng: fromCity.lng, lat: fromCity.lat, label: fromCity.name },
+                to: { lng: toCity.lng, lat: toCity.lat, label: toCity.name },
+                geometry: route?.geometry ?? null,
+                via,
+              },
+            ]}
+            markers={[
+              ...(pickupPoint
+                ? [{ ...pickupPoint, color: "#4aa3df", label: `Recogida: ${pickupPoint.label}` }]
+                : []),
+              ...(deliveryPoint
+                ? [{ ...deliveryPoint, color: "#5cc88a", label: `Entrega: ${deliveryPoint.label}` }]
+                : []),
+            ]}
+          />
+        );
+      })()}
       <div className="mt-8 grid gap-10 lg:grid-cols-5">
         <div className="self-start lg:sticky lg:top-20 lg:col-span-2">
           <p className="text-sm text-muted-foreground">
@@ -98,17 +137,16 @@ function OfferPage() {
           {container && (
             <>
               <Truck3DView
-                bare
                 kind={offer.vehicle_kind as VehicleKind}
                 length={container.length}
                 width={container.width}
                 height={container.height}
                 boxes={packed?.placed ?? []}
-                colorKeys={preview ? ["preview"] : []}
+                colorKeys={preview.map((p) => p.id)}
                 className="mt-6 h-[380px]"
               />
               <p className="mt-2 text-sm text-muted-foreground">
-                {preview
+                {preview.length > 0
                   ? "Vista previa de tu carga en el espacio disponible."
                   : "Espacio de carga disponible. Completa las medidas de tu paquete para ver cómo entra."}
               </p>
@@ -124,6 +162,8 @@ function OfferPage() {
         <div className="lg:col-span-3">
           <PackageRequestForm
             onPreview={setPreview}
+            onPickupPoint={setPickupPoint}
+            onDeliveryPoint={setDeliveryPoint}
             onSubmit={(body) => send({ data: { offerId, ...body } }).then((r) => r.requestId)}
           />
         </div>

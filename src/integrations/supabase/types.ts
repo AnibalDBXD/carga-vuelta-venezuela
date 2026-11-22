@@ -65,14 +65,14 @@ isOneToOne: false
                   ]
                 },"return_offers": {
                   Row: {
-                    "active": boolean,"available_date": string,"created_at": string,"destination": string,"driver_name": string,"free_kg": number,"free_m3": number,"id": string,"notes": string | null,"origin": string,"phone": string,"trip_id": string | null,"user_id": string,"vehicle_kind": string
+                    "active": boolean,"available_date": string,"available_time": string | null,"created_at": string,"destination": string,"driver_name": string,"free_kg": number,"free_m3": number,"id": string,"notes": string | null,"origin": string,"phone": string,"trip_id": string | null,"user_id": string,"vehicle_kind": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "active"?: boolean,"available_date": string,"created_at"?: string,"destination": string,"driver_name": string,"free_kg": number,"free_m3": number,"id"?: string,"notes"?: string | null,"origin": string,"phone": string,"trip_id"?: string | null,"user_id"?: string,"vehicle_kind": string
+                    "active"?: boolean,"available_date": string,"available_time"?: string | null,"created_at"?: string,"destination": string,"driver_name": string,"free_kg": number,"free_m3": number,"id"?: string,"notes"?: string | null,"origin": string,"phone": string,"trip_id"?: string | null,"user_id"?: string,"vehicle_kind": string
                   }
                   Update: {
-                    "active"?: boolean,"available_date"?: string,"created_at"?: string,"destination"?: string,"driver_name"?: string,"free_kg"?: number,"free_m3"?: number,"id"?: string,"notes"?: string | null,"origin"?: string,"phone"?: string,"trip_id"?: string | null,"user_id"?: string,"vehicle_kind"?: string
+                    "active"?: boolean,"available_date"?: string,"available_time"?: string | null,"created_at"?: string,"destination"?: string,"driver_name"?: string,"free_kg"?: number,"free_m3"?: number,"id"?: string,"notes"?: string | null,"origin"?: string,"phone"?: string,"trip_id"?: string | null,"user_id"?: string,"vehicle_kind"?: string
                   }
                   Relationships: [
                     {
@@ -105,14 +105,14 @@ isOneToOne: true
                   ]
                 },"trips": {
                   Row: {
-                    "created_at": string,"departure_date": string,"destination": string,"id": string,"is_return": boolean,"notes": string | null,"origin": string,"packages": NonNullable<Json>,"parent_trip_id": string | null,"user_id": string,"vehicle_id": string | null
+                    "created_at": string,"departure_date": string,"departure_time": string | null,"destination": string,"id": string,"is_return": boolean,"notes": string | null,"origin": string,"packages": NonNullable<Json>,"parent_trip_id": string | null,"user_id": string,"vehicle_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"departure_date": string,"destination": string,"id"?: string,"is_return"?: boolean,"notes"?: string | null,"origin": string,"packages"?: NonNullable<Json>,"parent_trip_id"?: string | null,"user_id"?: string,"vehicle_id"?: string | null
+                    "created_at"?: string,"departure_date": string,"departure_time"?: string | null,"destination": string,"id"?: string,"is_return"?: boolean,"notes"?: string | null,"origin": string,"packages"?: NonNullable<Json>,"parent_trip_id"?: string | null,"user_id"?: string,"vehicle_id"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"departure_date"?: string,"destination"?: string,"id"?: string,"is_return"?: boolean,"notes"?: string | null,"origin"?: string,"packages"?: NonNullable<Json>,"parent_trip_id"?: string | null,"user_id"?: string,"vehicle_id"?: string | null
+                    "created_at"?: string,"departure_date"?: string,"departure_time"?: string | null,"destination"?: string,"id"?: string,"is_return"?: boolean,"notes"?: string | null,"origin"?: string,"packages"?: NonNullable<Json>,"parent_trip_id"?: string | null,"user_id"?: string,"vehicle_id"?: string | null
                   }
                   Relationships: [
                     {

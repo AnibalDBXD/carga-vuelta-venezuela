@@ -48,7 +48,14 @@ export const getPaymentSummary = createServerFn({ method: "GET" })
     ).rpc("payment_summary", { p_request: data.requestId });
     if (error) throw new Error("No se pudo consultar el pago");
     if (!summary) return null;
-    const s = summary as unknown as PaymentSummary;
+    const raw = summary as unknown as Omit<PaymentSummary, "package"> & { package: unknown };
+    // Solicitudes viejas guardan un objeto; las nuevas un arreglo de bultos.
+    const s: PaymentSummary = {
+      ...raw,
+      package: (Array.isArray(raw.package)
+        ? raw.package
+        : [raw.package]) as PaymentSummary["package"],
+    };
     const payment_method = ["awaiting_payment", "payment_review", "paid"].includes(s.status)
       ? platformPaymentMethod()
       : null;

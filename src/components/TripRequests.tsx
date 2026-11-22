@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -15,6 +15,9 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cityName, suggestStops, VEHICLE_PRESETS, type VehicleKind } from "@/lib/venezuela";
+import { citiesAlongGeometry } from "@/lib/route-geometry";
+import { staticRouteMapUrl } from "@/lib/mapbox";
+import { tripRouteQuery } from "@/lib/routes.functions";
 import { packCargo, type Container, type Pkg } from "@/lib/packing";
 import { canvasToBlob, PROMO_FORMATS, renderPromoCard, type PromoFormat } from "@/lib/promo-image";
 import { useSession } from "@/hooks/use-session";
@@ -32,7 +35,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-type Trip = { id: string; origin: string; destination: string; departure_date: string };
+type Trip = { id: string; origin: string; destination: string; departure_date: string; departure_time: string | null };
 type ShareVehicle = {
   name: string;
   kind: string;
@@ -58,8 +61,26 @@ export function ShareTrip({
   const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState("");
   const [owner, setOwner] = useState("");
-  const suggestedStops = suggestStops(trip.origin, trip.destination);
-  const [stops, setStops] = useState<string[]>(() => suggestedStops.map((c) => c.name));
+  const { data: route } = useQuery(tripRouteQuery(trip.origin, trip.destination));
+  const suggestedStops = useMemo(
+    () =>
+      route?.geometry
+        ? citiesAlongGeometry(route.geometry, trip.origin, trip.destination)
+        : suggestStops(trip.origin, trip.destination),
+    [route, trip.origin, trip.destination],
+  );
+  const [stops, setStops] = useState<string[]>(() =>
+    suggestStops(trip.origin, trip.destination).map((c) => c.name),
+  );
+  const stopsTouched = useRef(false);
+  useEffect(() => {
+    if (!stopsTouched.current) setStops(suggestedStops.map((c) => c.name));
+  }, [suggestedStops]);
+  const mapToken = import.meta.env["VITE_MAPBOX_TOKEN"] as string | undefined;
+  const routeMapUrl =
+    route?.geometry && mapToken
+      ? (staticRouteMapUrl(route.geometry, mapToken) ?? undefined)
+      : undefined;
   const [format, setFormat] = useState<PromoFormat>("story");
   const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
   const renderSeq = useRef(0);
@@ -94,6 +115,7 @@ export function ShareTrip({
         originName: cityName(trip.origin),
         destinationName: cityName(trip.destination),
         date: trip.departure_date,
+        departureTime: trip.departure_time?.slice(0, 5),
         stops,
         vehicle: {
           name: vehicle.name,
@@ -105,6 +127,7 @@ export function ShareTrip({
         },
         freeM3: freeM3 ?? 0,
         freeKg: freeKg ?? 0,
+        routeMapUrl,
       },
       format,
     )
@@ -117,7 +140,7 @@ export function ShareTrip({
       .catch(() => {
         if (seq === renderSeq.current) toast.error("No se pudo generar la imagen");
       });
-  }, [canvasEl, open, url, owner, stops, format, trip, vehicle, freeM3, freeKg]);
+  }, [canvasEl, open, url, owner, stops, format, trip, vehicle, freeM3, freeKg, routeMapUrl]);
   // El enlace compartido es la oferta de la bolsa del viaje (un solo flujo público).
   const { data: offer } = useQuery({
     queryKey: ["trip-offer", trip.id],
@@ -171,6 +194,7 @@ export function ShareTrip({
             origin: trip.origin,
             destination: trip.destination,
             available_date: trip.departure_date,
+            available_time: trip.departure_time,
             vehicle_kind: veh.kind,
             free_m3: m3 ?? 0,
             free_kg: Math.round(kg ?? 0),
@@ -260,6 +284,7 @@ export function ShareTrip({
         </DialogHeader>
         <p className="font-semibold">
           {cityName(trip.origin)} → {cityName(trip.destination)} · {trip.departure_date}
+          {trip.departure_time ? ` · ${trip.departure_time.slice(0, 5)}` : ""}
         </p>
         <Label htmlFor={`share-${trip.id}`}>Enlace de solicitudes</Label>
         <Input id={`share-${trip.id}`} readOnly value={url} onFocus={(e) => e.target.select()} />
@@ -275,7 +300,7 @@ export function ShareTrip({
             <a
               target="_blank"
               rel="noopener noreferrer"
-              href={`https://wa.me/?text=${encodeURIComponent(`Tengo espacio para carga ${cityName(trip.origin)} → ${cityName(trip.destination)} el ${trip.departure_date}. Solicita espacio: ${url}`)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(`Tengo espacio para carga ${cityName(trip.origin)} → ${cityName(trip.destination)} el ${trip.departure_date}${trip.departure_time ? ` a las ${trip.departure_time.slice(0, 5)}` : ""}. Solicita espacio: ${url}`)}`}
             >
               <MessageCircle /> WhatsApp
             </a>
@@ -311,11 +336,12 @@ export function ShareTrip({
                       size="sm"
                       variant={stops.includes(c.name) ? "default" : "outline"}
                       aria-pressed={stops.includes(c.name)}
-                      onClick={() =>
+                      onClick={() => {
+                        stopsTouched.current = true;
                         setStops((s) =>
                           s.includes(c.name) ? s.filter((x) => x !== c.name) : [...s, c.name],
-                        )
-                      }
+                        );
+                      }}
                     >
                       {c.name}
                     </Button>
@@ -496,23 +522,32 @@ export function TripRequests({
       )}
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         {list.map((r) => {
-          const pkg = r.package as unknown as Pkg & { pickup?: string };
+          const raw = r.package as unknown;
+          const pkgs = (Array.isArray(raw) ? raw : [raw]) as (Pkg & { pickup?: string })[];
           const overflow =
-            r.status === "pending" && packCargo(container, [...packages, pkg]).unplaced.length > 0;
+            r.status === "pending" &&
+            packCargo(container, [...packages, ...pkgs]).unplaced.length > 0;
           return (
             <article key={r.id} className="rounded-lg border border-border bg-card p-4">
               <div className="flex justify-between gap-3">
                 <h3 className="break-words font-bold">
-                  {pkg.name} · {pkg.qty} bulto(s)
+                  {pkgs[0]?.name}
+                  {pkgs.length > 1 ? ` +${pkgs.length - 1}` : ""} ·{" "}
+                  {pkgs.reduce((sum, p) => sum + p.qty, 0)} bulto(s)
                 </h3>
                 <span className="text-sm text-muted-foreground">
                   {STATUS_LABEL[r.status] ?? r.status}
                 </span>
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {pkg.length} × {pkg.width} × {pkg.height} cm · {pkg.weight} kg c/u
-                {pkg.fragile ? " · Frágil" : ""}
-              </p>
+              <ul className="mt-1 space-y-1 text-sm text-muted-foreground">
+                {pkgs.map((p, i) => (
+                  <li key={p.id ?? i}>
+                    {pkgs.length > 1 ? `${p.name}: ` : ""}
+                    {p.qty} × {p.length} × {p.width} × {p.height} cm · {p.weight} kg c/u
+                    {p.fragile ? " · Frágil" : ""}
+                  </li>
+                ))}
+              </ul>
               {r.amount_usd != null && (
                 <p className="mt-1 font-mono text-sm font-semibold">
                   ${formatUsd(r.amount_usd)} USD
@@ -526,8 +561,17 @@ export function TripRequests({
                   <strong>Entregar:</strong> {r.delivery_address}
                 </span>
               </p>
-              {pkg.deadline && (
-                <p className="mt-2 text-sm">Entregar antes de {pkg.deadline.replace("T", " ")}</p>
+              {pkgs.some((p) => p.deadline) && (
+                <p className="mt-2 text-sm">
+                  {pkgs
+                    .filter((p) => p.deadline)
+                    .map((p) =>
+                      pkgs.length > 1
+                        ? `${p.name} antes de ${p.deadline!.replace("T", " ")}`
+                        : `Entregar antes de ${p.deadline!.replace("T", " ")}`,
+                    )
+                    .join(" · ")}
+                </p>
               )}
               <p className="mt-2 break-words text-sm">
                 {r.sender_name} ·{" "}

@@ -210,7 +210,7 @@ function Vehiculos() {
             length={f.length_cm}
             width={f.width_cm}
             height={f.height_cm}
-            className="h-[420px] overflow-hidden rounded-lg border border-border"
+            className="h-[420px]"
           />
         </section>
       ) : (

@@ -2,9 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, Repeat, Share2, ArrowLeft, ArrowRight, Check, Layers, ListOrdered, RotateCcw, X } from "lucide-react";
+import { AlertTriangle, Repeat, Share2, ArrowLeft, ArrowRight, Check, Layers, ListOrdered, RotateCcw, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { cityName, estimateRoute, type VehicleKind } from "@/lib/venezuela";
+import { CITIES, cityName, type VehicleKind } from "@/lib/venezuela";
+import { estimateAsTripRoute, tripRouteQuery } from "@/lib/routes.functions";
+import { RouteMapView } from "@/components/RouteMapLazy";
 import { packCargo, type Pkg } from "@/lib/packing";
 import { cargoLayers, loadingSteps, visibleCargo } from "@/lib/loading-guide";
 import { Truck3DView, BOX_COLORS } from "@/components/Truck3DLazy";
@@ -21,6 +23,7 @@ export const Route = createFileRoute("/_authenticated/viajes/$id")({
 
 function Trip() {
   const { id } = Route.useParams();
+  const qc = useQueryClient();
   const [layer, setLayer] = useState<number | null>(null);
   const [step, setStep] = useState<number | null>(null);
   const { data: trip, isLoading } = useQuery({
@@ -31,25 +34,75 @@ function Trip() {
       return data;
     },
   });
+  const { data: fetched } = useQuery(
+    tripRouteQuery(trip?.origin ?? "", trip?.destination ?? ""),
+  );
   if (isLoading) return <main className="p-10 text-muted-foreground">Cargando…</main>;
   if (!trip) return <main className="p-10">Viaje no encontrado.</main>;
   const v = trip.vehicles;
   const pkgs = (trip.packages as unknown as Pkg[]) ?? [];
   if (!v) return <main className="p-10">Este viaje no tiene vehículo asignado.</main>;
   const result = packCargo({ length: v.length_cm, width: v.width_cm, height: v.height_cm, maxKg: v.max_kg }, pkgs);
-  const route = estimateRoute(trip.origin, trip.destination);
+  const route = fetched ?? estimateAsTripRoute(trip.origin, trip.destination);
+  const fromCity = CITIES.find((c) => c.id === trip.origin);
+  const toCity = CITIES.find((c) => c.id === trip.destination);
   const keys = pkgs.map((p) => p.id);
   const layers = cargoLayers(result.placed);
   const steps = loadingSteps(result.placed);
   const current = step === null ? undefined : steps[step - 1];
   const complete = step !== null && step > steps.length;
   const visible = visibleCargo(result.placed, layer, step);
+  const unplacedGroups = new Map<string, { name: string; count: number; reason: string }>();
+  for (const u of result.unplaced) {
+    const g = unplacedGroups.get(u.pkgId);
+    if (g) g.count += 1;
+    else unplacedGroups.set(u.pkgId, { name: u.name, count: 1, reason: u.reason });
+  }
+  const removeUnits = async (pkgId: string, count: number) => {
+    const next = pkgs.flatMap((p) => (p.id !== pkgId ? [p] : p.qty > count ? [{ ...p, qty: p.qty - count }] : []));
+    const { error } = await supabase.from("trips").update({ packages: next as never }).eq("id", id);
+    if (error) return void toast.error("No se pudo quitar el bulto");
+    setStep(null);
+    setLayer(null);
+    void qc.invalidateQueries({ queryKey: ["trip", id] });
+    void qc.invalidateQueries({ queryKey: ["trips"] });
+  };
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      <p className="font-mono text-xs uppercase tracking-widest text-primary">{trip.is_return ? "Viaje de regreso · " : ""}{trip.departure_date} · {v.name}</p>
+      <p className="font-mono text-xs uppercase tracking-widest text-primary">{trip.is_return ? "Viaje de regreso · " : ""}{trip.departure_date}{trip.departure_time ? ` · ${trip.departure_time.slice(0, 5)}` : ""} · {v.name}</p>
       <h1 className="mt-1 text-3xl font-bold">{cityName(trip.origin)} → {cityName(trip.destination)}</h1>
-      {route && <p className="mt-2 text-sm text-muted-foreground">≈ {route.km} km · {route.hours} h de manejo · {route.via} · ~{route.checkpoints} alcabalas · ~{route.tolls} peajes</p>}
+      {route && <p className="mt-2 text-sm text-muted-foreground">≈ {route.km} km · {route.hours} h de manejo · {route.via} · ~{route.checkpoints} alcabalas · ~{route.tolls} peajes{route.source === "estimate" && " · estimado"}</p>}
+
+      {fromCity && toCity && (
+        <div className="mt-6">
+          <RouteMapView
+            className="h-72 w-full overflow-hidden rounded-lg border border-border"
+            corridors={[
+              {
+                from: { lng: fromCity.lng, lat: fromCity.lat, label: fromCity.name },
+                to: { lng: toCity.lng, lat: toCity.lat, label: toCity.name },
+                geometry: route?.geometry ?? null,
+              },
+            ]}
+          />
+          {route && route.steps.length > 0 && (
+            <details className="mt-2 rounded-lg border border-border bg-card px-4 py-3 text-sm">
+              <summary className="cursor-pointer font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                Indicaciones de ruta ({route.steps.length} pasos)
+              </summary>
+              <ol className="mt-3 space-y-1.5">
+                {route.steps.map((s, i) => (
+                  <li key={i} className="flex items-baseline justify-between gap-4">
+                    <span>{i + 1}. {s.instruction}</span>
+                    {s.km >= 0.05 && <span className="shrink-0 font-mono text-xs text-muted-foreground">{s.km} km</span>}
+                  </li>
+                ))}
+              </ol>
+            </details>
+          )}
+        </div>
+      )}
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         {trip.is_return && <ShareTrip trip={trip} vehicle={v} freeM3={result.freeM3} freeKg={result.freeKg} />}
@@ -83,7 +136,7 @@ function Trip() {
       </section>}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <Truck3DView kind={v.kind as VehicleKind} length={v.length_cm} width={v.width_cm} height={v.height_cm} boxes={visible} colorKeys={keys} {...(current ? { highlightedOrder: current.loadOrder } : {})} className="h-[460px] overflow-hidden rounded-lg border border-border lg:col-span-2" />
+        <Truck3DView kind={v.kind as VehicleKind} length={v.length_cm} width={v.width_cm} height={v.height_cm} boxes={visible} colorKeys={keys} {...(current ? { highlightedOrder: current.loadOrder } : {})} className="h-[460px] lg:col-span-2" />
         <div className="space-y-4">
           <Stat label="Volumen usado" value={`${result.usedVolumePct}%`} pct={result.usedVolumePct} />
           <Stat label="Peso" value={`${result.usedKg.toLocaleString("es-VE")} / ${v.max_kg.toLocaleString("es-VE")} kg`} pct={result.usedKgPct} />
@@ -94,7 +147,15 @@ function Trip() {
           {result.unplaced.length > 0 && (
             <div className="rounded-lg border border-destructive/60 bg-destructive/10 p-4 text-sm">
               <p className="flex items-center gap-2 font-bold"><AlertTriangle className="h-4 w-4" /> {result.unplaced.length} bulto(s) no entran</p>
-              <ul className="mt-2 space-y-1">{result.unplaced.slice(0, 6).map((u, i) => <li key={i}>{u.name} #{u.unit}: {u.reason}</li>)}</ul>
+              <ul className="mt-2 space-y-1">
+                {[...unplacedGroups].slice(0, 6).map(([pkgId, g]) => (
+                  <li key={pkgId} className="flex items-center justify-between gap-2">
+                    <span>{g.name}{g.count > 1 ? ` ×${g.count}` : ""}: {g.reason}</span>
+                    <Button type="button" size="sm" variant="outline" onClick={() => void removeUnits(pkgId, g.count)}>Quitar</Button>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-muted-foreground">o quita otros bultos de la tabla de orden de carga para hacerles espacio.</p>
             </div>
           )}
           {!trip.is_return && <><ShareReturn trip={trip} kind={v.kind} freeM3={Math.round((v.length_cm * v.width_cm * v.height_cm) / 1e4) / 100} maxKg={v.max_kg} />
@@ -107,7 +168,7 @@ function Trip() {
       <div className="mt-4 overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-sm">
           <thead className="bg-muted text-left font-mono text-xs uppercase text-muted-foreground">
-            <tr><th className="p-3">#</th><th className="p-3">Bulto</th><th className="p-3">Posición (fondo, lado, altura)</th><th className="p-3">Medidas</th><th className="p-3">Notas</th></tr>
+            <tr><th className="p-3">#</th><th className="p-3">Bulto</th><th className="p-3">Posición (fondo, lado, altura)</th><th className="p-3">Medidas</th><th className="p-3">Notas</th><th className="p-3"><span className="sr-only">Quitar</span></th></tr>
           </thead>
           <tbody>
             {visible.map((b) => {
@@ -119,10 +180,11 @@ function Trip() {
                   <td className="p-3 font-mono">{b.x}, {b.y}, {b.z} cm</td>
                   <td className="p-3 font-mono">{b.l}×{b.w}×{b.h}</td>
                   <td className="p-3 text-muted-foreground">{[b.fragile && "Frágil", p?.deadline && `Antes de ${p.deadline.replace("T", " ")}`, p?.pickup && `Recoger: ${p.pickup}`, p?.recipient && `Entregar: ${p.recipient}`].filter(Boolean).join(" · ")}</td>
+                  <td className="p-3"><Button type="button" size="icon" variant="ghost" aria-label={`Quitar ${b.name} #${b.unit}`} onClick={() => void removeUnits(b.pkgId, 1)}><Trash2 /></Button></td>
                 </tr>
               );
             })}
-            {visible.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">No hay bultos en esta capa{step !== null ? " hasta este paso" : ""}.</td></tr>}
+            {visible.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">No hay bultos en esta capa{step !== null ? " hasta este paso" : ""}.</td></tr>}
           </tbody>
         </table>
       </div>
@@ -140,7 +202,7 @@ function Stat({ label, value, pct }: { label: string; value: string; pct: number
   );
 }
 
-type TripRow = { id: string; origin: string; destination: string; departure_date: string; vehicle_id: string | null };
+type TripRow = { id: string; origin: string; destination: string; departure_date: string; departure_time: string | null; vehicle_id: string | null };
 
 function ShareReturn({ trip, kind, freeM3, maxKg }: { trip: TripRow; kind: string; freeM3: number; maxKg: number }) {
   const qc = useQueryClient();
@@ -148,6 +210,7 @@ function ShareReturn({ trip, kind, freeM3, maxKg }: { trip: TripRow; kind: strin
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("58");
   const [date, setDate] = useState(trip.departure_date);
+  const [time, setTime] = useState(trip.departure_time?.slice(0, 5) ?? "");
   const [notes, setNotes] = useState("");
   const publish = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,7 +219,7 @@ function ShareReturn({ trip, kind, freeM3, maxKg }: { trip: TripRow; kind: strin
     let returnTripId = existing?.id;
     if (!returnTripId) {
       const { data: created, error: tripError } = await supabase.from("trips").insert({
-        origin: trip.destination, destination: trip.origin, departure_date: date,
+        origin: trip.destination, destination: trip.origin, departure_date: date, departure_time: time || null,
         vehicle_id: trip.vehicle_id, is_return: true, parent_trip_id: trip.id, packages: [],
       }).select("id").single();
       if (tripError || !created) return void toast.error("No se pudo crear el viaje de regreso");
@@ -164,14 +227,14 @@ function ShareReturn({ trip, kind, freeM3, maxKg }: { trip: TripRow; kind: strin
     }
     const { error } = await supabase.from("return_offers").insert({
       trip_id: returnTripId, driver_name: name, phone, origin: trip.destination, destination: trip.origin,
-      available_date: date, vehicle_kind: kind, free_m3: freeM3, free_kg: maxKg, notes: notes || null,
+      available_date: date, available_time: time || null, vehicle_kind: kind, free_m3: freeM3, free_kg: maxKg, notes: notes || null,
     });
     if (error) return void toast.error("No se pudo publicar");
     qc.invalidateQueries({ queryKey: ["return_offers"] });
     qc.invalidateQueries({ queryKey: ["trips"] });
     setOpen(false);
     const url = `${window.location.origin}/bolsa`;
-    const text = `🚚 Camión con espacio libre ${cityName(trip.destination)} → ${cityName(trip.origin)} el ${date}. Espacio: ${freeM3} m³ / ${maxKg} kg. Solicita tu recogida: ${url}`;
+    const text = `🚚 Camión con espacio libre ${cityName(trip.destination)} → ${cityName(trip.origin)} el ${date}${time ? ` a las ${time}` : ""}. Espacio: ${freeM3} m³ / ${maxKg} kg. Solicita tu recogida: ${url}`;
     toast.success("Publicado en la bolsa de viajes");
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
@@ -184,6 +247,7 @@ function ShareReturn({ trip, kind, freeM3, maxKg }: { trip: TripRow; kind: strin
           <div><Label>Tu nombre</Label><Input required value={name} onChange={(e) => setName(e.target.value)} /></div>
           <div><Label>WhatsApp (con código 58)</Label><Input required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="584121234567" /></div>
           <div><Label>Disponible desde</Label><Input type="date" required value={date} onChange={(e) => setDate(e.target.value)} /></div>
+          <div><Label>Hora estimada de salida</Label><Input type="time" value={time} onChange={(e) => setTime(e.target.value)} /></div>
           <div><Label>Notas</Label><Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Ej. acepto carga refrigerada, salgo temprano" /></div>
           <p className="text-xs text-muted-foreground">Se publicará con el espacio completo del camión: {freeM3} m³ · {maxKg} kg.</p>
           <Button type="submit" className="w-full">Publicar y compartir por WhatsApp</Button>

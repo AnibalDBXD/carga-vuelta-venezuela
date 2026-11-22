@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Bell, CheckCircle2, CreditCard, Package, Send } from "lucide-react";
+import { Bell, CheckCircle2, CreditCard, Package, Plus, Send, X } from "lucide-react";
 import type { Pkg } from "@/lib/packing";
 import type { PackageRequestBody } from "@/lib/package-request";
 import { subscribeToRequest, pushSupported } from "@/lib/push-client";
@@ -10,12 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { AddressField, type GeoPoint } from "@/components/AddressField";
 
-function currentPkg(form: HTMLFormElement | null, fragile: boolean): Pkg | null {
-  if (!form) return null;
-  const data = new FormData(form);
-  const str = (key: string) => String(data.get(key) ?? "");
-  const num = (key: string) => Number(data.get(key));
+function pkgFromForm(data: FormData, key: number, fragile: boolean): Pkg | null {
+  const str = (name: string) => String(data.get(`${name}-${key}`) ?? "");
+  const num = (name: string) => Number(str(name));
   const pkg = {
     length: num("length"),
     width: num("width"),
@@ -31,7 +30,7 @@ function currentPkg(form: HTMLFormElement | null, fragile: boolean): Pkg | null 
   )
     return null;
   return {
-    id: "preview",
+    id: `preview-${key}`,
     name: str("name").trim() || "Tu carga",
     ...pkg,
     fragile,
@@ -40,15 +39,33 @@ function currentPkg(form: HTMLFormElement | null, fragile: boolean): Pkg | null 
   };
 }
 
+function currentPkgs(
+  form: HTMLFormElement | null,
+  items: number[],
+  fragile: Record<number, boolean>,
+): Pkg[] {
+  if (!form) return [];
+  const data = new FormData(form);
+  return items
+    .map((key) => pkgFromForm(data, key, fragile[key] ?? false))
+    .filter((p): p is Pkg => p !== null);
+}
+
 export function PackageRequestForm({
   onSubmit,
   onPreview,
+  onPickupPoint,
+  onDeliveryPoint,
 }: {
   onSubmit: (body: PackageRequestBody) => Promise<string | undefined>;
-  onPreview?: (pkg: Pkg | null) => void;
+  onPreview?: (pkgs: Pkg[]) => void;
+  onPickupPoint?: (p: GeoPoint | null) => void;
+  onDeliveryPoint?: (p: GeoPoint | null) => void;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [fragile, setFragile] = useState(false);
+  const nextKey = useRef(1);
+  const [items, setItems] = useState<number[]>([0]);
+  const [fragile, setFragile] = useState<Record<number, boolean>>({ 0: false });
   const [busy, setBusy] = useState(false);
   const [requestId, setRequestId] = useState<string | undefined>();
   const [push, setPush] = useState<"idle" | "busy" | "done">("idle");
@@ -56,8 +73,11 @@ export function PackageRequestForm({
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const emit = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => onPreview?.(currentPkg(formRef.current, fragile)), 350);
-  }, [fragile, onPreview]);
+    timer.current = setTimeout(
+      () => onPreview?.(currentPkgs(formRef.current, items, fragile)),
+      350,
+    );
+  }, [items, fragile, onPreview]);
   useEffect(emit, [emit]);
   useEffect(
     () => () => {
@@ -65,6 +85,19 @@ export function PackageRequestForm({
     },
     [],
   );
+  const addItem = () => {
+    const key = nextKey.current++;
+    setItems((list) => [...list, key]);
+    setFragile((f) => ({ ...f, [key]: false }));
+  };
+  const removeItem = (key: number) => {
+    setItems((list) => list.filter((k) => k !== key));
+    setFragile((f) => {
+      const rest = { ...f };
+      delete rest[key];
+      return rest;
+    });
+  };
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -72,6 +105,19 @@ export function PackageRequestForm({
     setBusy(true);
     setError("");
     try {
+      const packages = items.map((key) => {
+        const val = (name: string) => String(form.get(`${name}-${key}`) ?? "");
+        return {
+          name: val("name"),
+          length: Number(val("length")),
+          width: Number(val("width")),
+          height: Number(val("height")),
+          weight: Number(val("weight")),
+          qty: Number(val("qty")),
+          fragile: fragile[key] ?? false,
+          deadline: val("deadline"),
+        };
+      });
       const id = await onSubmit({
         sender: str("sender"),
         phone: str("phone"),
@@ -79,20 +125,11 @@ export function PackageRequestForm({
         pickup: str("pickup"),
         delivery: str("delivery"),
         notes: str("notes"),
-        package: {
-          name: str("name"),
-          length: Number(str("length")),
-          width: Number(str("width")),
-          height: Number(str("height")),
-          weight: Number(str("weight")),
-          qty: Number(str("qty")),
-          fragile,
-          deadline: str("deadline"),
-        },
+        packages,
       });
       if (!id) throw new Error();
       if (timer.current) clearTimeout(timer.current);
-      onPreview?.(null);
+      onPreview?.([]);
       setRequestId(id);
     } catch {
       setError("No se pudo enviar la solicitud. Revisa los datos o intenta más tarde.");
@@ -114,8 +151,8 @@ export function PackageRequestForm({
         <CheckCircle2 className="h-10 w-10 text-primary" />
         <h2 className="mt-3 text-2xl font-bold">Solicitud enviada</h2>
         <p className="mt-2 max-w-xl text-muted-foreground">
-          Tu paquete queda pendiente de la aprobación del conductor. Si la acepta, te llega un
-          correo con el enlace para pagar — guarda también este enlace:
+          Tu carga queda pendiente de la aprobación del conductor. Si la acepta, te llega un correo
+          con el enlace para pagar — guarda también este enlace:
         </p>
         {requestId && (
           <Button asChild variant="outline" className="mt-4">
@@ -164,63 +201,105 @@ export function PackageRequestForm({
       </section>
       <section className="space-y-4 border-t border-border pt-5">
         <h2 className="text-xl font-bold">Recogida y entrega</h2>
-        <Field
+        <AddressField
           name="pickup"
           label="Dirección de recogida"
           minLength={5}
           maxLength={500}
           placeholder="Ciudad, sector, calle y referencia"
+          onPoint={onPickupPoint}
         />
-        <Field
+        <AddressField
           name="delivery"
           label="Dirección de entrega"
           minLength={5}
           maxLength={500}
           placeholder="Ciudad, sector, calle y referencia"
+          onPoint={onDeliveryPoint}
         />
       </section>
       <section className="space-y-4 border-t border-border pt-5">
         <h2 className="flex items-center gap-2 text-xl font-bold">
-          <Package /> Detalles del paquete
+          <Package /> Tu carga
         </h2>
-        <Field
-          name="name"
-          label="Descripción"
-          minLength={2}
-          maxLength={200}
-          placeholder="Ej. Cajas de vasos de vidrio"
-        />
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <Field name="length" label="Largo (cm)" type="number" min={1} max={10000} />
-          <Field name="width" label="Ancho (cm)" type="number" min={1} max={10000} />
-          <Field name="height" label="Alto (cm)" type="number" min={1} max={10000} />
-          <Field
-            name="weight"
-            label="Peso por bulto (kg)"
-            type="number"
-            min={0.01}
-            max={10000}
-            step="0.01"
-          />
-          <Field
-            name="qty"
-            label="Cantidad de bultos"
-            type="number"
-            min={1}
-            max={100}
-            defaultValue="1"
-          />
-          <div className="flex items-center gap-3">
-            <Switch id="fragile" checked={fragile} onCheckedChange={setFragile} />
-            <Label htmlFor="fragile">Frágil</Label>
-          </div>
+        <p className="text-sm text-muted-foreground">
+          Agrega todos los bultos que necesitas: la vista previa muestra cómo entran en el espacio
+          libre del camión.
+        </p>
+        <div className="space-y-6">
+          {items.map((key, index) => (
+            <fieldset key={key} className="space-y-4 rounded-lg border border-border p-4">
+              <legend className="sr-only">Bulto {index + 1}</legend>
+              <div className="flex items-center justify-between">
+                <p className="font-mono text-xs uppercase text-muted-foreground">
+                  Bulto {index + 1}
+                </p>
+                {items.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Quitar bulto ${index + 1}`}
+                    onClick={() => removeItem(key)}
+                  >
+                    <X />
+                  </Button>
+                )}
+              </div>
+              <Field
+                name={`name-${key}`}
+                label="Descripción"
+                minLength={2}
+                maxLength={200}
+                placeholder="Ej. Cajas de vasos de vidrio"
+              />
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                <Field
+                  name={`length-${key}`}
+                  label="Largo (cm)"
+                  type="number"
+                  min={1}
+                  max={10000}
+                />
+                <Field name={`width-${key}`} label="Ancho (cm)" type="number" min={1} max={10000} />
+                <Field name={`height-${key}`} label="Alto (cm)" type="number" min={1} max={10000} />
+                <Field
+                  name={`weight-${key}`}
+                  label="Peso por bulto (kg)"
+                  type="number"
+                  min={0.01}
+                  max={10000}
+                  step="0.01"
+                />
+                <Field
+                  name={`qty-${key}`}
+                  label="Cantidad"
+                  type="number"
+                  min={1}
+                  max={100}
+                  defaultValue="1"
+                />
+                <div className="flex items-center gap-3">
+                  <Switch
+                    id={`fragile-${key}`}
+                    checked={fragile[key] ?? false}
+                    onCheckedChange={(v) => setFragile((f) => ({ ...f, [key]: v }))}
+                  />
+                  <Label htmlFor={`fragile-${key}`}>Frágil</Label>
+                </div>
+              </div>
+              <Field
+                name={`deadline-${key}`}
+                label="Entregar antes de (opcional)"
+                type="datetime-local"
+                required={false}
+              />
+            </fieldset>
+          ))}
         </div>
-        <Field
-          name="deadline"
-          label="Entregar antes de (opcional)"
-          type="datetime-local"
-          required={false}
-        />
+        <Button type="button" variant="outline" onClick={addItem}>
+          <Plus /> Añadir otro bulto
+        </Button>
         <div>
           <Label htmlFor="notes">Notas (opcional)</Label>
           <Textarea id="notes" name="notes" maxLength={2000} />

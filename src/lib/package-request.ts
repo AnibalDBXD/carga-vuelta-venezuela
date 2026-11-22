@@ -8,23 +8,28 @@ const requestBody = z.object({
   pickup: z.string().trim().min(5).max(500),
   delivery: z.string().trim().min(5).max(500),
   notes: z.string().max(2000),
-  package: z.object({
-    name: z.string().trim().min(2).max(200),
-    length: z.number().positive().max(10000),
-    width: z.number().positive().max(10000),
-    height: z.number().positive().max(10000),
-    weight: z.number().positive().max(10000),
-    qty: z.number().int().min(1).max(100),
-    fragile: z.boolean(),
-    deadline: z
-      .string()
-      .refine(
-        (v) =>
-          v === "" ||
-          (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v) && Number.isFinite(new Date(v).getTime())),
-        "Plazo inválido",
-      ),
-  }),
+  packages: z
+    .array(
+      z.object({
+        name: z.string().trim().min(2).max(200),
+        length: z.number().positive().max(10000),
+        width: z.number().positive().max(10000),
+        height: z.number().positive().max(10000),
+        weight: z.number().positive().max(10000),
+        qty: z.number().int().min(1).max(100),
+        fragile: z.boolean(),
+        deadline: z
+          .string()
+          .refine(
+            (v) =>
+              v === "" ||
+              (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v) && Number.isFinite(new Date(v).getTime())),
+            "Plazo inválido",
+          ),
+      }),
+    )
+    .min(1)
+    .max(50),
 });
 export const offerRequestSchema = requestBody.extend({ offerId: z.string().uuid() });
 export type PackageRequestBody = z.infer<typeof requestBody>;
@@ -50,7 +55,7 @@ export type PaymentSummary = {
   destination: string;
   departure_date: string;
   vehicle_kind: string | null;
-  package: Pkg & { pickup?: string; recipient?: string };
+  package: (Pkg & { pickup?: string; recipient?: string })[];
   sender_name: string;
   amount_usd: number | null;
   status: RequestStatus;
@@ -63,6 +68,7 @@ export type PublicOffer = {
   origin: string;
   destination: string;
   available_date: string;
+  available_time: string | null;
   vehicle_kind: string;
   free_m3: number;
   free_kg: number;
@@ -70,7 +76,15 @@ export type PublicOffer = {
   notes: string | null;
 };
 export const PUBLIC_OFFER_COLUMNS =
-  "id,origin,destination,available_date,vehicle_kind,free_m3,free_kg,driver_name,notes";
-export function requestPackage(id: string, input: PackageRequestBody): Pkg & { pickup: string } {
-  return { ...input.package, id, pickup: input.pickup, recipient: input.delivery };
+  "id,origin,destination,available_date,available_time,vehicle_kind,free_m3,free_kg,driver_name,notes";
+export function requestPackages(
+  id: string,
+  input: PackageRequestBody,
+): (Pkg & { pickup: string })[] {
+  return input.packages.map((pkg, i) => ({
+    ...pkg,
+    id: `${id}-${i + 1}`,
+    pickup: input.pickup,
+    recipient: input.delivery,
+  }));
 }

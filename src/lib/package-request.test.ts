@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { offerRequestSchema, requestPackage, type OfferRequestInput } from "./package-request";
+import { offerRequestSchema, requestPackages, type OfferRequestInput } from "./package-request";
 import { packCargo } from "./packing";
 import { loadingSteps } from "./loading-guide";
 const input: OfferRequestInput = {
@@ -10,16 +10,28 @@ const input: OfferRequestInput = {
   pickup: "Caracas, Los Ruices, calle 5",
   delivery: "Valencia, San Diego, avenida 2",
   notes: "Manipular con cuidado",
-  package: {
-    name: "Vasos de vidrio",
-    length: 50,
-    width: 40,
-    height: 30,
-    weight: 12,
-    qty: 2,
-    fragile: true,
-    deadline: "2026-11-24T16:00",
-  },
+  packages: [
+    {
+      name: "Vasos de vidrio",
+      length: 50,
+      width: 40,
+      height: 30,
+      weight: 12,
+      qty: 2,
+      fragile: true,
+      deadline: "2026-11-24T16:00",
+    },
+    {
+      name: "Cajas de ropa",
+      length: 60,
+      width: 40,
+      height: 40,
+      weight: 8,
+      qty: 1,
+      fragile: false,
+      deadline: "",
+    },
+  ],
 };
 describe("solicitudes de regreso", () => {
   it("permite enviar sin cuenta y no admite decisiones ni dueño desde el formulario público", () => {
@@ -27,20 +39,24 @@ describe("solicitudes de regreso", () => {
     expect(parsed).toEqual(input);
     expect("status" in parsed).toBe(false);
   });
-  it("conserva recogida y entrega en el paquete de regreso", () => {
-    const pkg = requestPackage("request-id", input);
-    expect(pkg.pickup).toBe("Caracas, Los Ruices, calle 5");
-    expect(pkg.recipient).toBe("Valencia, San Diego, avenida 2");
-    expect(pkg.fragile).toBe(true);
+  it("conserva recogida y entrega en cada paquete de la solicitud", () => {
+    const pkgs = requestPackages("request-id", input);
+    expect(pkgs).toHaveLength(2);
+    expect(pkgs[0]?.pickup).toBe("Caracas, Los Ruices, calle 5");
+    expect(pkgs[0]?.recipient).toBe("Valencia, San Diego, avenida 2");
+    expect(pkgs[0]?.fragile).toBe(true);
+    expect(pkgs[1]?.pickup).toBe("Caracas, Los Ruices, calle 5");
+    expect(pkgs[0]?.id).not.toBe(pkgs[1]?.id);
   });
   it("incluye todos los bultos solicitados en el plan 3D y los pasos de montaje", () => {
-    const pkg = requestPackage("request-id", input);
-    const result = packCargo({ length: 400, width: 200, height: 200, maxKg: 1000 }, [pkg]);
-    expect(result.placed).toHaveLength(2);
-    expect(loadingSteps(result.placed)).toHaveLength(2);
-    expect(result.usedKg).toBe(24);
+    const pkgs = requestPackages("request-id", input);
+    const result = packCargo({ length: 400, width: 200, height: 200, maxKg: 1000 }, pkgs);
+    expect(result.placed).toHaveLength(3);
+    expect(loadingSteps(result.placed)).toHaveLength(3);
+    expect(result.usedKg).toBe(32);
   });
-  it("rechaza solicitudes sin ambas direcciones", () => {
+  it("rechaza solicitudes sin paquetes o sin ambas direcciones", () => {
+    expect(offerRequestSchema.safeParse({ ...input, packages: [] }).success).toBe(false);
     expect(offerRequestSchema.safeParse({ ...input, pickup: "" }).success).toBe(false);
     expect(offerRequestSchema.safeParse({ ...input, delivery: "" }).success).toBe(false);
   });
