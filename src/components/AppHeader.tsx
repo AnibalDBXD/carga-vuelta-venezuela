@@ -17,7 +17,7 @@ export function AppHeader() {
   };
   const link = "text-sm text-muted-foreground hover:text-foreground transition-colors [&.active]:text-primary";
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/90 pt-[env(safe-area-inset-top)] backdrop-blur">
       <div className="h-1 hazard-stripe" />
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4">
         <Link to="/" className="flex items-center gap-2.5">

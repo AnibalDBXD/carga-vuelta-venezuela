@@ -54,6 +54,80 @@ export function citiesAlongGeometry(
     .map(({ city }) => city);
 }
 
+/**
+ * Posición de un punto sobre el eje origen→destino: `t` es la posición a lo
+ * largo del corredor (0 = origen, 1 = destino, sin recortar) y `dKm` la
+ * distancia perpendicular en km. Misma aproximación equirectangular de arriba.
+ */
+export function corridorProjection(
+  from: LngLat,
+  to: LngLat,
+  p: LngLat,
+): { t: number; dKm: number } {
+  const cos = Math.cos((((from[1] + to[1]) / 2) * Math.PI) / 180);
+  const a = toXY(from, cos);
+  const b = toXY(to, cos);
+  const q = toXY(p, cos);
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const len2 = dx * dx + dy * dy;
+  const t = len2 === 0 ? 0 : ((q[0] - a[0]) * dx + (q[1] - a[1]) * dy) / len2;
+  return { t, dKm: Math.hypot(q[0] - (a[0] + t * dx), q[1] - (a[1] + t * dy)) };
+}
+
+export type RouteStop = {
+  requestId: string;
+  kind: "pickup" | "delivery";
+  lng: number;
+  lat: number;
+  label: string;
+};
+
+/**
+ * Enlace de Google Maps (dir api) con origen, destino y las paradas ya
+ * ordenadas como waypoints — el conductor lo abre para navegar. Google
+ * admite hasta 9 waypoints además de los extremos.
+ */
+export function googleMapsDirUrl(
+  origin: LngLat,
+  destination: LngLat,
+  stops: RouteStop[] = [],
+): string {
+  const params = new URLSearchParams({
+    api: "1",
+    travelmode: "driving",
+    origin: `${origin[1]},${origin[0]}`,
+    destination: `${destination[1]},${destination[0]}`,
+  });
+  const via = stops.slice(0, 9);
+  if (via.length > 0) params.set("waypoints", via.map((s) => `${s.lat},${s.lng}`).join("|"));
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
+}
+
+/**
+ * Ordena las paradas de carga/descarga por su posición sobre el corredor
+ * origen→destino. Repara la precedencia: la entrega de una solicitud nunca
+ * queda antes de su recogida (se reubica justo después de ella).
+ */
+export function orderStops(from: LngLat, to: LngLat, stops: RouteStop[]): RouteStop[] {
+  const ordered = stops
+    .map((s, i) => ({ s, i, t: corridorProjection(from, to, [s.lng, s.lat]).t }))
+    .sort((a, b) => a.t - b.t || a.i - b.i)
+    .map(({ s }) => s);
+  const pickupIndex = (id: string) =>
+    ordered.findIndex((s) => s.requestId === id && s.kind === "pickup");
+  for (let i = 0; i < ordered.length; i++) {
+    const s = ordered[i]!;
+    if (s.kind !== "delivery") continue;
+    const p = pickupIndex(s.requestId);
+    if (p === -1 || p < i) continue;
+    ordered.splice(i, 1);
+    ordered.splice(pickupIndex(s.requestId) + 1, 0, s);
+    i--;
+  }
+  return ordered;
+}
+
 /** Douglas-Peucker sobre coordenadas [lng, lat]; tolerancia en grados. */
 export function simplifyLine(coords: LngLat[], tolerance: number): LngLat[] {
   if (coords.length <= 2) return [...coords];

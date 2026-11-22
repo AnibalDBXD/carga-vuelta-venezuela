@@ -1,11 +1,18 @@
 // Directions API solo desde el servidor (patrón bcv.ts). El ToS de Mapbox solo
 // permite cache temporal: TTL de 12 h en memoria, sin persistencia en DB.
 import { CITIES } from "./venezuela";
-import { encodePolyline, simplifyToMaxPoints, type LineString } from "./route-geometry";
+import {
+  encodePolyline,
+  simplifyToMaxPoints,
+  type LineString,
+  type LngLat,
+} from "./route-geometry";
 
 const TTL_MS = 12 * 60 * 60 * 1000;
 const cache = new Map<string, { at: number; data: DirectionsRoute }>();
 const pending = new Map<string, Promise<DirectionsRoute | null>>();
+const geoCache = new Map<string, { at: number; data: LngLat | null }>();
+const geoPending = new Map<string, Promise<LngLat | null>>();
 
 export type RouteStep = { instruction: string; km: number };
 export type DirectionsRoute = {
@@ -93,15 +100,75 @@ export function staticRouteMapUrl(
   return url.toString();
 }
 
-/** Ruta por carretera entre dos ciudades. null si no hay token, falla la red o no hay ruta. */
+/**
+ * Coordenadas del fallback "Punto en el mapa <lat>, <lng>" que escribe
+ * AddressField cuando se escoge un punto en el mapa sin dirección. Es dato
+ * del usuario (pin), no resultado de geocoding: se puede reusar sin límite.
+ */
+export function parseMapPoint(address: string): LngLat | null {
+  const m = /Punto en el mapa\s+(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/.exec(address);
+  if (!m) return null;
+  const lat = Number(m[1]);
+  const lng = Number(m[2]);
+  return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180 ? [lng, lat] : null;
+}
+
+/**
+ * Geocoding v6 (1 resultado) desde el servidor para direcciones de texto.
+ * Cache de 12 h en memoria — uso temporal, nada se persiste (como Directions).
+ */
+export async function geocodePoint(address: string): Promise<LngLat | null> {
+  const key = address.trim().toLowerCase();
+  if (!key) return null;
+  const hit = geoCache.get(key);
+  if (hit && Date.now() - hit.at < TTL_MS) return hit.data;
+  const inflight = geoPending.get(key);
+  if (inflight) return inflight;
+  const tok = token();
+  if (!tok) return hit?.data ?? null;
+  const request = (async () => {
+    try {
+      const url = new URL("https://api.mapbox.com/search/geocode/v6/forward");
+      url.search = new URLSearchParams({
+        access_token: tok,
+        q: key,
+        country: "ve",
+        language: "es",
+        limit: "1",
+        types: "address,street,place,locality,neighborhood",
+      }).toString();
+      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) throw new Error(`geocode ${res.status}`);
+      const json = (await res.json()) as {
+        features?: { geometry?: { coordinates?: [number, number] } }[];
+      };
+      const c = json.features?.[0]?.geometry?.coordinates;
+      const point: LngLat | null = Array.isArray(c) ? [c[0], c[1]] : null;
+      geoCache.set(key, { at: Date.now(), data: point });
+      return point;
+    } catch {
+      return hit?.data ?? null;
+    } finally {
+      geoPending.delete(key);
+    }
+  })();
+  geoPending.set(key, request);
+  return request;
+}
+
+/** Ruta por carretera entre dos ciudades con paradas opcionales. null si no hay token, falla la red o no hay ruta. */
 export async function fetchDirections(
   fromId: string,
   toId: string,
+  via: LngLat[] = [],
 ): Promise<DirectionsRoute | null> {
   const a = CITIES.find((c) => c.id === fromId);
   const b = CITIES.find((c) => c.id === toId);
   if (!a || !b || a.id === b.id) return null;
-  const key = `${a.id}|${b.id}`;
+  // Directions acepta hasta 25 coordenadas: origen + 23 paradas + destino.
+  const coords: LngLat[] = [[a.lng, a.lat], ...via.slice(0, 23), [b.lng, b.lat]];
+  const waypoints = coords.map(([lng, lat]) => `${lng},${lat}`).join(";");
+  const key = `${a.id}|${b.id}|${waypoints}`;
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < TTL_MS) return hit.data;
   const inflight = pending.get(key);
@@ -110,9 +177,7 @@ export async function fetchDirections(
   if (!tok) return hit?.data ?? null;
   const request = (async () => {
     try {
-      const url = new URL(
-        `https://api.mapbox.com/directions/v5/mapbox/driving/${a.lng},${a.lat};${b.lng},${b.lat}`,
-      );
+      const url = new URL(`https://api.mapbox.com/directions/v5/mapbox/driving/${waypoints}`);
       url.search = new URLSearchParams({
         access_token: tok,
         geometries: "geojson",

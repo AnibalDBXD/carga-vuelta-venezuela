@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -7,12 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { VEHICLE_PRESETS, type VehicleKind } from "@/lib/venezuela";
 import { Truck3DView } from "@/components/Truck3DLazy";
 import { VehicleThumb } from "@/components/VehicleThumb";
+import { VehicleForm, emptyVehicleForm } from "@/components/VehicleForm";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
-export const Route = createFileRoute("/_authenticated/vehiculos")({
+export const Route = createFileRoute("/_authenticated/vehiculos/")({
   head: () => ({
     meta: [
       { title: "Mis vehículos — CargaRuta" },
@@ -25,19 +24,6 @@ export const Route = createFileRoute("/_authenticated/vehiculos")({
   }),
   component: Vehiculos,
 });
-
-const empty = (k: VehicleKind) => ({
-  name: "",
-  kind: k,
-  brand: "",
-  model: "",
-  plate: "",
-  ...pick(k),
-});
-function pick(k: VehicleKind) {
-  const p = VEHICLE_PRESETS[k];
-  return { length_cm: p.length_cm, width_cm: p.width_cm, height_cm: p.height_cm, max_kg: p.max_kg };
-}
 
 export const vehiclesQuery = {
   queryKey: ["vehicles"],
@@ -53,9 +39,10 @@ export const vehiclesQuery = {
 
 function Vehiculos() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const { data: vehicles = [] } = useQuery(vehiclesQuery);
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState(empty("camion350"));
+  const [f, setF] = useState(emptyVehicleForm("camion350"));
   const save = useMutation({
     mutationFn: async () => {
       const { error } = await supabase
@@ -65,7 +52,7 @@ function Vehiculos() {
     },
     onSuccess: () => {
       toast.success("Vehículo guardado");
-      setF(empty(f.kind));
+      setF(emptyVehicleForm(f.kind));
       setOpen(false);
       qc.invalidateQueries({ queryKey: ["vehicles"] });
     },
@@ -77,14 +64,6 @@ function Vehiculos() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["vehicles"] }),
-  });
-  const num = (k: "length_cm" | "width_cm" | "height_cm" | "max_kg") => ({
-    id: k,
-    value: f[k],
-    type: "number",
-    min: 1,
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-      setF({ ...f, [k]: Number(e.target.value) }),
   });
 
   return (
@@ -117,94 +96,14 @@ function Vehiculos() {
           aria-label="Agregar vehículo"
           className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]"
         >
-          <form
-            className="space-y-4 rounded-lg border border-border bg-card p-5"
-            onSubmit={(e) => {
-              e.preventDefault();
-              save.mutate();
-            }}
-          >
-            <div>
-              <Label>Tipo de vehículo</Label>
-              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {(Object.keys(VEHICLE_PRESETS) as VehicleKind[]).map((k) => (
-                  <button
-                    key={k}
-                    type="button"
-                    onClick={() => setF({ ...f, kind: k, ...pick(k) })}
-                    className={`rounded-md border px-3 py-2 text-left text-xs transition-colors ${f.kind === k ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:border-muted-foreground"}`}
-                  >
-                    <span className="block font-semibold">{VEHICLE_PRESETS[k].label}</span>
-                    <span className="block opacity-70">{VEHICLE_PRESETS[k].example}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
-                <Label htmlFor="vehicle-name">Nombre</Label>
-                <Input
-                  id="vehicle-name"
-                  placeholder="Ej. El Toronto azul"
-                  value={f.name}
-                  onChange={(e) => setF({ ...f, name: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="vehicle-brand">Marca</Label>
-                <Input
-                  id="vehicle-brand"
-                  value={f.brand}
-                  onChange={(e) => setF({ ...f, brand: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="vehicle-model">Modelo</Label>
-                <Input
-                  id="vehicle-model"
-                  value={f.model}
-                  onChange={(e) => setF({ ...f, model: e.target.value })}
-                />
-              </div>
-              <div className="col-span-2">
-                <Label htmlFor="vehicle-plate">Placa</Label>
-                <Input
-                  id="vehicle-plate"
-                  value={f.plate}
-                  onChange={(e) => setF({ ...f, plate: e.target.value.toUpperCase() })}
-                />
-              </div>
-            </div>
-            <p className="font-mono text-xs uppercase tracking-wider text-primary">
-              Espacio de carga interno
-            </p>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div>
-                <Label htmlFor="length_cm">Largo (cm)</Label>
-                <Input {...num("length_cm")} />
-              </div>
-              <div>
-                <Label htmlFor="width_cm">Ancho (cm)</Label>
-                <Input {...num("width_cm")} />
-              </div>
-              <div>
-                <Label htmlFor="height_cm">Alto (cm)</Label>
-                <Input {...num("height_cm")} />
-              </div>
-              <div>
-                <Label htmlFor="max_kg">Carga máx (kg)</Label>
-                <Input {...num("max_kg")} />
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button type="submit" disabled={save.isPending}>
-                {save.isPending ? "Guardando…" : "Guardar vehículo"}
-              </Button>
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-                Cancelar
-              </Button>
-            </div>
-          </form>
+          <VehicleForm
+            f={f}
+            setF={setF}
+            onSubmit={() => save.mutate()}
+            pending={save.isPending}
+            submitLabel="Guardar vehículo"
+            onCancel={() => setOpen(false)}
+          />
           <Truck3DView
             kind={f.kind}
             length={f.length_cm}
@@ -236,7 +135,8 @@ function Vehiculos() {
                 return (
                   <article
                     key={v.id}
-                    className="overflow-hidden rounded-lg border border-border bg-card"
+                    onClick={() => navigate({ to: "/vehiculos/$id", params: { id: v.id } })}
+                    className="cursor-pointer overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-muted-foreground"
                   >
                     <div className="border-b border-border bg-background p-3">
                       <VehicleThumb kind={kind} className="h-24 w-full" />
@@ -249,7 +149,10 @@ function Vehiculos() {
                           variant="ghost"
                           className="-mr-1 -mt-1 shrink-0"
                           aria-label={`Eliminar ${v.name}`}
-                          onClick={() => del.mutate(v.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            del.mutate(v.id);
+                          }}
                         >
                           <Trash2 />
                         </Button>
