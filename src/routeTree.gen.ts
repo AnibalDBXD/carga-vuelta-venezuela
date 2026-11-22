@@ -17,6 +17,7 @@ import { Route as AuthenticatedBienvenidaRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPanelRouteRouteImport } from './routes/_authenticated/panel/route'
 import { Route as ApiMcpRouteImport } from './routes/api/mcp'
 import { Route as ApiTelegramRouteImport } from './routes/api/telegram'
+import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as BolsaIndexRouteImport } from './routes/bolsa/index'
 import { Route as BolsaOfferIdRouteImport } from './routes/bolsa/$offerId'
 import { Route as PagosIndexRouteImport } from './routes/pagos/index'
@@ -67,6 +68,11 @@ const ApiTelegramRoute = ApiTelegramRouteImport.update({
   id: '/api/telegram',
   path: '/api/telegram',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => AuthRoute,
 } as any)
 const BolsaIndexRoute = BolsaIndexRouteImport.update({
   id: '/bolsa/',
@@ -131,12 +137,13 @@ const AuthenticatedPanelViajesNuevoRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/retornos': typeof RetornosRoute
   '/panel': typeof AuthenticatedPanelRouteRouteWithChildren
   '/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/telegram': typeof ApiTelegramRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/bolsa/$offerId': typeof BolsaOfferIdRoute
   '/pagos/$requestId': typeof PagosRequestIdRoute
   '/recogidas/$token': typeof RecogidasTokenRoute
@@ -151,11 +158,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/retornos': typeof RetornosRoute
   '/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/telegram': typeof ApiTelegramRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/bolsa/$offerId': typeof BolsaOfferIdRoute
   '/pagos/$requestId': typeof PagosRequestIdRoute
   '/recogidas/$token': typeof RecogidasTokenRoute
@@ -172,12 +180,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/retornos': typeof RetornosRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRouteRouteWithChildren
   '/_authenticated/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/api/mcp': typeof ApiMcpRoute
   '/api/telegram': typeof ApiTelegramRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/bolsa/$offerId': typeof BolsaOfferIdRoute
   '/pagos/$requestId': typeof PagosRequestIdRoute
   '/recogidas/$token': typeof RecogidasTokenRoute
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | '/bienvenida'
     | '/api/mcp'
     | '/api/telegram'
+    | '/auth/callback'
     | '/bolsa/$offerId'
     | '/pagos/$requestId'
     | '/recogidas/$token'
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/bienvenida'
     | '/api/mcp'
     | '/api/telegram'
+    | '/auth/callback'
     | '/bolsa/$offerId'
     | '/pagos/$requestId'
     | '/recogidas/$token'
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '/_authenticated/bienvenida'
     | '/api/mcp'
     | '/api/telegram'
+    | '/auth/callback'
     | '/bolsa/$offerId'
     | '/pagos/$requestId'
     | '/recogidas/$token'
@@ -256,7 +268,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   RetornosRoute: typeof RetornosRoute
   ApiMcpRoute: typeof ApiMcpRoute
   ApiTelegramRoute: typeof ApiTelegramRoute
@@ -324,6 +336,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/telegram'
       preLoaderRoute: typeof ApiTelegramRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/bolsa/': {
       id: '/bolsa/'
@@ -443,10 +462,20 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AuthRouteChildren {
+  AuthCallbackRoute: typeof AuthCallbackRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthCallbackRoute: AuthCallbackRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   RetornosRoute: RetornosRoute,
   ApiMcpRoute: ApiMcpRoute,
   ApiTelegramRoute: ApiTelegramRoute,
@@ -459,13 +488,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
