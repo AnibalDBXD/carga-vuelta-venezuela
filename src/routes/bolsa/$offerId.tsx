@@ -86,6 +86,8 @@ function OfferPage() {
       preview.reduce((s, p) => s + ((p.length * p.width * p.height) / 1e6) * p.qty, 0) * 100,
     ) / 100;
   const overVolume = preview.length > 0 && previewM3 > offer.free_m3;
+  const fromCity = CITIES.find((c) => c.id === offer.origin);
+  const toCity = CITIES.find((c) => c.id === offer.destination);
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
@@ -104,8 +106,6 @@ function OfferPage() {
         {cityName(offer.origin)} → {cityName(offer.destination)}
       </h1>
       {(() => {
-        const fromCity = CITIES.find((c) => c.id === offer.origin);
-        const toCity = CITIES.find((c) => c.id === offer.destination);
         if (!fromCity || !toCity) return null;
         const via = (
           route?.geometry
@@ -184,6 +184,18 @@ function OfferPage() {
             onPickupPoint={setPickupPoint}
             onDeliveryPoint={setDeliveryPoint}
             onSubmit={(body) => send({ data: { offerId, ...body } }).then((r) => r.requestId)}
+            demo={{
+              pickup: fromCity && {
+                lng: fromCity.lng,
+                lat: fromCity.lat,
+                label: `${fromCity.name}, centro`,
+              },
+              delivery: toCity && {
+                lng: toCity.lng,
+                lat: toCity.lat,
+                label: `${toCity.name}, centro`,
+              },
+            }}
           />
         </div>
       </div>

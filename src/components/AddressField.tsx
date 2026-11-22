@@ -14,14 +14,16 @@ export function AddressField({
   name,
   label,
   onPoint,
+  initialValue,
   ...props
 }: React.ComponentProps<typeof Input> & {
   name: string;
   label: string;
   onPoint?: ((p: GeoPoint | null) => void) | undefined;
+  initialValue?: string | undefined;
 }) {
   const token = import.meta.env["VITE_MAPBOX_TOKEN"] as string | undefined;
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(initialValue ?? "");
   const [suggestions, setSuggestions] = useState<GeocodeResult[]>([]);
   const [open, setOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);

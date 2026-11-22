@@ -52,23 +52,52 @@ function currentPkgs(
     .filter((p): p is Pkg => p !== null);
 }
 
+// Datos ficticios para presentaciones: Shift+J (fuera de un campo) los rellena.
+// El correo es válido para la validación pero claramente de demo.
+const DEMO = {
+  sender: "María González",
+  phone: "04141234567",
+  email: "demo@cargaruta.local",
+  packages: [
+    {
+      name: "Saco de 50 kg",
+      length: 80,
+      width: 50,
+      height: 30,
+      weight: 50,
+      qty: 3,
+      fragile: false,
+    },
+    { name: "Televisor", length: 125, width: 75, height: 15, weight: 15, qty: 1, fragile: true },
+  ] satisfies Partial<Pkg>[],
+};
+
 export function PackageRequestForm({
   onSubmit,
   onPreview,
   onPickupPoint,
   onDeliveryPoint,
+  demo,
 }: {
   onSubmit: (body: PackageRequestBody) => Promise<string | undefined>;
   onPreview?: (pkgs: Pkg[]) => void;
   onPickupPoint?: (p: GeoPoint | null) => void;
   onDeliveryPoint?: (p: GeoPoint | null) => void;
+  demo?: { pickup?: GeoPoint | undefined; delivery?: GeoPoint | undefined } | undefined;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const nextKey = useRef(1);
   const [items, setItems] = useState<number[]>([0]);
   const [fragile, setFragile] = useState<Record<number, boolean>>({ 0: false });
-  // Valores iniciales por bulto al usar un preset (los campos quedan editables).
-  const [prefill, setPrefill] = useState<Record<number, CargoPreset>>({});
+  // Valores iniciales por bulto al usar un preset o el autofill de demo
+  // (los campos quedan editables).
+  const [prefill, setPrefill] = useState<Record<number, Partial<Pkg>>>({});
+  // Autofill de demo: seq fuerza el remount de los AddressField (son controlados).
+  const [demoFill, setDemoFill] = useState<{
+    seq: number;
+    pickup?: string | undefined;
+    delivery?: string | undefined;
+  } | null>(null);
   const [busy, setBusy] = useState(false);
   const [requestId, setRequestId] = useState<string | undefined>();
   const [push, setPush] = useState<"idle" | "busy" | "done">("idle");
@@ -94,6 +123,53 @@ export function PackageRequestForm({
     setFragile((f) => ({ ...f, [key]: preset?.fragile ?? false }));
     if (preset) setPrefill((p) => ({ ...p, [key]: preset }));
   };
+  // Shift+J: rellena todo con datos ficticios para no perder tiempo en la demo.
+  const fillDemo = useCallback(() => {
+    const form = formRef.current;
+    if (!form || requestId !== undefined) return;
+    const set = (name: string, v: string) => {
+      const el = form.elements.namedItem(name);
+      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) el.value = v;
+    };
+    set("sender", DEMO.sender);
+    set("phone", DEMO.phone);
+    set("email", DEMO.email);
+    const keys = DEMO.packages.map(() => nextKey.current++);
+    setItems(keys);
+    setPrefill(Object.fromEntries(keys.map((k, i) => [k, DEMO.packages[i]!])));
+    setFragile(Object.fromEntries(keys.map((k, i) => [k, DEMO.packages[i]!.fragile ?? false])));
+    setDemoFill((d) => ({
+      seq: (d?.seq ?? 0) + 1,
+      pickup: demo?.pickup?.label,
+      delivery: demo?.delivery?.label,
+    }));
+    onPickupPoint?.(demo?.pickup ?? null);
+    onDeliveryPoint?.(demo?.delivery ?? null);
+  }, [requestId, demo, onPickupPoint, onDeliveryPoint]);
+  // Ignora el atajo al escribir dentro de un campo: la "J" mayúscula debe seguir
+  // pudiendo teclearse (nombres como "José").
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== "KeyJ" || !e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (
+        t instanceof HTMLInputElement ||
+        t instanceof HTMLTextAreaElement ||
+        t instanceof HTMLSelectElement ||
+        t?.isContentEditable
+      )
+        return;
+      e.preventDefault();
+      fillDemo();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [fillDemo]);
+  // emit() se recrea cuando items/fragile cambian: dispararlo tras el autofill
+  // actualiza la vista previa 3D con los bultos ya montados.
+  useEffect(() => {
+    if (demoFill) emit();
+  }, [demoFill, emit]);
   const removeItem = (key: number) => {
     setItems((list) => list.filter((k) => k !== key));
     setFragile((f) => {
@@ -206,19 +282,23 @@ export function PackageRequestForm({
       <section className="space-y-4 border-t border-border pt-5">
         <h2 className="text-xl font-bold">Recogida y entrega</h2>
         <AddressField
+          key={`pickup-${demoFill?.seq ?? 0}`}
           name="pickup"
           label="Dirección de recogida"
           minLength={5}
           maxLength={500}
           placeholder="Ciudad, sector, calle y referencia"
+          initialValue={demoFill?.pickup}
           onPoint={onPickupPoint}
         />
         <AddressField
+          key={`delivery-${demoFill?.seq ?? 0}`}
           name="delivery"
           label="Dirección de entrega"
           minLength={5}
           maxLength={500}
           placeholder="Ciudad, sector, calle y referencia"
+          initialValue={demoFill?.delivery}
           onPoint={onDeliveryPoint}
         />
       </section>
@@ -300,7 +380,7 @@ export function PackageRequestForm({
                     type="number"
                     min={1}
                     max={100}
-                    defaultValue="1"
+                    defaultValue={pre?.qty ?? 1}
                   />
                   <div className="flex items-center gap-3">
                     <Switch
