@@ -236,15 +236,17 @@ function NuevoViaje() {
     const firstKey = Object.keys(next)[0];
     if (firstKey) {
       const count = Object.keys(next).length;
-      setSaveError({
-        summary:
-          count === 1
-            ? "Revisa el campo marcado en rojo."
-            : `Revisa los ${count} campos marcados en rojo.`,
-        detail: "Corrige los datos señalados y vuelve a guardar el viaje.",
+      toast.error(
+        count === 1 ? "Revisa el campo marcado en rojo" : `Revisa los ${count} campos marcados en rojo`,
+      );
+      // Un solo movimiento: llevar el primer campo inválido a la vista y enfocarlo sin
+      // que el navegador vuelva a desplazar la página (eso causaba el salto).
+      window.requestAnimationFrame(() => {
+        const el = document.getElementById(firstKey);
+        if (!el) return;
+        el.scrollIntoView({ block: "center", behavior: "smooth" });
+        el.focus({ preventScroll: true });
       });
-      toast.error("Revisa los campos marcados en rojo");
-      window.requestAnimationFrame(() => document.getElementById(firstKey)?.focus());
       return;
     }
 
@@ -272,7 +274,9 @@ function NuevoViaje() {
       setSaveError(explained);
       if (explained.field) setErrors({ [explained.field]: explained.summary });
       if (explained.field)
-        window.requestAnimationFrame(() => document.getElementById(explained.field!)?.focus());
+        window.requestAnimationFrame(() =>
+          document.getElementById(explained.field!)?.focus({ preventScroll: true }),
+        );
       toast.error(explained.summary);
       return;
     }
@@ -323,7 +327,7 @@ function NuevoViaje() {
             </div>
           </div>
         )}
-        <section className="grid gap-4 rounded-lg border border-border bg-card p-5 md:grid-cols-4">
+        <section className="grid gap-4 rounded-lg border border-border bg-card p-5 md:grid-cols-2 lg:grid-cols-5">
           <CityField
             id="origin"
             label="Origen"
@@ -372,7 +376,7 @@ function NuevoViaje() {
             />
             {fieldError("time")}
           </div>
-          <div>
+          <div className="md:col-span-2 lg:col-span-1">
             <Label htmlFor="vehicle">Vehículo</Label>
             <select
               {...fieldProps("vehicle")}
@@ -392,7 +396,7 @@ function NuevoViaje() {
             {fieldError("vehicle")}
           </div>
           {route && (
-            <p className="font-mono text-xs text-muted-foreground md:col-span-4">
+            <p className="font-mono text-xs text-muted-foreground md:col-span-2 lg:col-span-5">
               ≈ {route.km} km · {route.hours} h · {route.via} · ~{route.checkpoints} alcabalas · ~
               {route.tolls} peajes
               {route.source === "estimate" && " · estimado"}
@@ -400,7 +404,7 @@ function NuevoViaje() {
           )}
           {fromCity && toCity && origin !== destination && (
             <RouteMapView
-              className="h-64 w-full overflow-hidden rounded-md border border-border md:col-span-4"
+              className="h-64 w-full overflow-hidden rounded-md border border-border md:col-span-2 lg:col-span-5"
               corridors={[
                 {
                   from: { lng: fromCity.lng, lat: fromCity.lat, label: fromCity.name },

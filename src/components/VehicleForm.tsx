@@ -3,6 +3,8 @@ import type { Tables } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { VehicleThumb } from "@/components/VehicleThumb";
+import { cn } from "@/lib/utils";
 
 export type VehicleFormState = {
   name: string;
@@ -77,17 +79,36 @@ export function VehicleForm({
       <div>
         <Label>Tipo de vehículo</Label>
         <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {(Object.keys(VEHICLE_PRESETS) as VehicleKind[]).map((k) => (
-            <button
-              key={k}
-              type="button"
-              onClick={() => setF({ ...f, kind: k, ...pick(k) })}
-              className={`rounded-md border px-3 py-2 text-left text-xs transition-colors ${f.kind === k ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:border-muted-foreground"}`}
-            >
-              <span className="block font-semibold">{VEHICLE_PRESETS[k].label}</span>
-              <span className="block opacity-70">{VEHICLE_PRESETS[k].example}</span>
-            </button>
-          ))}
+          {(Object.keys(VEHICLE_PRESETS) as VehicleKind[]).map((k) => {
+            const selected = f.kind === k;
+            return (
+              <button
+                key={k}
+                type="button"
+                aria-pressed={selected}
+                title={`${VEHICLE_PRESETS[k].label} · ${VEHICLE_PRESETS[k].example}`}
+                onClick={() => setF({ ...f, kind: k, ...pick(k) })}
+                className={cn(
+                  "rounded-md border px-2 pb-1.5 pt-1.5 text-left text-xs transition-colors",
+                  selected
+                    ? "border-primary bg-primary/10 text-foreground"
+                    : "border-border text-muted-foreground hover:border-muted-foreground",
+                )}
+              >
+                <VehicleThumb
+                  kind={k}
+                  decorative
+                  className={cn("h-9 w-full", selected ? "opacity-100" : "opacity-70")}
+                />
+                <span className="mt-1 block font-semibold leading-tight">
+                  {VEHICLE_PRESETS[k].label}
+                </span>
+                <span className="block text-[10px] leading-tight opacity-70">
+                  {VEHICLE_PRESETS[k].example}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
