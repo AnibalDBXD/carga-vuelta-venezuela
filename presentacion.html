@@ -1,0 +1,1091 @@
+﻿<!doctype html>
+<html lang="es-VE">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CargaRuta — Presentación</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&family=Saira+Stencil+One&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #15181c;
+        --ink: #f2f0e7;
+        --muted: #969ca2;
+        --line: #34393f;
+        --yellow: #eec22c;
+        --yellow-dim: #8a7420;
+        --edge: clamp(1.4rem, 4.5vw, 4.5rem);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        overflow: hidden;
+      }
+
+      /* ---------- deck ---------- */
+
+      .deck {
+        height: 100dvh;
+        width: 100%;
+      }
+
+      .slide {
+        position: absolute;
+        inset: 0;
+        display: none;
+        flex-direction: column;
+        padding: clamp(0.9rem, 2.6vh, 1.9rem) var(--edge) clamp(3.4rem, 7.5vh, 4.4rem);
+        background-image:
+          radial-gradient(120% 90% at 12% 0%, rgba(238, 194, 44, 0.05), transparent 60%),
+          repeating-linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.02) 0 1px,
+            transparent 1px 88px
+          );
+      }
+
+      .slide.is-active {
+        display: flex;
+        animation: enter 0.4s ease both;
+      }
+
+      @keyframes enter {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      /* ---------- cabecera ---------- */
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex: none;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: clamp(0.6rem, 0.9vw, 0.78rem);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 0.65rem;
+      }
+
+      .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .logo svg {
+        height: clamp(1.05rem, 1.8vw, 1.45rem);
+        width: auto;
+        display: block;
+      }
+
+      .logo-word {
+        font-family: "Saira Stencil One", "Stencil", ui-sans-serif, sans-serif;
+        font-size: clamp(0.95rem, 1.55vw, 1.28rem);
+        line-height: 1;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--ink);
+      }
+
+      .logo-word span {
+        color: var(--yellow);
+      }
+
+      /* ---------- cuerpo ---------- */
+
+      .body {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: clamp(0.9rem, 2.2vh, 1.8rem);
+        padding-top: clamp(1.1rem, 3.6vh, 2.6rem);
+      }
+
+      .kicker {
+        margin: 0;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: clamp(0.64rem, 0.95vw, 0.8rem);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--yellow);
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+      }
+
+      .kicker::after {
+        content: "";
+        height: 1px;
+        width: clamp(1.6rem, 7vw, 5.5rem);
+        background: var(--yellow-dim);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.95rem, 5.6vw, 4.4rem);
+        line-height: 1.02;
+        letter-spacing: -0.025em;
+        font-weight: 700;
+        max-width: 24ch;
+        text-wrap: balance;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: clamp(1.7rem, 4.2vw, 3.3rem);
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        font-weight: 700;
+        max-width: 30ch;
+        text-wrap: balance;
+      }
+
+      h2 em {
+        font-style: normal;
+        color: var(--yellow);
+      }
+
+      .lead {
+        margin: 0;
+        font-size: clamp(0.97rem, 1.5vw, 1.25rem);
+        line-height: 1.45;
+        color: var(--muted);
+        max-width: 44ch;
+      }
+
+      /* ---------- métricas ---------- */
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(1rem, 3vw, 3.2rem);
+      }
+
+      .metric {
+        border-left: 2px solid var(--yellow-dim);
+        padding-left: clamp(0.7rem, 1.2vw, 1.1rem);
+      }
+
+      .metric .num {
+        display: block;
+        font-size: clamp(2rem, 4.9vw, 4rem);
+        font-weight: 700;
+        line-height: 0.95;
+        letter-spacing: -0.035em;
+        color: var(--yellow);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .metric .cap {
+        display: block;
+        margin-top: 0.55rem;
+        font-size: clamp(0.82rem, 1.15vw, 1.02rem);
+        line-height: 1.35;
+        color: var(--muted);
+        max-width: 26ch;
+      }
+
+      /* ---------- barra de ocupación / reparto ---------- */
+
+      .loadbar {
+        display: grid;
+        gap: 0.5rem;
+        max-width: 70ch;
+      }
+
+      .lb-head,
+      .lb-legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 0.4rem 1.2rem;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: clamp(0.58rem, 0.82vw, 0.7rem);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .lb-legend {
+        justify-content: flex-start;
+        letter-spacing: 0.06em;
+      }
+
+      .lb-legend span {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .lb-legend i {
+        width: 0.5rem;
+        height: 0.5rem;
+        display: block;
+      }
+
+      .lb-track {
+        display: flex;
+        height: clamp(8px, 1vh, 11px);
+        border: 1px solid var(--line);
+        background: #1c2026;
+        overflow: hidden;
+      }
+
+      .lb-seg {
+        display: block;
+        height: 100%;
+        transform-origin: left center;
+      }
+
+      .slide.is-active .lb-seg {
+        animation: grow 0.9s cubic-bezier(0.22, 0.7, 0.2, 1) both;
+      }
+
+      .slide.is-active .lb-seg:nth-child(2) {
+        animation-delay: 0.7s;
+      }
+
+      @keyframes grow {
+        from {
+          transform: scaleX(0);
+        }
+        to {
+          transform: scaleX(1);
+        }
+      }
+
+      .lb-seg.used {
+        background: var(--yellow);
+      }
+
+      .lb-seg.rest {
+        background: #3b4148;
+      }
+
+      .lb-seg.app {
+        background: var(--ink);
+      }
+
+      /* ---------- portada ---------- */
+
+      .cover .body {
+        justify-content: center;
+        gap: clamp(1rem, 2.4vh, 2rem);
+        padding-top: 0;
+      }
+
+      .cover-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
+        align-items: center;
+        gap: clamp(1rem, 3vw, 3rem);
+      }
+
+      .cover-copy {
+        display: grid;
+        gap: clamp(0.9rem, 2vh, 1.6rem);
+        align-content: center;
+      }
+
+      .cover h1 {
+        font-size: clamp(2.1rem, 5.4vw, 5rem);
+        max-width: 14ch;
+      }
+
+      .cover .lead {
+        font-size: clamp(0.98rem, 1.6vw, 1.3rem);
+        color: var(--ink);
+        max-width: 38ch;
+      }
+
+      .cover-visual {
+        margin: 0;
+        justify-self: center;
+        width: 100%;
+      }
+
+      .cover-visual img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .cover-visual figcaption {
+        margin-top: -0.4rem;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: clamp(0.56rem, 0.8vw, 0.68rem);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #6f757b;
+        text-align: center;
+      }
+
+      /* ---------- solución ---------- */
+
+      .steps {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(1rem, 2.6vw, 2.6rem);
+      }
+
+      .steps li {
+        display: flex;
+        gap: 0.65rem;
+        align-items: flex-start;
+        border-top: 1px solid var(--line);
+        padding-top: 0.65rem;
+        font-size: clamp(0.84rem, 1.15vw, 1.02rem);
+        line-height: 1.35;
+      }
+
+      .step-n {
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        color: var(--yellow);
+        padding-top: 0.15rem;
+      }
+
+      .duel {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: clamp(0.8rem, 2vw, 2rem);
+      }
+
+      .duel-card {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.012);
+        padding: clamp(0.75rem, 1.5vw, 1.2rem) clamp(0.85rem, 1.7vw, 1.4rem);
+      }
+
+      .duel-card.is-win {
+        border-color: var(--yellow-dim);
+        background: rgba(238, 194, 44, 0.05);
+      }
+
+      .duel-head {
+        margin: 0 0 0.5rem;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: clamp(0.56rem, 0.8vw, 0.68rem);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .duel-card.is-win .duel-head {
+        color: var(--yellow);
+      }
+
+      .duel-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 1rem;
+        padding: 0.4rem 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+        font-size: clamp(0.8rem, 1.1vw, 0.98rem);
+        color: var(--muted);
+      }
+
+      .duel-card.is-win .duel-row {
+        color: var(--ink);
+      }
+
+      .duel-row .mono {
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        color: var(--ink);
+        white-space: nowrap;
+      }
+
+      .duel-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 1rem;
+        margin-top: 0.15rem;
+        padding-top: 0.55rem;
+        border-top: 1px solid var(--line);
+        font-size: clamp(0.82rem, 1.1vw, 1rem);
+        font-weight: 600;
+      }
+
+      .duel-total .mono {
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 1.35em;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .duel-card.is-win .duel-total .mono {
+        color: var(--yellow);
+      }
+
+      .duel-note {
+        margin: 0.6rem 0 0;
+        font-size: clamp(0.7rem, 0.95vw, 0.82rem);
+        line-height: 1.4;
+        color: var(--muted);
+      }
+
+      .duel-note b {
+        font-size: 1.45em;
+        color: var(--yellow);
+        letter-spacing: -0.02em;
+      }
+
+      .footnote {
+        margin: 0;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: clamp(0.58rem, 0.85vw, 0.72rem);
+        line-height: 1.5;
+        letter-spacing: 0.02em;
+        color: #6f757b;
+        max-width: 100ch;
+      }
+
+      .audience {
+        margin: 0;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: clamp(0.62rem, 0.95vw, 0.8rem);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-top: 1px solid var(--line);
+        padding-top: 0.8rem;
+      }
+
+      .audience strong {
+        color: var(--ink);
+        font-weight: 500;
+      }
+
+      /* ---------- modelo de negocio ---------- */
+
+      .flow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.6rem 0.9rem;
+        padding: clamp(0.75rem, 1.5vh, 1.1rem) clamp(0.9rem, 1.8vw, 1.4rem);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.015);
+      }
+
+      .flow span {
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: clamp(0.66rem, 1vw, 0.85rem);
+        letter-spacing: 0.04em;
+        color: var(--ink);
+      }
+
+      .flow .arrow {
+        color: var(--yellow);
+      }
+
+      .flow .win {
+        color: var(--yellow);
+      }
+
+      .punch {
+        margin: 0;
+        font-size: clamp(1.05rem, 2vw, 1.6rem);
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        color: var(--muted);
+      }
+
+      .punch strong {
+        color: var(--yellow);
+        font-weight: 700;
+      }
+
+      /* ---------- navegación ---------- */
+
+      .hud {
+        position: fixed;
+        right: clamp(1rem, 3vw, 2.6rem);
+        bottom: clamp(0.8rem, 2.2vw, 1.7rem);
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        z-index: 10;
+      }
+
+      button.nav {
+        appearance: none;
+        cursor: pointer;
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid var(--line);
+        width: 2.3rem;
+        height: 2.3rem;
+        display: grid;
+        place-items: center;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.95rem;
+        transition:
+          color 0.2s,
+          border-color 0.2s,
+          background 0.2s;
+      }
+
+      button.nav:hover:not(:disabled) {
+        color: var(--bg);
+        background: var(--yellow);
+        border-color: var(--yellow);
+      }
+
+      button.nav:disabled {
+        opacity: 0.25;
+        cursor: default;
+      }
+
+      .dots {
+        position: fixed;
+        left: var(--edge);
+        bottom: clamp(1rem, 2.5vw, 1.95rem);
+        display: flex;
+        gap: 0.45rem;
+        z-index: 10;
+      }
+
+      .dots button {
+        appearance: none;
+        cursor: pointer;
+        width: 1.6rem;
+        height: 3px;
+        border: 0;
+        padding: 0;
+        background: var(--line);
+        transition: background 0.2s;
+      }
+
+      .dots button[aria-current="true"] {
+        background: var(--yellow);
+      }
+
+      .bar {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        height: 2px;
+        background: var(--yellow);
+        transition: width 0.35s ease;
+        z-index: 11;
+      }
+
+      /* ---------- pantallas medianas y angostas ---------- */
+
+      @media (max-width: 980px) {
+        .cover-grid {
+          grid-template-columns: 1fr;
+          gap: clamp(0.6rem, 2vh, 1.2rem);
+        }
+        .cover-visual {
+          max-width: 560px;
+        }
+        .cover h1 {
+          max-width: 20ch;
+        }
+        .steps {
+          gap: 1rem;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .slide {
+          overflow-y: auto;
+          padding-bottom: 4.2rem;
+        }
+        .body {
+          justify-content: flex-start;
+          gap: 1rem;
+          padding-top: 1rem;
+        }
+        .cover .body {
+          justify-content: center;
+          padding-top: 1.2rem;
+        }
+        .metrics {
+          grid-template-columns: 1fr;
+          gap: 0.8rem;
+        }
+        .metric .cap {
+          max-width: none;
+        }
+        .metric .num {
+          font-size: 2rem;
+        }
+        .steps {
+          grid-template-columns: 1fr;
+          gap: 0.6rem;
+        }
+        .duel {
+          grid-template-columns: 1fr;
+        }
+        .dots {
+          gap: 0.3rem;
+        }
+        .dots button {
+          width: 1rem;
+        }
+        button.nav {
+          width: 2rem;
+          height: 2rem;
+        }
+      }
+
+      /* ---------- impresión ---------- */
+
+      @media print {
+        html,
+        body {
+          overflow: visible;
+        }
+        .deck {
+          height: auto;
+        }
+        .slide {
+          position: relative;
+          display: flex !important;
+          height: 100vh;
+          page-break-after: always;
+          break-after: page;
+          animation: none;
+        }
+        .hud,
+        .dots,
+        .bar {
+          display: none !important;
+        }
+        .lb-seg {
+          animation: none !important;
+          transform: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="deck" id="deck">
+      <!-- 01 · PORTADA -->
+      <section class="slide cover" data-label="Portada">
+        <header class="topbar">
+          <span class="logo">
+            <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+              <g fill="none" stroke-linecap="round">
+                <path d="M21 58A37 37 0 0 1 58 21" stroke="#eec22c" stroke-width="5.6" />
+                <path d="M43 58A15 15 0 0 1 58 43" stroke="#eec22c" stroke-width="5.6" />
+                <path
+                  d="M32 58A26 26 0 0 1 58 32"
+                  stroke="#f2f0e7"
+                  stroke-width="4.4"
+                  stroke-dasharray="9 6.92"
+                  stroke-linecap="butt"
+                />
+              </g>
+            </svg>
+            <span class="logo-word">Carga<span>Ruta</span></span>
+          </span>
+          <span>Valencia · Venezuela</span>
+        </header>
+
+        <div class="body">
+          <div class="cover-grid">
+            <div class="cover-copy">
+              <p class="kicker">Modelo de negocio · Producto · Mercado</p>
+              <h1>Ningún camión vuelve vacío.</h1>
+              <p class="lead">
+                Conectamos tu ruta con la carga de clientes que ya van hacia el mismo destino.
+              </p>
+            </div>
+
+            <figure class="cover-visual">
+              <img
+                src="presentacion-assets/camion-3d.png"
+                alt="Camión con la carga organizada en 3D y el espacio libre marcado en amarillo."
+              />
+              <figcaption>Carga real en 3D · 17,2% del volumen ocupado</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 · PROBLEMA -->
+      <section class="slide" data-label="El problema">
+        <header class="topbar">
+          <span class="logo">
+            <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+              <g fill="none" stroke-linecap="round">
+                <path d="M21 58A37 37 0 0 1 58 21" stroke="#eec22c" stroke-width="5.6" />
+                <path d="M43 58A15 15 0 0 1 58 43" stroke="#eec22c" stroke-width="5.6" />
+                <path
+                  d="M32 58A26 26 0 0 1 58 32"
+                  stroke="#f2f0e7"
+                  stroke-width="4.4"
+                  stroke-dasharray="9 6.92"
+                  stroke-linecap="butt"
+                />
+              </g>
+            </svg>
+            <span class="logo-word">Carga<span>Ruta</span></span>
+          </span>
+          <span class="page-total"></span>
+        </header>
+
+        <div class="body">
+          <p class="kicker">01 · El problema</p>
+          <h2>Uno de cada tres camiones vuelve <em>vacío</em>.</h2>
+
+          <div class="metrics">
+            <div class="metric">
+              <span class="num" data-count="33" data-suffix="%">33%</span>
+              <span class="cap">de los viajes de carga regresan sin un solo paquete.</span>
+            </div>
+            <div class="metric">
+              <span class="num" data-count="82.8" data-decimals="1" data-suffix="%">82,8%</span>
+              <span class="cap">del espacio quedó libre en el viaje de ejemplo. Solo se usó el 17,2%.</span>
+            </div>
+            <div class="metric">
+              <span class="num" data-count="209.9" data-decimals="1" data-suffix=" km">209,9 km</span>
+              <span class="cap">de ida. La vuelta cuesta lo mismo en diésel y peajes, pero no factura.</span>
+            </div>
+          </div>
+
+          <div class="loadbar">
+            <div class="lb-head">
+              <span>Ocupación real del camión</span>
+              <span>Valencia → Caracas · 20 bultos</span>
+            </div>
+            <div class="lb-track">
+              <span class="lb-seg used" style="width: 17.2%"></span>
+              <span class="lb-seg rest" style="width: 82.8%"></span>
+            </div>
+            <div class="lb-legend">
+              <span><i style="background: var(--yellow)"></i>17,2% con carga</span>
+              <span><i style="background: #3b4148"></i>82,8% viaja vacío</span>
+            </div>
+          </div>
+
+          <p class="lead">El conductor paga el regreso. El cliente busca cupo y no lo encuentra.</p>
+          <p class="footnote">
+            33%: estimación del sector, pendiente de medir con datos propios. El resto sale del viaje
+            Valencia → Caracas cargado en CargaRuta: 209,9 km · 3,5 h · 20 bultos · 451 kg.
+          </p>
+        </div>
+      </section>
+
+      <!-- 03 · SOLUCIÓN -->
+      <section class="slide" data-label="La solución">
+        <header class="topbar">
+          <span class="logo">
+            <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+              <g fill="none" stroke-linecap="round">
+                <path d="M21 58A37 37 0 0 1 58 21" stroke="#eec22c" stroke-width="5.6" />
+                <path d="M43 58A15 15 0 0 1 58 43" stroke="#eec22c" stroke-width="5.6" />
+                <path
+                  d="M32 58A26 26 0 0 1 58 32"
+                  stroke="#f2f0e7"
+                  stroke-width="4.4"
+                  stroke-dasharray="9 6.92"
+                  stroke-linecap="butt"
+                />
+              </g>
+            </svg>
+            <span class="logo-word">Carga<span>Ruta</span></span>
+          </span>
+          <span class="page-total"></span>
+        </header>
+
+        <div class="body">
+          <p class="kicker">02 · La solución</p>
+          <h2>Convertimos el regreso en <em>carga</em>.</h2>
+
+          <ul class="steps">
+            <li>
+              <span class="step-n">01</span>
+              <span>Publicas la ruta y el espacio libre del camión.</span>
+            </li>
+            <li>
+              <span class="step-n">02</span>
+              <span>El cliente ve cuánto cabe y solicita su carga.</span>
+            </li>
+            <li>
+              <span class="step-n">03</span>
+              <span>Aceptas, cobras y liquidas por pago móvil.</span>
+            </li>
+          </ul>
+
+          <div class="duel">
+            <div class="duel-card">
+              <p class="duel-head">Sin CargaRuta</p>
+              <div class="duel-row">
+                <span>Valencia → Caracas</span>
+                <span class="mono">100 USD</span>
+              </div>
+              <div class="duel-row">
+                <span>Caracas → Valencia</span>
+                <span class="mono">0 USD</span>
+              </div>
+              <div class="duel-total">
+                <span>Ingreso del viaje redondo</span>
+                <span class="mono" data-count="100" data-suffix=" USD">100 USD</span>
+              </div>
+              <p class="duel-note">El camión vuelve vacío: la vuelta no deja nada.</p>
+            </div>
+
+            <div class="duel-card is-win">
+              <p class="duel-head">Con CargaRuta</p>
+              <div class="duel-row">
+                <span>Valencia → Caracas</span>
+                <span class="mono">100 USD</span>
+              </div>
+              <div class="duel-row">
+                <span>Caracas → Valencia</span>
+                <span class="mono">80 USD</span>
+              </div>
+              <div class="duel-total">
+                <span>Ingreso del viaje redondo</span>
+                <span class="mono" data-count="180" data-suffix=" USD">180 USD</span>
+              </div>
+              <p class="duel-note"><b data-count="80" data-prefix="+" data-suffix="%">+80%</b> en el mismo camión y la misma ruta.</p>
+            </div>
+          </div>
+
+          <p class="footnote">
+            Ejemplo de una ruta redonda VLC → CCS → VLC: la carga de vuelta paga 80 USD por los
+            15,6 m³ libres del viaje real (209,9 km · 3,5 h).
+          </p>
+          <p class="audience">
+            Para <strong>choferes dueños de su camión</strong> y
+            <strong>flotas de 1 a 5 unidades</strong>.
+          </p>
+        </div>
+      </section>
+
+      <!-- 04 · MODELO DE NEGOCIO -->
+      <section class="slide" data-label="Modelo de negocio">
+        <header class="topbar">
+          <span class="logo">
+            <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+              <g fill="none" stroke-linecap="round">
+                <path d="M21 58A37 37 0 0 1 58 21" stroke="#eec22c" stroke-width="5.6" />
+                <path d="M43 58A15 15 0 0 1 58 43" stroke="#eec22c" stroke-width="5.6" />
+                <path
+                  d="M32 58A26 26 0 0 1 58 32"
+                  stroke="#f2f0e7"
+                  stroke-width="4.4"
+                  stroke-dasharray="9 6.92"
+                  stroke-linecap="butt"
+                />
+              </g>
+            </svg>
+            <span class="logo-word">Carga<span>Ruta</span></span>
+          </span>
+          <span class="page-total"></span>
+        </header>
+
+        <div class="body">
+          <p class="kicker">03 · Modelo de negocio</p>
+          <h2>El conductor gana más. La app cobra por <em>conectar</em>.</h2>
+
+          <div class="metrics">
+            <div class="metric">
+              <span class="num" data-count="10" data-suffix="%">10%</span>
+              <span class="cap">de comisión por cada carga pagada. El conductor fija el precio.</span>
+            </div>
+            <div class="metric">
+              <span class="num" data-count="72" data-suffix=" USD">72 USD</span>
+              <span class="cap">se queda el conductor en una carga de 80 USD.</span>
+            </div>
+            <div class="metric">
+              <span class="num" data-count="8" data-suffix=" USD">8 USD</span>
+              <span class="cap">gana CargaRuta en esa misma carga.</span>
+            </div>
+          </div>
+
+          <div class="flow">
+            <span>Cliente paga 80 USD</span>
+            <span class="arrow">→</span>
+            <span>Conductor recibe 72 USD</span>
+            <span class="arrow">→</span>
+            <span class="win">CargaRuta 8 USD</span>
+          </div>
+
+          <div class="loadbar">
+            <div class="lb-head">
+              <span>Reparto de cada carga</span>
+              <span>90% conductor · 10% plataforma</span>
+            </div>
+            <div class="lb-track">
+              <span class="lb-seg used" style="width: 90%"></span>
+              <span class="lb-seg app" style="width: 10%"></span>
+            </div>
+            <div class="lb-legend">
+              <span><i style="background: var(--yellow)"></i>90% para el conductor</span>
+              <span><i style="background: var(--ink)"></i>10% para CargaRuta</span>
+            </div>
+          </div>
+
+          <p class="lead">
+            Escenario: 100 cargas al mes dejan 800 USD para la plataforma. Sin flota propia y sin
+            inventario.
+          </p>
+          <p class="punch">
+            El regreso vacío es plata en el piso. <strong>Nosotros lo convertimos en carga.</strong>
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <div class="dots" id="dots"></div>
+    <div class="hud">
+      <button class="nav" id="prev" aria-label="Lámina anterior">←</button>
+      <button class="nav" id="next" aria-label="Lámina siguiente">→</button>
+    </div>
+    <div class="bar" id="bar"></div>
+
+    <script>
+      const slides = Array.from(document.querySelectorAll(".slide"));
+      const dots = document.getElementById("dots");
+      const bar = document.getElementById("bar");
+      const prev = document.getElementById("prev");
+      const next = document.getElementById("next");
+      let index = 0;
+
+      const fmt = (value, decimals) =>
+        value.toLocaleString("es-VE", {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        });
+
+      /**
+       * Cuenta desde 0 hasta el valor de data-count.
+       * El HTML ya trae el valor final, así que sin JS (o al imprimir) se lee bien.
+       */
+      function countUp(el) {
+        const target = parseFloat(el.dataset.count);
+        if (!Number.isFinite(target)) return;
+        const decimals = Number(el.dataset.decimals || 0);
+        const prefix = el.dataset.prefix || "";
+        const suffix = el.dataset.suffix || "";
+        const duration = 1100;
+        const token = (el._countToken = (el._countToken || 0) + 1);
+        const start = performance.now();
+        el.textContent = prefix + fmt(0, decimals) + suffix;
+
+        const tick = (now) => {
+          if (el._countToken !== token) return;
+          const progress = Math.min(1, (now - start) / duration);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = prefix + fmt(target * eased, decimals) + suffix;
+          if (progress < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+
+      function animate(slide) {
+        slide.querySelectorAll("[data-count]").forEach(countUp);
+      }
+
+      slides.forEach((slide, i) => {
+        const total = slide.querySelector(".page-total");
+        if (total) {
+          total.textContent =
+            String(i + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+        }
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.setAttribute("aria-label", "Ir a la lámina " + (i + 1));
+        dot.addEventListener("click", () => show(i));
+        dots.appendChild(dot);
+      });
+
+      function show(nextIndex) {
+        index = Math.max(0, Math.min(slides.length - 1, nextIndex));
+        slides.forEach((slide, i) => slide.classList.toggle("is-active", i === index));
+        Array.from(dots.children).forEach((dot, i) => {
+          if (i === index) dot.setAttribute("aria-current", "true");
+          else dot.removeAttribute("aria-current");
+        });
+        prev.disabled = index === 0;
+        next.disabled = index === slides.length - 1;
+        bar.style.width = ((index + 1) / slides.length) * 100 + "%";
+        location.hash = index === 0 ? "" : "l" + (index + 1);
+        animate(slides[index]);
+      }
+
+      prev.addEventListener("click", () => show(index - 1));
+      next.addEventListener("click", () => show(index + 1));
+
+      document.addEventListener("keydown", (event) => {
+        const key = event.key;
+        if (key === "ArrowRight" || key === "PageDown" || key === " " || key === "Enter") {
+          event.preventDefault();
+          show(index + 1);
+        } else if (key === "ArrowLeft" || key === "PageUp" || key === "Backspace") {
+          event.preventDefault();
+          show(index - 1);
+        } else if (key === "Home") {
+          show(0);
+        } else if (key === "End") {
+          show(slides.length - 1);
+        }
+      });
+
+      document.getElementById("deck").addEventListener("click", (event) => {
+        if (event.target.closest("button")) return;
+        show(event.clientX > window.innerWidth / 2 ? index + 1 : index - 1);
+      });
+
+      let startX = null;
+      document.addEventListener(
+        "touchstart",
+        (event) => (startX = event.touches[0].clientX),
+        { passive: true },
+      );
+      document.addEventListener(
+        "touchend",
+        (event) => {
+          if (startX === null) return;
+          const delta = event.changedTouches[0].clientX - startX;
+          if (Math.abs(delta) > 50) show(index + (delta < 0 ? 1 : -1));
+          startX = null;
+        },
+        { passive: true },
+      );
+
+      const fromHash = parseInt((location.hash || "").replace("#l", ""), 10);
+      show(Number.isFinite(fromHash) && fromHash > 0 ? fromHash - 1 : 0);
+    </script>
+  </body>
+</html>
