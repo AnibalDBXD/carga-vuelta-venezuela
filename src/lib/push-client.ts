@@ -12,12 +12,19 @@ export function pushSupported(): boolean {
   return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 }
 
+/** Registra /sw.js (PWA + push). Reutiliza la registración si ya existe. */
+export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  if (!("serviceWorker" in navigator)) return null;
+  return navigator.serviceWorker.register("/sw.js");
+}
+
 /** Pide permiso, registra /sw.js, suscribe y guarda el endpoint ligado a la solicitud. */
 export async function subscribeToRequest(requestId: string): Promise<boolean> {
   const vapidKey = import.meta.env["VITE_VAPID_PUBLIC_KEY"] as string | undefined;
   if (!pushSupported() || !vapidKey) return false;
   if ((await Notification.requestPermission()) !== "granted") return false;
-  const registration = await navigator.serviceWorker.register("/sw.js");
+  const registration = await registerServiceWorker();
+  if (!registration) return false;
   const subscription = await registration.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(vapidKey) as BufferSource,

@@ -13,11 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as RetornosRouteImport } from './routes/retornos'
-import { Route as AuthenticatedVehiculosRouteImport } from './routes/_authenticated/vehiculos'
 import { Route as BolsaIndexRouteImport } from './routes/bolsa/index'
 import { Route as BolsaOfferIdRouteImport } from './routes/bolsa/$offerId'
 import { Route as PagosRequestIdRouteImport } from './routes/pagos/$requestId'
 import { Route as RecogidasTokenRouteImport } from './routes/recogidas/$token'
+import { Route as AuthenticatedVehiculosIndexRouteImport } from './routes/_authenticated/vehiculos/index'
+import { Route as AuthenticatedVehiculosIdRouteImport } from './routes/_authenticated/vehiculos/$id'
 import { Route as AuthenticatedViajesIndexRouteImport } from './routes/_authenticated/viajes/index'
 import { Route as AuthenticatedViajesIdRouteImport } from './routes/_authenticated/viajes/$id'
 import { Route as AuthenticatedViajesNuevoRouteImport } from './routes/_authenticated/viajes/nuevo'
@@ -41,11 +42,6 @@ const RetornosRoute = RetornosRouteImport.update({
   path: '/retornos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedVehiculosRoute = AuthenticatedVehiculosRouteImport.update({
-  id: '/vehiculos',
-  path: '/vehiculos',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const BolsaIndexRoute = BolsaIndexRouteImport.update({
   id: '/bolsa/',
   path: '/bolsa/',
@@ -66,6 +62,18 @@ const RecogidasTokenRoute = RecogidasTokenRouteImport.update({
   path: '/recogidas/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedVehiculosIndexRoute =
+  AuthenticatedVehiculosIndexRouteImport.update({
+    id: '/vehiculos/',
+    path: '/vehiculos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedVehiculosIdRoute =
+  AuthenticatedVehiculosIdRouteImport.update({
+    id: '/vehiculos/$id',
+    path: '/vehiculos/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedViajesIndexRoute =
   AuthenticatedViajesIndexRouteImport.update({
     id: '/viajes/',
@@ -88,26 +96,28 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/retornos': typeof RetornosRoute
-  '/vehiculos': typeof AuthenticatedVehiculosRoute
   '/bolsa/$offerId': typeof BolsaOfferIdRoute
   '/pagos/$requestId': typeof PagosRequestIdRoute
   '/recogidas/$token': typeof RecogidasTokenRoute
   '/bolsa/': typeof BolsaIndexRoute
+  '/vehiculos/$id': typeof AuthenticatedVehiculosIdRoute
   '/viajes/$id': typeof AuthenticatedViajesIdRoute
   '/viajes/nuevo': typeof AuthenticatedViajesNuevoRoute
+  '/vehiculos/': typeof AuthenticatedVehiculosIndexRoute
   '/viajes/': typeof AuthenticatedViajesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/retornos': typeof RetornosRoute
-  '/vehiculos': typeof AuthenticatedVehiculosRoute
   '/bolsa/$offerId': typeof BolsaOfferIdRoute
   '/pagos/$requestId': typeof PagosRequestIdRoute
   '/recogidas/$token': typeof RecogidasTokenRoute
   '/bolsa': typeof BolsaIndexRoute
+  '/vehiculos/$id': typeof AuthenticatedVehiculosIdRoute
   '/viajes/$id': typeof AuthenticatedViajesIdRoute
   '/viajes/nuevo': typeof AuthenticatedViajesNuevoRoute
+  '/vehiculos': typeof AuthenticatedVehiculosIndexRoute
   '/viajes': typeof AuthenticatedViajesIndexRoute
 }
 export interface FileRoutesById {
@@ -116,13 +126,14 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/retornos': typeof RetornosRoute
-  '/_authenticated/vehiculos': typeof AuthenticatedVehiculosRoute
   '/bolsa/$offerId': typeof BolsaOfferIdRoute
   '/pagos/$requestId': typeof PagosRequestIdRoute
   '/recogidas/$token': typeof RecogidasTokenRoute
   '/bolsa/': typeof BolsaIndexRoute
+  '/_authenticated/vehiculos/$id': typeof AuthenticatedVehiculosIdRoute
   '/_authenticated/viajes/$id': typeof AuthenticatedViajesIdRoute
   '/_authenticated/viajes/nuevo': typeof AuthenticatedViajesNuevoRoute
+  '/_authenticated/vehiculos/': typeof AuthenticatedVehiculosIndexRoute
   '/_authenticated/viajes/': typeof AuthenticatedViajesIndexRoute
 }
 export interface FileRouteTypes {
@@ -131,26 +142,28 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/retornos'
-    | '/vehiculos'
     | '/bolsa/$offerId'
     | '/pagos/$requestId'
     | '/recogidas/$token'
     | '/bolsa/'
+    | '/vehiculos/$id'
     | '/viajes/$id'
     | '/viajes/nuevo'
+    | '/vehiculos/'
     | '/viajes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/retornos'
-    | '/vehiculos'
     | '/bolsa/$offerId'
     | '/pagos/$requestId'
     | '/recogidas/$token'
     | '/bolsa'
+    | '/vehiculos/$id'
     | '/viajes/$id'
     | '/viajes/nuevo'
+    | '/vehiculos'
     | '/viajes'
   id:
     | '__root__'
@@ -158,13 +171,14 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/retornos'
-    | '/_authenticated/vehiculos'
     | '/bolsa/$offerId'
     | '/pagos/$requestId'
     | '/recogidas/$token'
     | '/bolsa/'
+    | '/_authenticated/vehiculos/$id'
     | '/_authenticated/viajes/$id'
     | '/_authenticated/viajes/nuevo'
+    | '/_authenticated/vehiculos/'
     | '/_authenticated/viajes/'
   fileRoutesById: FileRoutesById
 }
@@ -209,13 +223,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RetornosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/vehiculos': {
-      id: '/_authenticated/vehiculos'
-      path: '/vehiculos'
-      fullPath: '/vehiculos'
-      preLoaderRoute: typeof AuthenticatedVehiculosRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/bolsa/': {
       id: '/bolsa/'
       path: '/bolsa'
@@ -244,6 +251,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecogidasTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/vehiculos/': {
+      id: '/_authenticated/vehiculos/'
+      path: '/vehiculos'
+      fullPath: '/vehiculos/'
+      preLoaderRoute: typeof AuthenticatedVehiculosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/vehiculos/$id': {
+      id: '/_authenticated/vehiculos/$id'
+      path: '/vehiculos/$id'
+      fullPath: '/vehiculos/$id'
+      preLoaderRoute: typeof AuthenticatedVehiculosIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/viajes/': {
       id: '/_authenticated/viajes/'
       path: '/viajes'
@@ -269,16 +290,18 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedVehiculosRoute: typeof AuthenticatedVehiculosRoute
+  AuthenticatedVehiculosIdRoute: typeof AuthenticatedVehiculosIdRoute
   AuthenticatedViajesIdRoute: typeof AuthenticatedViajesIdRoute
   AuthenticatedViajesNuevoRoute: typeof AuthenticatedViajesNuevoRoute
+  AuthenticatedVehiculosIndexRoute: typeof AuthenticatedVehiculosIndexRoute
   AuthenticatedViajesIndexRoute: typeof AuthenticatedViajesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedVehiculosRoute: AuthenticatedVehiculosRoute,
+  AuthenticatedVehiculosIdRoute: AuthenticatedVehiculosIdRoute,
   AuthenticatedViajesIdRoute: AuthenticatedViajesIdRoute,
   AuthenticatedViajesNuevoRoute: AuthenticatedViajesNuevoRoute,
+  AuthenticatedVehiculosIndexRoute: AuthenticatedVehiculosIndexRoute,
   AuthenticatedViajesIndexRoute: AuthenticatedViajesIndexRoute,
 }
 

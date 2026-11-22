@@ -2,12 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, Repeat, Share2, ArrowLeft, ArrowRight, Check, Layers, ListOrdered, RotateCcw, Trash2, X } from "lucide-react";
+import { AlertTriangle, MapPin, Navigation, Repeat, Share2, ArrowLeft, ArrowRight, Check, Layers, ListOrdered, RotateCcw, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CITIES, cityName, type VehicleKind } from "@/lib/venezuela";
-import { estimateAsTripRoute, tripRouteQuery } from "@/lib/routes.functions";
+import { estimateAsTripRoute, tripRouteQuery, type RouteStopInput } from "@/lib/routes.functions";
 import { RouteMapView } from "@/components/RouteMapLazy";
 import { packCargo, type Pkg } from "@/lib/packing";
+import { googleMapsDirUrl } from "@/lib/route-geometry";
 import { cargoLayers, loadingSteps, visibleCargo } from "@/lib/loading-guide";
 import { Truck3DView, BOX_COLORS } from "@/components/Truck3DLazy";
 import { Button } from "@/components/ui/button";
@@ -34,8 +35,35 @@ function Trip() {
       return data;
     },
   });
+  // Misma clave y consulta que TripRequests: react-query la deduplica y la
+  // invalidación de decide() refresca aquí también las paradas de la ruta.
+  const { data: requests } = useQuery({
+    queryKey: ["package-requests", id],
+    refetchInterval: 30000,
+    enabled: trip?.is_return === true,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("package_requests")
+        .select("*")
+        .eq("trip_id", id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+  const stops: RouteStopInput[] = (requests ?? []).flatMap((r) =>
+    (r.status === "awaiting_payment" &&
+      r.payment_expires_at !== null &&
+      r.payment_expires_at < new Date().toISOString()) ||
+    (r.status !== "awaiting_payment" && r.status !== "payment_review" && r.status !== "paid")
+      ? []
+      : [
+          { requestId: r.id, kind: "pickup", address: r.pickup_address },
+          { requestId: r.id, kind: "delivery", address: r.delivery_address },
+        ],
+  );
   const { data: fetched } = useQuery(
-    tripRouteQuery(trip?.origin ?? "", trip?.destination ?? ""),
+    tripRouteQuery(trip?.origin ?? "", trip?.destination ?? "", stops),
   );
   if (isLoading) return <main className="p-10 text-muted-foreground">Cargando…</main>;
   if (!trip) return <main className="p-10">Viaje no encontrado.</main>;
@@ -72,7 +100,7 @@ function Trip() {
     <main className="mx-auto max-w-6xl px-4 py-10">
       <p className="font-mono text-xs uppercase tracking-widest text-primary">{trip.is_return ? "Viaje de regreso · " : ""}{trip.departure_date}{trip.departure_time ? ` · ${trip.departure_time.slice(0, 5)}` : ""} · {v.name}</p>
       <h1 className="mt-1 text-4xl font-bold leading-[1.1] tracking-[-0.02em]">{cityName(trip.origin)} → {cityName(trip.destination)}</h1>
-      {route && <p className="mt-2 text-sm text-muted-foreground">≈ {route.km} km · {route.hours} h de manejo · {route.via} · ~{route.checkpoints} alcabalas · ~{route.tolls} peajes{route.source === "estimate" && " · estimado"}</p>}
+      {route && <p className="mt-2 text-sm text-muted-foreground">≈ {route.km} km · {route.hours} h de manejo · {route.via} · ~{route.checkpoints} alcabalas · ~{route.tolls} peajes{route.source === "estimate" && " · estimado"}{route.stops.length > 0 && ` · ${route.stops.length} paradas de carga`}</p>}
 
       {fromCity && toCity && (
         <div className="mt-6">
@@ -85,7 +113,46 @@ function Trip() {
                 geometry: route?.geometry ?? null,
               },
             ]}
+            markers={(route?.stops ?? []).map((s, i) => ({
+              lng: s.lng,
+              lat: s.lat,
+              color: s.kind === "pickup" ? "#4aa3df" : "#5cc88a",
+              label: `${i + 1}. ${s.kind === "pickup" ? "Recoger" : "Entregar"}: ${s.label}`,
+            }))}
           />
+          {route && (
+            <Button asChild variant="outline" className="mt-3">
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href={googleMapsDirUrl(
+                  [fromCity.lng, fromCity.lat],
+                  [toCity.lng, toCity.lat],
+                  route.stops,
+                )}
+              >
+                <Navigation /> Abrir la ruta en Google Maps
+              </a>
+            </Button>
+          )}
+          {route && route.stops.length > 0 && (
+            <ol className="mt-2 space-y-1.5 rounded-lg border border-border bg-card px-4 py-3 text-sm">
+              <li className="flex items-center gap-2 font-semibold">
+                <MapPin className="h-4 w-4 shrink-0 text-primary" /> {fromCity.name} (salida)
+              </li>
+              {route.stops.map((s, i) => (
+                <li key={`${s.requestId}-${s.kind}`} className="flex items-baseline gap-2">
+                  <span className="shrink-0 font-mono text-xs text-muted-foreground">{i + 1}.</span>
+                  <span className="break-words">
+                    {s.kind === "pickup" ? "Recoger" : "Entregar"}: {s.label}
+                  </span>
+                </li>
+              ))}
+              <li className="flex items-center gap-2 font-semibold">
+                <MapPin className="h-4 w-4 shrink-0" /> {toCity.name} (destino)
+              </li>
+            </ol>
+          )}
           {route && route.steps.length > 0 && (
             <details className="mt-2 rounded-lg border border-border bg-card px-4 py-3 text-sm">
               <summary className="cursor-pointer font-mono text-xs uppercase tracking-widest text-muted-foreground">

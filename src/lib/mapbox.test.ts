@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseDirections } from "./mapbox";
+import { parseDirections, parseMapPoint } from "./mapbox";
 
 // Respuesta mínima real de Directions API v5 (Valencia → Caracas, ARC).
 const FIXTURE = {
@@ -27,6 +27,17 @@ const FIXTURE = {
     },
   ],
 };
+
+describe("parseMapPoint", () => {
+  it("extrae lng/lat del texto que deja el selector de mapa", () => {
+    expect(parseMapPoint("Punto en el mapa 10.1620, -68.0070")).toEqual([-68.007, 10.162]);
+  });
+  it("devuelve null para direcciones normales o puntos inválidos", () => {
+    expect(parseMapPoint("Valencia, San Diego, avenida 2")).toBeNull();
+    expect(parseMapPoint("")).toBeNull();
+    expect(parseMapPoint("Punto en el mapa 99.0000, -200.0000")).toBeNull();
+  });
+});
 
 describe("parseDirections", () => {
   it("extrae km, horas, geometría e indicaciones en español", () => {

@@ -1,4 +1,8 @@
 // Service worker mínimo para notificaciones push de CargaRuta.
+// El listener fetch vacío hace que el SW cumpla los criterios de instalación PWA;
+// las peticiones siguen yendo directo a la red.
+self.addEventListener("fetch", () => {});
+
 self.addEventListener("push", (event) => {
   let data = {};
   try {
