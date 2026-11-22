@@ -5,6 +5,7 @@ import { CheckCheck, Copy, Repeat, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cityName } from "@/lib/venezuela";
 import { packCargo, type Pkg } from "@/lib/packing";
+import { groupTrips } from "@/lib/trip-groups";
 import { Button } from "@/components/ui/button";
 import { ShareTrip } from "@/components/TripRequests";
 
@@ -50,6 +51,78 @@ function Viajes() {
     void qc.invalidateQueries({ queryKey: ["return_offers"] });
     toast.success(done ? "Viaje marcado como completado" : "Viaje reabierto");
   };
+  // Agrupa por camión + día para mostrar cuando está haciendo ida y vuelta.
+  const groups = groupTrips(data);
+
+  const renderTrip = (t: (typeof data)[number]) => {
+    const pk = (t.packages as unknown as Pkg[]) ?? [];
+    const free = t.vehicles
+      ? packCargo(
+          {
+            length: t.vehicles.length_cm,
+            width: t.vehicles.width_cm,
+            height: t.vehicles.height_cm,
+            maxKg: t.vehicles.max_kg,
+          },
+          pk,
+        )
+      : null;
+    return (
+      <div
+        key={t.id}
+        className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4"
+      >
+        <Link to="/viajes/$id" params={{ id: t.id }} className="min-w-0 flex-1">
+          <p
+            className="flex flex-wrap items-center gap-2 text-lg font-bold"
+            style={{ viewTransitionName: `trip-title-${t.id}` }}
+          >
+            {cityName(t.origin)} → {cityName(t.destination)}
+            {t.completed_at !== null && (
+              <span className="rounded border border-primary/40 px-2 py-0.5 font-mono text-xs font-normal text-primary">
+                Completado
+              </span>
+            )}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {t.departure_date}
+            {t.departure_time ? ` · ${t.departure_time.slice(0, 5)}` : ""} ·{" "}
+            {t.vehicles?.name ?? "Sin vehículo"} · {pk.reduce((s, p) => s + p.qty, 0)} bultos
+          </p>
+        </Link>
+        <Button size="sm" variant="outline" onClick={() => void toggleCompleted(t)}>
+          {t.completed_at === null ? (
+            <>
+              <CheckCheck /> Completar
+            </>
+          ) : (
+            <>
+              <RotateCcw /> Reabrir
+            </>
+          )}
+        </Button>
+        <Button asChild size="sm" variant="outline">
+          <Link to="/viajes/nuevo" search={{ from: t.id }}>
+            <Copy /> Repetir
+          </Link>
+        </Button>
+        {t.is_return ? (
+          <ShareTrip
+            trip={t}
+            vehicle={t.vehicles}
+            freeM3={free?.freeM3}
+            freeKg={free?.freeKg}
+          />
+        ) : (
+          <Button asChild size="sm" variant="outline">
+            <Link to="/viajes/nuevo" search={{ from: t.id, regreso: true }}>
+              <Repeat /> Planear regreso
+            </Link>
+          </Button>
+        )}
+      </div>
+    );
+  };
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -73,75 +146,29 @@ function Viajes() {
         {!isLoading && data.length === 0 && (
           <p className="text-muted-foreground">Todavía no has planificado viajes.</p>
         )}
-        {data.map((t) => {
-          const pk = (t.packages as unknown as Pkg[]) ?? [];
-          const free = t.vehicles
-            ? packCargo(
-                {
-                  length: t.vehicles.length_cm,
-                  width: t.vehicles.width_cm,
-                  height: t.vehicles.height_cm,
-                  maxKg: t.vehicles.max_kg,
-                },
-                pk,
-              )
-            : null;
-          return (
-            <div
-              key={t.id}
-              className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4"
+        {groups.map((g) =>
+          g.roundTrip ? (
+            <section
+              key={g.key}
+              aria-label="Viaje de ida y vuelta"
+              className="rounded-xl border border-primary/30 bg-secondary/20 p-3 sm:p-4"
             >
-              <Link to="/viajes/$id" params={{ id: t.id }} className="min-w-0 flex-1">
-                <p
-                  className="flex flex-wrap items-center gap-2 text-lg font-bold"
-                  style={{ viewTransitionName: `trip-title-${t.id}` }}
-                >
-                  {cityName(t.origin)} → {cityName(t.destination)}
-                  {t.completed_at !== null && (
-                    <span className="rounded border border-primary/40 px-2 py-0.5 font-mono text-xs font-normal text-primary">
-                      Completado
-                    </span>
-                  )}
+              <header className="flex flex-wrap items-center gap-x-2 gap-y-1 px-1 pb-3">
+                <Repeat className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                <p className="font-mono text-xs uppercase tracking-widest text-primary">
+                  Ida y vuelta
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  {t.departure_date}
-                  {t.departure_time ? ` · ${t.departure_time.slice(0, 5)}` : ""} ·{" "}
-                  {t.vehicles?.name ?? "Sin vehículo"} · {pk.reduce((s, p) => s + p.qty, 0)} bultos
+                <p className="text-xs text-muted-foreground">
+                  {g.trips[0]?.departure_date} · {g.trips[0]?.vehicles?.name ?? "Sin vehículo"} ·{" "}
+                  {g.trips.length} viajes
                 </p>
-              </Link>
-              <Button size="sm" variant="outline" onClick={() => void toggleCompleted(t)}>
-                {t.completed_at === null ? (
-                  <>
-                    <CheckCheck /> Completar
-                  </>
-                ) : (
-                  <>
-                    <RotateCcw /> Reabrir
-                  </>
-                )}
-              </Button>
-              <Button asChild size="sm" variant="outline">
-                <Link to="/viajes/nuevo" search={{ from: t.id }}>
-                  <Copy /> Repetir
-                </Link>
-              </Button>
-              {t.is_return ? (
-                <ShareTrip
-                  trip={t}
-                  vehicle={t.vehicles}
-                  freeM3={free?.freeM3}
-                  freeKg={free?.freeKg}
-                />
-              ) : (
-                <Button asChild size="sm" variant="outline">
-                  <Link to="/viajes/nuevo" search={{ from: t.id, regreso: true }}>
-                    <Repeat /> Planear regreso
-                  </Link>
-                </Button>
-              )}
-            </div>
-          );
-        })}
+              </header>
+              <div className="space-y-3">{g.trips.map(renderTrip)}</div>
+            </section>
+          ) : (
+            g.trips.map(renderTrip)
+          ),
+        )}
       </div>
     </main>
   );

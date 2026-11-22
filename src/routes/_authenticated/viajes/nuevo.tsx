@@ -86,6 +86,13 @@ function describeSaveError(error: {
       field: FIELD_BY_COLUMN[column],
     };
   }
+  if (error.code === "23505") {
+    return {
+      summary: error.message || "Ya existe un viaje de ese camión en el mismo sentido ese día.",
+      detail: [error.details, error.hint].filter(Boolean).join(" · ") || technical,
+      field: "destination",
+    };
+  }
   if (error.code === "23503") {
     return {
       summary: "El vehículo seleccionado ya no existe. Elige otro vehículo.",
@@ -246,6 +253,28 @@ function NuevoViaje() {
         if (!el) return;
         el.scrollIntoView({ block: "center", behavior: "smooth" });
         el.focus({ preventScroll: true });
+      });
+      return;
+    }
+
+    // Mismo camión, mismo día y mismo sentido: ya existe.
+    const { data: duplicate } = await supabase
+      .from("trips")
+      .select("id")
+      .eq("vehicle_id", vehicleId)
+      .eq("departure_date", date)
+      .eq("origin", origin)
+      .eq("destination", destination)
+      .maybeSingle();
+    if (duplicate) {
+      const message =
+        "Ese camión ya tiene un viaje en este sentido ese día. Cambia la fecha o planifica el sentido contrario.";
+      setErrors({ destination: message });
+      toast.error(message);
+      window.requestAnimationFrame(() => {
+        const el = document.getElementById("destination");
+        el?.scrollIntoView({ block: "center", behavior: "smooth" });
+        el?.focus({ preventScroll: true });
       });
       return;
     }
