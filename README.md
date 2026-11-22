@@ -7,6 +7,8 @@ en 3D y llena el espacio libre con solicitudes de carga que se pagan por pago m�
 
 - Sistema de diseño y marca: [`design.md`](./design.md)
 - Contexto de producto, decisiones y pendientes: [`contexto.md`](./contexto.md)
+- Presentación comercial: `/presentacion.html` (estática en `public/`, ver
+  [`docs/despliegue.md`](./docs/despliegue.md) §11)
 
 ---
 

@@ -380,3 +380,25 @@ Haz esta lista en el dominio publicado:
 [ ] Actualizar APP_URL y Site URL con el dominio final
 [ ] Probar registro, viaje, oferta, solicitud, pago y RLS
 ```
+
+---
+
+## 11. Presentación (deck) en línea
+
+El deck vive como archivo estático dentro de `public/`:
+
+```
+public/presentacion.html          → https://<tu-dominio>/presentacion.html
+public/presentacion-assets/       → imágenes y QR del deck
+```
+
+`bun run build` copia `public/` a `.vercel/output/static`, así que Vercel lo sirve directo, sin pasar
+por SSR ni por autenticación. Para verlo:
+
+- **Producción:** `https://<tu-dominio>/presentacion.html`
+- **Local:** `http://localhost:5173/presentacion.html` (o el puerto que uses)
+
+Navegación del deck: flechas `←`/`→`, `PageUp`/`PageDown`, espacio o `Enter`.
+
+Si editas el deck, vuelve a desplegar (`git push` a la rama conectada). No necesita variables de
+entorno nuevas.
