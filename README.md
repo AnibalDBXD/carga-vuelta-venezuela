@@ -31,21 +31,21 @@ Centro Occidental). El producto está en español (es-VE) y está pensado para u
 
 ## 3. Producto
 
-| Ruta                  | Qué hace                                                                                                                          |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `/`                   | Landing: demo 3D, cómo funciona el modelo y beneficios                                                                            |
-| `/auth`               | Registro e inicio de sesión (email + Google)                                                                                      |
-| `/panel`              | Redirige a `/panel/viajes`                                                                                                        |
-| `/panel/viajes`       | Historial de viajes del conductor                                                                                                 |
-| `/panel/viajes/nuevo` | Origen, destino, fecha y hora estimada, vehículo y paquetes                                                                       |
-| `/panel/viajes/$id`   | Plan de carga: ruta en mapa, 3D, guía de montaje por capas, orden de carga y solicitudes                                          |
-| `/panel/vehiculos`    | Flota: listado con miniaturas por tipo, alta y detalle de cada vehículo                                                           |
-| `/bolsa`              | Bolsa de viajes pública: camiones con espacio libre                                                                               |
-| `/bolsa/$offerId`     | Detalle de la oferta, vista 3D del espacio y formulario de solicitud                                                              |
-| `/pagos`              | "Mis pagos" del cliente: sus solicitudes y el tracking del camión (por salir → en camino → llegó)                                 |
-| `/pagos/$requestId`   | Pago móvil: monto en USD, equivalente en Bs a tasa BCV, QR y comprobante                                                          |
-| `/api/telegram`       | Webhook del bot de Telegram (asistente Gemini): solicitud, pago y avisos por chat — [docs/telegram.md](./docs/telegram.md)        |
-| `/api/mcp`            | Servidor MCP stateless para agentes externos: mismas tools del bot + tools del conductor con clave — [docs/mcp.md](./docs/mcp.md) |
+| Ruta                  | Qué hace                                                                                                                                                                                                                               |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                   | Landing: demo 3D, cómo funciona el modelo y beneficios                                                                                                                                                                                 |
+| `/auth`               | Registro e inicio de sesión (email + Google)                                                                                                                                                                                           |
+| `/panel`              | Redirige a `/panel/viajes`                                                                                                                                                                                                             |
+| `/panel/viajes`       | Historial de viajes del conductor                                                                                                                                                                                                      |
+| `/panel/viajes/nuevo` | Origen, destino, fecha y hora estimada, vehículo y paquetes                                                                                                                                                                            |
+| `/panel/viajes/$id`   | Plan de carga: ruta en mapa, 3D, guía de montaje por capas, orden de carga y solicitudes                                                                                                                                               |
+| `/panel/vehiculos`    | Flota: listado con miniaturas por tipo, alta y detalle de cada vehículo                                                                                                                                                                |
+| `/bolsa`              | Bolsa de viajes pública: camiones con espacio libre                                                                                                                                                                                    |
+| `/bolsa/$offerId`     | Detalle de la oferta, vista 3D del espacio y formulario de solicitud                                                                                                                                                                   |
+| `/pagos`              | "Mis pagos" del cliente: sus solicitudes y el tracking del camión (por salir → en camino → llegó)                                                                                                                                      |
+| `/pagos/$requestId`   | Pago móvil: monto en USD, equivalente en Bs a tasa BCV, QR y comprobante                                                                                                                                                               |
+| `/api/telegram`       | Webhook del bot de Telegram (asistente Gemini): solicitud, pago y avisos por chat — [docs/telegram.md](./docs/telegram.md)                                                                                                             |
+| `/api/mcp`            | Servidor MCP stateless para agentes externos: mismas tools del bot + tools del conductor con clave — [docs/mcp.md](./docs/mcp.md) (instala el [skill `cargaruta-mcp`](./.devin/skills/cargaruta-mcp/SKILL.md) en el agente consumidor) |
 
 Flujo de una solicitud: el cliente pide espacio → el conductor acepta y fija el monto en USD → el
 sistema envía correo y push con el enlace de pago → el cliente paga por pago móvil y sube el

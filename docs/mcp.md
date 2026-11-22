@@ -7,6 +7,11 @@ camión, armar una solicitud, enviarla, consultar su estado y los datos de
 pago; y, con clave de conductor, listar solicitudes pendientes y
 aceptarlas/rechazarlas.
 
+> **Recomendado:** si el consumidor es un agente, instala el skill
+> [`cargaruta-mcp`](../.devin/skills/cargaruta-mcp/SKILL.md) en su proyecto —
+> es la forma más fiable de inicializar la integración (ver
+> [Skill para el agente consumidor](#skill-para-el-agente-consumidor-recomendado)).
+
 ## Endpoint
 
 ```
@@ -136,13 +141,47 @@ El servidor **no guarda sesión**. El estado de la solicitud es un objeto
      monto; el solicitante es avisado para pagar) o rechaza. Autorización
      real en base de datos: solo dueños del viaje.
 
-## Skill para el agente consumidor
+## Skill para el agente consumidor (recomendado)
 
-`.devin/skills/cargaruta-mcp/SKILL.md` es un skill autónomo pensado para
-instalarse en el agente que va a usar el MCP (`.agents/skills/` o
-`.devin/skills/` de su proyecto): le da el contexto completo — conexión,
-semántica del `draft`, flujo del solicitante y del conductor, reglas de
-imágenes, validaciones y errores — sin necesidad de leer este documento.
+Para usar bien el MCP, **instala el skill en el agente que va a consumirlo**.
+El `initialize` describe el flujo en una línea, pero el skill enseña el
+comportamiento completo que hace que la integración funcione:
+
+- **Disciplina del `draft`** — el error más común es perder el borrador entre
+  llamadas; el skill lo marca como regla crítica.
+- **Reglas de comportamiento** — nunca inventar datos, retransmitir los
+  errores de validación de direcciones, pedir confirmación explícita antes de
+  `enviar_solicitud`, confirmar la estimación por foto antes de agregar el
+  bulto.
+- **El sondeo de `estado_solicitud`** — sin la guía un agente suele parar en
+  el primer `pending`; el skill le indica reintentar cada 60–90 s durante ~7
+  min antes de dejar la página de pago al usuario.
+- **Las herramientas del conductor** — cuándo y cómo pedir la clave Bearer.
+
+### Instalación
+
+El skill vive en `.devin/skills/cargaruta-mcp/SKILL.md` — es autónomo (no
+depende de este documento). Copia la carpeta al proyecto del agente:
+
+```bash
+# Devin
+cp -r .devin/skills/cargaruta-mcp <proyecto-del-agente>/.devin/skills/
+
+# Agentes que leen .agents/skills/ (estándar abierto)
+cp -r .devin/skills/cargaruta-mcp <proyecto-del-agente>/.agents/skills/
+```
+
+O descárgalo directo del repo:
+
+```bash
+mkdir -p .devin/skills/cargaruta-mcp
+curl -fsSL https://raw.githubusercontent.com/AnibalDBXD/cargaruta/main/.devin/skills/cargaruta-mcp/SKILL.md \
+  -o .devin/skills/cargaruta-mcp/SKILL.md
+```
+
+Con el skill instalado, el agente activa `cargaruta-mcp` y puede operar el
+flujo completo — pedir espacio en un camión, seguir el pago, o gestionar
+solicitudes como conductor — sin leer este documento ni las specs.
 
 ## Notas
 
