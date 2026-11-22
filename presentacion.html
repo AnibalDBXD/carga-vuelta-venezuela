@@ -212,6 +212,19 @@
         max-width: 26ch;
       }
 
+      .est-tag {
+        display: inline-block;
+        margin-top: 0.45rem;
+        padding: 0.12rem 0.35rem;
+        border: 1px solid var(--line);
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 0.55rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
       /* ---------- tabla de estadísticas ---------- */
 
       .stat-table {
@@ -929,22 +942,76 @@
               </tr>
               <tr>
                 <td>Argentina</td>
-                <td>2022</td>
-                <td class="num-col">37%</td>
+                <td>2026</td>
+                <td class="num-col">65%</td>
               </tr>
             </tbody>
           </table>
 
           <p class="footnote">
             Fuentes — Venezuela: “50 a 80% de viajes de retorno vacíos”, ALV (2005). Colombia: 69% de
-            los viajes sin carga, Universidad de los Andes (2024). Argentina: 37% de los camiones
-            viaja vacío, Avancargo (2022). Cada país mide distinto: son referencias, no una
-            comparación estricta.
+            los viajes sin carga, Universidad de los Andes (2024). Argentina: 65% de los
+            transportistas vuelve vacío con frecuencia, Avancargo (2026). Cada país mide distinto:
+            son referencias, no una comparación estricta.
           </p>
         </div>
       </section>
 
-      <!-- 03 · SOLUCIÓN -->
+      <!-- 03 · DEMANDA -->
+      <section class="slide" data-label="La demanda">
+        <header class="topbar">
+          <span class="logo">
+            <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+              <g fill="none" stroke-linecap="round">
+                <path d="M21 58A37 37 0 0 1 58 21" stroke="#eec22c" stroke-width="5.6" />
+                <path d="M43 58A15 15 0 0 1 58 43" stroke="#eec22c" stroke-width="5.6" />
+                <path
+                  d="M32 58A26 26 0 0 1 58 32"
+                  stroke="#f2f0e7"
+                  stroke-width="4.4"
+                  stroke-dasharray="9 6.92"
+                  stroke-linecap="butt"
+                />
+              </g>
+            </svg>
+            <span class="logo-word">Carga<span>Ruta</span></span>
+          </span>
+          <span class="page-total"></span>
+        </header>
+
+        <div class="body">
+          <p class="kicker">02 · El otro lado</p>
+          <h2>También hay <em>demanda</em>: el cliente busca precio.</h2>
+
+          <div class="metrics">
+            <div class="metric">
+              <span class="num" data-count="43" data-suffix="%">43%</span>
+              <span class="cap">de los compradores de la región planifica sus compras alrededor de descuentos.</span>
+            </div>
+            <div class="metric">
+              <span class="num" data-count="37" data-suffix="%">37%</span>
+              <span class="cap">exige al menos 30% de descuento para que una promoción le resulte atractiva.</span>
+            </div>
+            <div class="metric">
+              <span class="num" data-count="70" data-suffix="%">70%</span>
+              <span class="cap">
+                aceptaría un 40% de descuento para enviar su carga.
+                <span class="est-tag">Estimación propia</span>
+              </span>
+            </div>
+          </div>
+
+          <p class="lead">
+            Precio de un lado, espacio del otro: es el mismo viaje, solo que hoy nadie los cruza.
+          </p>
+          <p class="footnote">
+            43% y 37%: estudio regional de compradores de Latinoamérica. 70%: estimación de CargaRuta,
+            pendiente de validar con encuestas propias.
+          </p>
+        </div>
+      </section>
+
+      <!-- 04 · SOLUCIÓN -->
       <section class="slide" data-label="La solución">
         <header class="topbar">
           <span class="logo">
@@ -967,21 +1034,22 @@
         </header>
 
         <div class="body">
-          <p class="kicker">02 · La solución</p>
-          <h2>Convertimos el regreso en <em>carga</em>.</h2>
+          <p class="kicker">03 · La solución</p>
+          <h2>Conectamos las dos puntas del <em>mismo viaje</em>.</h2>
+          <p class="lead">No inventamos viajes: llenamos los que ya existen.</p>
 
           <ul class="steps">
             <li>
               <span class="step-n">01</span>
-              <span>Publicas la ruta y el espacio libre del camión.</span>
+              <span>El conductor publica su ruta y el espacio libre.</span>
             </li>
             <li>
               <span class="step-n">02</span>
-              <span>El cliente ve cuánto cabe y solicita su carga.</span>
+              <span>El cliente reserva ese espacio con descuento.</span>
             </li>
             <li>
               <span class="step-n">03</span>
-              <span>Aceptas, cobras y liquidas por pago móvil.</span>
+              <span>CargaRuta cobra, liquida y avisa a los dos.</span>
             </li>
           </ul>
 
@@ -1056,7 +1124,7 @@
         </header>
 
         <div class="body">
-          <p class="kicker">03 · Modelo de negocio</p>
+          <p class="kicker">04 · Modelo de negocio</p>
           <h2>El conductor gana más. La app cobra por <em>conectar</em>.</h2>
 
           <div class="model-body">
