@@ -281,12 +281,12 @@ export function ShareTrip({
     >
       <DialogTrigger asChild>
         <Button variant="outline">
-          <Share2 /> Compartir regreso
+          <Share2 /> Compartir espacio
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Recibir paquetes para el regreso</DialogTitle>
+          <DialogTitle>Recibir encomiendas en este viaje</DialogTitle>
         </DialogHeader>
         <p className="font-semibold">
           {cityName(trip.origin)} → {cityName(trip.destination)} · {trip.departure_date}
@@ -425,11 +425,13 @@ export function TripRequests({
   tripId,
   packages,
   container,
+  routeKm,
   onAccepted,
 }: {
   tripId: string;
   packages: Pkg[];
   container: Container;
+  routeKm?: number | undefined;
   onAccepted: () => void;
 }) {
   const qc = useQueryClient();
@@ -679,6 +681,7 @@ export function TripRequests({
       </div>
       <AcceptDialog
         request={accepting}
+        routeKm={routeKm}
         busy={busy !== null}
         onClose={() => setAccepting(null)}
         onConfirm={(amount) => accepting && decide(accepting.id, true, amount)}
@@ -689,16 +692,41 @@ export function TripRequests({
 
 function AcceptDialog({
   request,
+  routeKm,
   busy,
   onClose,
   onConfirm,
 }: {
   request: RequestRow | null;
+  routeKm?: number | undefined;
   busy: boolean;
   onClose: () => void;
   onConfirm: (amount: number) => void;
 }) {
   const [amount, setAmount] = useState("");
+  const touched = useRef(false);
+  // Referencia de precio: volumen del pedido × km de ruta × $0.05 (mín. $3).
+  // Orienta al conductor sin obligarlo: el campo queda editable.
+  const suggest = useMemo(() => {
+    if (!request) return { m3: 0, kg: 0, usd: null as number | null };
+    const raw = request.package as unknown;
+    const pkgs = (Array.isArray(raw) ? raw : [raw]) as Pkg[];
+    const m3 =
+      Math.round(
+        pkgs.reduce((s, p) => s + ((p.length * p.width * p.height) / 1e6) * p.qty, 0) * 100,
+      ) / 100;
+    const kg = pkgs.reduce((s, p) => s + p.weight * p.qty, 0);
+    const usd = routeKm && m3 > 0 ? Math.max(3, Math.round(m3 * routeKm * 0.05)) : null;
+    return { m3, kg, usd };
+  }, [request, routeKm]);
+  useEffect(() => {
+    touched.current = false;
+    if (request && suggest.usd !== null) setAmount(String(suggest.usd));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sugerir al abrir; si el conductor editó, no pisar.
+  }, [request]);
+  useEffect(() => {
+    if (!touched.current && suggest.usd !== null) setAmount(String(suggest.usd));
+  }, [suggest.usd]);
   const { data: rate } = useQuery({
     queryKey: ["bcv-rate"],
     staleTime: 5 * 60 * 1000,
@@ -736,10 +764,20 @@ function AcceptDialog({
                 min={0.01}
                 step="0.01"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => {
+                  touched.current = true;
+                  setAmount(e.target.value);
+                }}
                 placeholder="Ej. 25"
                 autoFocus
               />
+              {(suggest.m3 > 0 || suggest.kg > 0) && (
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  La carga ocupa ≈ {suggest.m3} m³ · {suggest.kg} kg
+                  {suggest.usd !== null &&
+                    ` · referencia $${suggest.usd} (≈ ${suggest.m3} m³ × ${routeKm} km)`}
+                </p>
+              )}
               {valid && rate && (
                 <p className="mt-2 font-mono text-sm text-muted-foreground">
                   el solicitante paga ≈ Bs {formatBs(usd * 1.25 * rate.rate)}{" "}

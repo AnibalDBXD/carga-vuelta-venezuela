@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertTriangle,
@@ -37,6 +37,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ShareTrip, TripRequests } from "@/components/TripRequests";
+import { useSession } from "@/hooks/use-session";
 
 export const Route = createFileRoute("/_authenticated/panel/viajes/$id")({
   head: () => ({
@@ -80,7 +81,6 @@ function Trip() {
   const { data: requests } = useQuery({
     queryKey: ["package-requests", id],
     refetchInterval: 30000,
-    enabled: trip?.is_return === true,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("package_requests")
@@ -179,7 +179,9 @@ function Trip() {
       <p className="font-mono text-xs uppercase tracking-widest text-primary">
         {trip.is_return ? "Viaje de regreso · " : ""}
         {trip.departure_date}
-        {trip.departure_time ? ` · sale ${trip.departure_time.slice(0, 5)}` : " · sin hora de salida"}{" "}
+        {trip.departure_time
+          ? ` · sale ${trip.departure_time.slice(0, 5)}`
+          : " · sin hora de salida"}{" "}
         · {v.name}
       </p>
       <div className="mt-1 flex flex-wrap items-center gap-3">
@@ -279,7 +281,7 @@ function Trip() {
       )}
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        {trip.is_return && (
+        {trip.completed_at === null && (
           <ShareTrip trip={trip} vehicle={v} freeM3={result.freeM3} freeKg={result.freeKg} />
         )}
         <Button
@@ -563,22 +565,21 @@ function Trip() {
           </tbody>
         </table>
       </div>
-      {trip.is_return && (
-        <TripRequests
-          tripId={trip.id}
-          packages={pkgs}
-          container={{
-            length: v.length_cm,
-            width: v.width_cm,
-            height: v.height_cm,
-            maxKg: v.max_kg,
-          }}
-          onAccepted={() => {
-            setStep(null);
-            setLayer(null);
-          }}
-        />
-      )}
+      <TripRequests
+        tripId={trip.id}
+        packages={pkgs}
+        routeKm={route?.km}
+        container={{
+          length: v.length_cm,
+          width: v.width_cm,
+          height: v.height_cm,
+          maxKg: v.max_kg,
+        }}
+        onAccepted={() => {
+          setStep(null);
+          setLayer(null);
+        }}
+      />
     </main>
   );
 }
@@ -618,12 +619,43 @@ function ShareReturn({
   maxKg: number;
 }) {
   const qc = useQueryClient();
+  const { session } = useSession();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("58");
   const [date, setDate] = useState(trip.departure_date);
   const [time, setTime] = useState(trip.departure_time?.slice(0, 5) ?? "");
   const [notes, setNotes] = useState("");
+  // Precarga datos de contacto de la última oferta propia (RLS: solo las propias);
+  // si no hay, cae al nombre de la sesión. El teléfono queda privado: la bolsa
+  // no lo expone (PUBLIC_OFFER_COLUMNS no lo incluye).
+  const { data: lastOffer } = useQuery({
+    queryKey: ["my-last-offer"],
+    enabled: open,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("return_offers")
+        .select("driver_name, phone")
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (error) throw error;
+      return data?.[0] ?? null;
+    },
+  });
+  useEffect(() => {
+    if (name) return;
+    const meta = session?.user.user_metadata as Record<string, unknown> | undefined;
+    const fallback =
+      (typeof meta?.["full_name"] === "string" && meta["full_name"]) ||
+      (typeof meta?.["name"] === "string" && meta["name"]) ||
+      "";
+    setName(lastOffer?.driver_name || fallback);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- precarga una vez; si el conductor editó, no pisar.
+  }, [lastOffer, session]);
+  useEffect(() => {
+    if (phone === "58" && lastOffer?.phone) setPhone(lastOffer.phone);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- igual que arriba.
+  }, [lastOffer]);
   const publish = async (e: React.FormEvent) => {
     e.preventDefault();
     // Las solicitudes de la bolsa cargan sobre el viaje de regreso: búscalo o créalo.

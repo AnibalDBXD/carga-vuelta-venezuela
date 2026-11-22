@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Bell, CheckCircle2, CreditCard, Package, Plus, Send, X } from "lucide-react";
 import type { Pkg } from "@/lib/packing";
+import { CARGO_PRESETS, type CargoPreset } from "@/lib/venezuela";
 import type { PackageRequestBody } from "@/lib/package-request";
 import { subscribeToRequest, pushSupported } from "@/lib/push-client";
 import { Button } from "@/components/ui/button";
@@ -66,6 +67,8 @@ export function PackageRequestForm({
   const nextKey = useRef(1);
   const [items, setItems] = useState<number[]>([0]);
   const [fragile, setFragile] = useState<Record<number, boolean>>({ 0: false });
+  // Valores iniciales por bulto al usar un preset (los campos quedan editables).
+  const [prefill, setPrefill] = useState<Record<number, CargoPreset>>({});
   const [busy, setBusy] = useState(false);
   const [requestId, setRequestId] = useState<string | undefined>();
   const [push, setPush] = useState<"idle" | "busy" | "done">("idle");
@@ -85,10 +88,11 @@ export function PackageRequestForm({
     },
     [],
   );
-  const addItem = () => {
+  const addItem = (preset?: CargoPreset) => {
     const key = nextKey.current++;
     setItems((list) => [...list, key]);
-    setFragile((f) => ({ ...f, [key]: false }));
+    setFragile((f) => ({ ...f, [key]: preset?.fragile ?? false }));
+    if (preset) setPrefill((p) => ({ ...p, [key]: preset }));
   };
   const removeItem = (key: number) => {
     setItems((list) => list.filter((k) => k !== key));
@@ -227,83 +231,133 @@ export function PackageRequestForm({
           libre del camión.
         </p>
         <div className="space-y-6">
-          {items.map((key, index) => (
-            <fieldset key={key} className="space-y-4 rounded-lg border border-border p-4">
-              <legend className="sr-only">Bulto {index + 1}</legend>
-              <div className="flex items-center justify-between">
-                <p className="font-mono text-xs uppercase text-muted-foreground">
-                  Bulto {index + 1}
-                </p>
-                {items.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`Quitar bulto ${index + 1}`}
-                    onClick={() => removeItem(key)}
-                  >
-                    <X />
-                  </Button>
-                )}
-              </div>
-              <Field
-                name={`name-${key}`}
-                label="Descripción"
-                minLength={2}
-                maxLength={200}
-                placeholder="Ej. Cajas de vasos de vidrio"
-              />
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                <Field
-                  name={`length-${key}`}
-                  label="Largo (cm)"
-                  type="number"
-                  min={1}
-                  max={10000}
-                />
-                <Field name={`width-${key}`} label="Ancho (cm)" type="number" min={1} max={10000} />
-                <Field name={`height-${key}`} label="Alto (cm)" type="number" min={1} max={10000} />
-                <Field
-                  name={`weight-${key}`}
-                  label="Peso por bulto (kg)"
-                  type="number"
-                  min={0.01}
-                  max={10000}
-                  step="0.01"
-                />
-                <Field
-                  name={`qty-${key}`}
-                  label="Cantidad"
-                  type="number"
-                  min={1}
-                  max={100}
-                  defaultValue="1"
-                />
-                <div className="flex items-center gap-3">
-                  <Switch
-                    id={`fragile-${key}`}
-                    checked={fragile[key] ?? false}
-                    onCheckedChange={(v) => setFragile((f) => ({ ...f, [key]: v }))}
-                  />
-                  <Label htmlFor={`fragile-${key}`}>Frágil</Label>
+          {items.map((key, index) => {
+            const pre = prefill[key];
+            return (
+              <fieldset key={key} className="space-y-4 rounded-lg border border-border p-4">
+                <legend className="sr-only">Bulto {index + 1}</legend>
+                <div className="flex items-center justify-between">
+                  <p className="font-mono text-xs uppercase text-muted-foreground">
+                    Bulto {index + 1}
+                  </p>
+                  {items.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Quitar bulto ${index + 1}`}
+                      onClick={() => removeItem(key)}
+                    >
+                      <X />
+                    </Button>
+                  )}
                 </div>
-              </div>
-              <Field
-                name={`deadline-${key}`}
-                label="Entregar antes de (opcional)"
-                type="datetime-local"
-                required={false}
-              />
-            </fieldset>
-          ))}
+                <Field
+                  name={`name-${key}`}
+                  label="Descripción"
+                  minLength={2}
+                  maxLength={200}
+                  defaultValue={pre?.name}
+                  placeholder="Ej. Cajas de vasos de vidrio"
+                />
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  <Field
+                    name={`length-${key}`}
+                    label="Largo (cm)"
+                    type="number"
+                    min={1}
+                    max={10000}
+                    defaultValue={pre?.length}
+                  />
+                  <Field
+                    name={`width-${key}`}
+                    label="Ancho (cm)"
+                    type="number"
+                    min={1}
+                    max={10000}
+                    defaultValue={pre?.width}
+                  />
+                  <Field
+                    name={`height-${key}`}
+                    label="Alto (cm)"
+                    type="number"
+                    min={1}
+                    max={10000}
+                    defaultValue={pre?.height}
+                  />
+                  <Field
+                    name={`weight-${key}`}
+                    label="Peso por bulto (kg)"
+                    type="number"
+                    min={0.01}
+                    max={10000}
+                    step="0.01"
+                    defaultValue={pre?.weight}
+                  />
+                  <Field
+                    name={`qty-${key}`}
+                    label="Cantidad"
+                    type="number"
+                    min={1}
+                    max={100}
+                    defaultValue="1"
+                  />
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      id={`fragile-${key}`}
+                      checked={fragile[key] ?? false}
+                      onCheckedChange={(v) => setFragile((f) => ({ ...f, [key]: v }))}
+                    />
+                    <Label htmlFor={`fragile-${key}`}>Frágil</Label>
+                  </div>
+                </div>
+                <details>
+                  <summary className="cursor-pointer text-sm text-muted-foreground">
+                    Plazo de entrega (opcional)
+                  </summary>
+                  <div className="mt-3">
+                    <Field
+                      name={`deadline-${key}`}
+                      label="Entregar antes de"
+                      type="datetime-local"
+                      required={false}
+                    />
+                  </div>
+                </details>
+              </fieldset>
+            );
+          })}
         </div>
-        <Button type="button" variant="outline" onClick={addItem}>
-          <Plus /> Añadir otro bulto
-        </Button>
         <div>
-          <Label htmlFor="notes">Notas (opcional)</Label>
-          <Textarea id="notes" name="notes" maxLength={2000} />
+          <p className="mb-2 text-sm text-muted-foreground">
+            Añade rápido con un bulto común (puedes ajustar las medidas):
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {CARGO_PRESETS.map((p) => (
+              <Button
+                key={p.label}
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => addItem(p)}
+              >
+                <Plus /> {p.label}
+              </Button>
+            ))}
+            <Button type="button" size="sm" variant="outline" onClick={() => addItem()}>
+              <Plus /> Otro bulto
+            </Button>
+          </div>
         </div>
+        <details>
+          <summary className="cursor-pointer text-sm text-muted-foreground">
+            Notas para el conductor (opcional)
+          </summary>
+          <div className="mt-3">
+            <Label htmlFor="notes">Notas</Label>
+            <Textarea id="notes" name="notes" maxLength={2000} />
+          </div>
+        </details>
       </section>
       {error && (
         <p role="alert" className="text-sm text-destructive">

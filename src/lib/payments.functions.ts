@@ -1,31 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import type { Database } from "@/integrations/supabase/types";
-import { publicClient } from "./package-requests.functions";
+import { publicClient, serviceClient } from "./package-requests.functions";
 import { getBcvRate } from "./bcv";
 import { sendMail, sendPush, appUrl, type PushSubscriptionRow } from "./notify";
 import { clientTotalUsd, type PaymentSummary } from "./package-request";
 import { cityName } from "./venezuela";
-
-// Service role solo en servidor: lee email/suscripciones y firma URLs de storage.
-function serviceClient() {
-  const url = process.env["SUPABASE_URL"];
-  const key = process.env["SUPABASE_SECRET_KEY"];
-  if (!key || !url) throw new Error("Servicio no disponible");
-  return createClient<Database>(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: {
-      fetch: (input, init) => {
-        const headers = new Headers(init?.headers);
-        if (key.startsWith("sb_") && headers.get("Authorization") === `Bearer ${key}`)
-          headers.delete("Authorization");
-        headers.set("apikey", key);
-        return fetch(input, { ...init, headers });
-      },
-    },
-  });
-}
 
 export const getExchangeRate = createServerFn({ method: "GET" }).handler(() => getBcvRate());
 
