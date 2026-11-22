@@ -185,7 +185,7 @@ function Trip() {
           : " · sin hora de salida"}{" "}
         · {v.name}
       </p>
-      <div className="mt-1 flex flex-wrap items-center gap-3">
+      <div className="mt-2 flex flex-wrap items-center gap-3">
         <h1
           className="text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
           style={{ viewTransitionName: `trip-title-${id}` }}

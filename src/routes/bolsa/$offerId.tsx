@@ -136,7 +136,7 @@ function OfferPage() {
           <ArrowLeft /> Bolsa de viajes
         </Link>
       </Button>
-      <p className="mt-4 flex items-center gap-2 font-mono text-xs uppercase text-primary">
+      <p className="mt-4 flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-primary">
         <Truck className="h-4 w-4" /> Espacio disponible · {offer.available_date}
         {offer.available_time ? ` · ${offer.available_time.slice(0, 5)}` : ""}
       </p>

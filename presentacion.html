@@ -212,139 +212,240 @@
         max-width: 26ch;
       }
 
-      /* ---------- barra de ocupación / reparto ---------- */
+      /* ---------- tabla de estadísticas ---------- */
 
-      .loadbar {
-        display: grid;
-        gap: 0.5rem;
-        max-width: 70ch;
+      .stat-table {
+        width: 100%;
+        max-width: 100ch;
+        border-collapse: collapse;
+        font-size: clamp(0.9rem, 1.45vw, 1.2rem);
       }
 
-      .lb-head,
-      .lb-legend {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 0.4rem 1.2rem;
+      .stat-table th {
+        text-align: left;
         font-family: "IBM Plex Mono", ui-monospace, monospace;
-        font-size: clamp(0.58rem, 0.82vw, 0.7rem);
-        letter-spacing: 0.1em;
+        font-size: clamp(0.62rem, 0.9vw, 0.78rem);
+        font-weight: 500;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
         color: var(--muted);
+        padding: 0 0 0.7rem;
+        border-bottom: 1px solid var(--line);
       }
 
-      .lb-legend {
-        justify-content: flex-start;
-        letter-spacing: 0.06em;
+      .stat-table td {
+        padding: clamp(0.7rem, 2vh, 1.15rem) 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        color: var(--muted);
+        line-height: 1.3;
       }
 
-      .lb-legend span {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
+      .stat-table td:first-child {
+        color: var(--ink);
+        font-weight: 500;
       }
 
-      .lb-legend i {
-        width: 0.5rem;
-        height: 0.5rem;
-        display: block;
+      .stat-table td:nth-child(2) {
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        width: 8ch;
       }
 
-      .lb-track {
-        display: flex;
-        height: clamp(8px, 1vh, 11px);
-        border: 1px solid var(--line);
-        background: #1c2026;
-        overflow: hidden;
+      .stat-table .num-col {
+        color: var(--yellow);
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-weight: 700;
+        font-size: 1.25em;
+        white-space: nowrap;
+        text-align: right;
       }
 
-      .lb-seg {
-        display: block;
-        height: 100%;
-        transform-origin: left center;
-      }
-
-      .slide.is-active .lb-seg {
-        animation: grow 0.9s cubic-bezier(0.22, 0.7, 0.2, 1) both;
-      }
-
-      .slide.is-active .lb-seg:nth-child(2) {
-        animation-delay: 0.7s;
-      }
-
-      @keyframes grow {
-        from {
-          transform: scaleX(0);
-        }
-        to {
-          transform: scaleX(1);
-        }
-      }
-
-      .lb-seg.used {
-        background: var(--yellow);
-      }
-
-      .lb-seg.rest {
-        background: #3b4148;
-      }
-
-      .lb-seg.app {
-        background: var(--ink);
+      .stat-table th.num-col {
+        color: var(--yellow-dim);
+        font-size: clamp(0.55rem, 0.78vw, 0.66rem);
+        text-align: right;
       }
 
       /* ---------- portada ---------- */
 
-      .cover .body {
-        justify-content: center;
-        gap: clamp(1rem, 2.4vh, 2rem);
-        padding-top: 0;
+      .cover::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: clamp(5px, 0.9vh, 8px);
+        background: repeating-linear-gradient(
+          45deg,
+          var(--yellow) 0 10px,
+          #15181c 10px 20px
+        );
       }
 
       .cover-grid {
         display: grid;
-        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
         align-items: center;
-        gap: clamp(1rem, 3vw, 3rem);
-      }
-
-      .cover-copy {
-        display: grid;
-        gap: clamp(0.9rem, 2vh, 1.6rem);
-        align-content: center;
-      }
-
-      .cover h1 {
-        font-size: clamp(2.1rem, 5.4vw, 5rem);
-        max-width: 14ch;
-      }
-
-      .cover .lead {
-        font-size: clamp(0.98rem, 1.6vw, 1.3rem);
-        color: var(--ink);
-        max-width: 38ch;
+        gap: clamp(1rem, 2.6vw, 2.6rem);
       }
 
       .cover-visual {
         margin: 0;
         justify-self: center;
+        max-width: 96%;
         width: 100%;
+      }
+
+      .truck-stage {
+        position: relative;
+        padding-bottom: clamp(10px, 2vh, 20px);
+      }
+
+      .truck-stage::before {
+        content: "";
+        position: absolute;
+        inset: 6% 2% 10%;
+        background: radial-gradient(
+          58% 58% at 52% 55%,
+          rgba(238, 194, 44, 0.13),
+          transparent 72%
+        );
+        filter: blur(8px);
+      }
+
+      .truck-stage::after {
+        content: "";
+        position: absolute;
+        left: 5%;
+        right: 5%;
+        bottom: 0;
+        height: clamp(6px, 1.1vh, 10px);
+        background: repeating-linear-gradient(
+          45deg,
+          var(--yellow) 0 8px,
+          transparent 8px 16px
+        );
+        opacity: 0.5;
       }
 
       .cover-visual img {
+        position: relative;
         display: block;
         width: 100%;
         height: auto;
+        max-height: 50vh;
+        object-fit: contain;
+      }
+
+      .truck-tag {
+        position: absolute;
+        z-index: 2;
+        top: 30%;
+        right: 0;
+        padding: 0.35rem 0.55rem;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: clamp(0.55rem, 0.78vw, 0.68rem);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--yellow);
+        background: rgba(21, 24, 28, 0.9);
+        border: 1px solid var(--yellow-dim);
+        white-space: nowrap;
+      }
+
+      .truck-tag::before {
+        content: "";
+        position: absolute;
+        left: -5px;
+        top: 50%;
+        width: 6px;
+        height: 1px;
+        background: var(--yellow);
       }
 
       .cover-visual figcaption {
-        margin-top: -0.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        margin-top: 0.55rem;
         font-family: "IBM Plex Mono", ui-monospace, monospace;
-        font-size: clamp(0.56rem, 0.8vw, 0.68rem);
-        letter-spacing: 0.08em;
+        font-size: clamp(0.55rem, 0.8vw, 0.68rem);
+        letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: #6f757b;
-        text-align: center;
+        color: var(--muted);
+      }
+
+      .cover-visual figcaption::before {
+        content: "";
+        width: 1.1rem;
+        height: 1px;
+        background: var(--yellow-dim);
+      }
+
+      .cover-visual figcaption em {
+        font-style: normal;
+        color: var(--ink);
+      }
+
+      /* ---------- QR de la portada ---------- */
+
+      .qr-block {
+        justify-self: center;
+        display: grid;
+        justify-items: center;
+        gap: clamp(0.55rem, 1.5vh, 1rem);
+        width: 100%;
+      }
+
+      .qr-card {
+        position: relative;
+        width: min(100%, clamp(210px, 46vh, 470px));
+        aspect-ratio: 1;
+        padding: clamp(5px, 0.9vh, 10px);
+        background: #f2f0e7;
+        box-shadow: 0 1.6rem 3.4rem -1.2rem rgba(0, 0, 0, 0.7);
+      }
+
+      .qr-card img {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .qr-badge {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 21%;
+        aspect-ratio: 1;
+        background: #15181c;
+        border-radius: 50%;
+        border: clamp(3px, 0.5vh, 6px) solid #f2f0e7;
+        display: grid;
+        place-items: center;
+      }
+
+      .qr-badge svg {
+        width: 56%;
+        height: auto;
+        display: block;
+      }
+
+      .qr-caption {
+        margin: 0;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: clamp(0.56rem, 0.82vw, 0.7rem);
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .qr-url {
+        margin: -0.3rem 0 0;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: clamp(0.6rem, 0.9vw, 0.78rem);
+        letter-spacing: 0.02em;
+        color: var(--yellow);
       }
 
       /* ---------- solución ---------- */
@@ -491,6 +592,30 @@
 
       /* ---------- modelo de negocio ---------- */
 
+      .model-body {
+        display: grid;
+        gap: clamp(1.6rem, 4vh, 3rem);
+        margin-block: auto;
+      }
+
+      .model-body .metric .num {
+        font-size: clamp(2.4rem, 5.4vw, 4.2rem);
+      }
+
+      .model-body .metric .cap {
+        margin-top: 0.7rem;
+        font-size: clamp(0.9rem, 1.35vw, 1.15rem);
+        max-width: 30ch;
+      }
+
+      .model-body .flow {
+        padding: clamp(1rem, 2.2vh, 1.5rem) clamp(1rem, 2vw, 1.6rem);
+      }
+
+      .model-body .flow span {
+        font-size: clamp(0.84rem, 1.25vw, 1.05rem);
+      }
+
       .flow {
         display: flex;
         flex-wrap: wrap;
@@ -514,19 +639,6 @@
 
       .flow .win {
         color: var(--yellow);
-      }
-
-      .punch {
-        margin: 0;
-        font-size: clamp(1.05rem, 2vw, 1.6rem);
-        font-weight: 500;
-        letter-spacing: -0.01em;
-        color: var(--muted);
-      }
-
-      .punch strong {
-        color: var(--yellow);
-        font-weight: 700;
       }
 
       /* ---------- navegación ---------- */
@@ -607,16 +719,6 @@
       /* ---------- pantallas medianas y angostas ---------- */
 
       @media (max-width: 980px) {
-        .cover-grid {
-          grid-template-columns: 1fr;
-          gap: clamp(0.6rem, 2vh, 1.2rem);
-        }
-        .cover-visual {
-          max-width: 560px;
-        }
-        .cover h1 {
-          max-width: 20ch;
-        }
         .steps {
           gap: 1rem;
         }
@@ -633,8 +735,25 @@
           padding-top: 1rem;
         }
         .cover .body {
-          justify-content: center;
+          justify-content: flex-start;
           padding-top: 1.2rem;
+        }
+        .cover-grid {
+          grid-template-columns: 1fr;
+          gap: 0.9rem;
+        }
+        .cover-visual {
+          order: 1;
+          max-width: 100%;
+        }
+        .qr-block {
+          order: 2;
+          justify-self: start;
+          justify-items: start;
+          margin-top: 0.4rem;
+        }
+        .qr-card {
+          width: min(62vw, 230px);
         }
         .metrics {
           grid-template-columns: 1fr;
@@ -688,10 +807,6 @@
         .bar {
           display: none !important;
         }
-        .lb-seg {
-          animation: none !important;
-          transform: none !important;
-        }
       }
     </style>
   </head>
@@ -716,26 +831,53 @@
             </svg>
             <span class="logo-word">Carga<span>Ruta</span></span>
           </span>
-          <span>Valencia · Venezuela</span>
+          <span class="page-total"></span>
         </header>
 
         <div class="body">
-          <div class="cover-grid">
-            <div class="cover-copy">
-              <p class="kicker">Modelo de negocio · Producto · Mercado</p>
-              <h1>Ningún camión vuelve vacío.</h1>
-              <p class="lead">
-                Conectamos tu ruta con la carga de clientes que ya van hacia el mismo destino.
-              </p>
-            </div>
+          <p class="kicker">Portada · La idea</p>
+          <h2>Tu camión vuelve <em>cargado</em>.</h2>
 
+          <div class="cover-grid">
             <figure class="cover-visual">
-              <img
-                src="presentacion-assets/camion-3d.png"
-                alt="Camión con la carga organizada en 3D y el espacio libre marcado en amarillo."
-              />
-              <figcaption>Carga real en 3D · 17,2% del volumen ocupado</figcaption>
+              <div class="truck-stage">
+                <img
+                  src="presentacion-assets/camion-3d.png"
+                  alt="Gandola con la carga organizada en 3D y el espacio libre marcado en amarillo."
+                />
+                <span class="truck-tag">15,6 m³ libres</span>
+              </div>
+              <figcaption>
+                Valencia <span aria-hidden="true">→</span> Caracas
+                <em>209,9 km</em>
+              </figcaption>
             </figure>
+
+            <div class="qr-block">
+              <div class="qr-card">
+                <img
+                  src="presentacion-assets/qr.svg"
+                  alt="Código QR que abre CargaRuta en carga-vuelta-venezuela.vercel.app"
+                />
+                <span class="qr-badge" aria-hidden="true">
+                  <svg viewBox="0 0 64 64" focusable="false">
+                    <g fill="none" stroke-linecap="round">
+                      <path d="M21 58A37 37 0 0 1 58 21" stroke="#eec22c" stroke-width="5.6" />
+                      <path d="M43 58A15 15 0 0 1 58 43" stroke="#eec22c" stroke-width="5.6" />
+                      <path
+                        d="M32 58A26 26 0 0 1 58 32"
+                        stroke="#f2f0e7"
+                        stroke-width="4.4"
+                        stroke-dasharray="9 6.92"
+                        stroke-linecap="butt"
+                      />
+                    </g>
+                  </svg>
+                </span>
+              </div>
+              <p class="qr-caption">Escanea y abre la app</p>
+              <p class="qr-url">carga-vuelta-venezuela.vercel.app</p>
+            </div>
           </div>
         </div>
       </section>
@@ -764,42 +906,40 @@
 
         <div class="body">
           <p class="kicker">01 · El problema</p>
-          <h2>Uno de cada tres camiones vuelve <em>vacío</em>.</h2>
+          <h2>Hasta <em>8 de cada 10</em> camiones vuelven vacíos.</h2>
 
-          <div class="metrics">
-            <div class="metric">
-              <span class="num" data-count="33" data-suffix="%">33%</span>
-              <span class="cap">de los viajes de carga regresan sin un solo paquete.</span>
-            </div>
-            <div class="metric">
-              <span class="num" data-count="82.8" data-decimals="1" data-suffix="%">82,8%</span>
-              <span class="cap">del espacio quedó libre en el viaje de ejemplo. Solo se usó el 17,2%.</span>
-            </div>
-            <div class="metric">
-              <span class="num" data-count="209.9" data-decimals="1" data-suffix=" km">209,9 km</span>
-              <span class="cap">de ida. La vuelta cuesta lo mismo en diésel y peajes, pero no factura.</span>
-            </div>
-          </div>
+          <table class="stat-table">
+            <thead>
+              <tr>
+                <th>País</th>
+                <th>Año</th>
+                <th class="num-col">Retornos vacíos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Venezuela</td>
+                <td>2005</td>
+                <td class="num-col">50–80%</td>
+              </tr>
+              <tr>
+                <td>Colombia</td>
+                <td>2024</td>
+                <td class="num-col">69%</td>
+              </tr>
+              <tr>
+                <td>Argentina</td>
+                <td>2022</td>
+                <td class="num-col">37%</td>
+              </tr>
+            </tbody>
+          </table>
 
-          <div class="loadbar">
-            <div class="lb-head">
-              <span>Ocupación real del camión</span>
-              <span>Valencia → Caracas · 20 bultos</span>
-            </div>
-            <div class="lb-track">
-              <span class="lb-seg used" style="width: 17.2%"></span>
-              <span class="lb-seg rest" style="width: 82.8%"></span>
-            </div>
-            <div class="lb-legend">
-              <span><i style="background: var(--yellow)"></i>17,2% con carga</span>
-              <span><i style="background: #3b4148"></i>82,8% viaja vacío</span>
-            </div>
-          </div>
-
-          <p class="lead">El conductor paga el regreso. El cliente busca cupo y no lo encuentra.</p>
           <p class="footnote">
-            33%: estimación del sector, pendiente de medir con datos propios. El resto sale del viaje
-            Valencia → Caracas cargado en CargaRuta: 209,9 km · 3,5 h · 20 bultos · 451 kg.
+            Fuentes — Venezuela: “50 a 80% de viajes de retorno vacíos”, ALV (2005). Colombia: 69% de
+            los viajes sin carga, Universidad de los Andes (2024). Argentina: 37% de los camiones
+            viaja vacío, Avancargo (2022). Cada país mide distinto: son referencias, no una
+            comparación estricta.
           </p>
         </div>
       </section>
@@ -883,7 +1023,8 @@
 
           <p class="footnote">
             Ejemplo de una ruta redonda VLC → CCS → VLC: la carga de vuelta paga 80 USD por los
-            15,6 m³ libres del viaje real (209,9 km · 3,5 h).
+            15,6 m³ libres del viaje real (209,9 km · 3,5 h). De esos 80, el conductor se queda 60
+            y CargaRuta 20 (25% de comisión).
           </p>
           <p class="audience">
             Para <strong>choferes dueños de su camión</strong> y
@@ -918,51 +1059,30 @@
           <p class="kicker">03 · Modelo de negocio</p>
           <h2>El conductor gana más. La app cobra por <em>conectar</em>.</h2>
 
-          <div class="metrics">
-            <div class="metric">
-              <span class="num" data-count="10" data-suffix="%">10%</span>
-              <span class="cap">de comisión por cada carga pagada. El conductor fija el precio.</span>
+          <div class="model-body">
+            <div class="metrics">
+              <div class="metric">
+                <span class="num" data-count="25" data-suffix="%">25%</span>
+                <span class="cap">de comisión por cada carga pagada. El conductor fija el precio.</span>
+              </div>
+              <div class="metric">
+                <span class="num" data-count="60" data-suffix=" USD">60 USD</span>
+                <span class="cap">se queda el conductor en una carga de 80 USD.</span>
+              </div>
+              <div class="metric">
+                <span class="num" data-count="20" data-suffix=" USD">20 USD</span>
+                <span class="cap">gana CargaRuta en esa misma carga.</span>
+              </div>
             </div>
-            <div class="metric">
-              <span class="num" data-count="72" data-suffix=" USD">72 USD</span>
-              <span class="cap">se queda el conductor en una carga de 80 USD.</span>
-            </div>
-            <div class="metric">
-              <span class="num" data-count="8" data-suffix=" USD">8 USD</span>
-              <span class="cap">gana CargaRuta en esa misma carga.</span>
+
+            <div class="flow">
+              <span>Cliente paga 80 USD</span>
+              <span class="arrow">→</span>
+              <span>Conductor recibe 60 USD</span>
+              <span class="arrow">→</span>
+              <span class="win">CargaRuta 20 USD</span>
             </div>
           </div>
-
-          <div class="flow">
-            <span>Cliente paga 80 USD</span>
-            <span class="arrow">→</span>
-            <span>Conductor recibe 72 USD</span>
-            <span class="arrow">→</span>
-            <span class="win">CargaRuta 8 USD</span>
-          </div>
-
-          <div class="loadbar">
-            <div class="lb-head">
-              <span>Reparto de cada carga</span>
-              <span>90% conductor · 10% plataforma</span>
-            </div>
-            <div class="lb-track">
-              <span class="lb-seg used" style="width: 90%"></span>
-              <span class="lb-seg app" style="width: 10%"></span>
-            </div>
-            <div class="lb-legend">
-              <span><i style="background: var(--yellow)"></i>90% para el conductor</span>
-              <span><i style="background: var(--ink)"></i>10% para CargaRuta</span>
-            </div>
-          </div>
-
-          <p class="lead">
-            Escenario: 100 cargas al mes dejan 800 USD para la plataforma. Sin flota propia y sin
-            inventario.
-          </p>
-          <p class="punch">
-            El regreso vacío es plata en el piso. <strong>Nosotros lo convertimos en carga.</strong>
-          </p>
         </div>
       </section>
     </div>

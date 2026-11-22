@@ -340,28 +340,42 @@ function NuevoViaje() {
     "h-9 w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
   if (!isLoading && vehicles.length === 0)
     return (
-      <main className="mx-auto max-w-xl px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold" style={{ viewTransitionName: "page-title" }}>
+      <main className="mx-auto max-w-6xl px-4 py-10">
+        <p className="font-mono text-xs uppercase tracking-widest text-primary">Planificar viaje</p>
+        <h1
+          className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
+          style={{ viewTransitionName: "page-title" }}
+        >
           Primero registra tu vehículo
         </h1>
-        <p className="mt-2 text-muted-foreground">
+        <p className="mt-2 max-w-2xl text-muted-foreground">
           Necesitamos las medidas del espacio de carga para acomodar los paquetes.
         </p>
-        <Button asChild className="mt-6">
-          <Link to="/panel/vehiculos">Registrar vehículo</Link>
-        </Button>
+        <div className="mt-8 rounded-lg border border-dashed border-border px-6 py-12 text-center">
+          <p className="text-muted-foreground">
+            Tu flota está vacía. Registra un vehículo y vuelve a planificar el viaje.
+          </p>
+          <Button asChild className="mt-5">
+            <Link to="/panel/vehiculos">Registrar vehículo</Link>
+          </Button>
+        </div>
       </main>
     );
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
+      <p className="font-mono text-xs uppercase tracking-widest text-primary">Planificar viaje</p>
       <h1
-        className="text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
+        className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
         style={{ viewTransitionName: "page-title" }}
       >
         {regreso ? "Planear viaje de regreso" : "Nuevo viaje"}
       </h1>
-      <form onSubmit={submit} className="mt-6 space-y-6" noValidate>
+      <p className="mt-2 max-w-2xl text-muted-foreground">
+        Define la ruta, la fecha y la hora de salida, el vehículo y los bultos. CargaRuta calcula el
+        espacio y arma la guía de montaje.
+      </p>
+      <form onSubmit={submit} className="mt-8 space-y-6" noValidate>
         {saveError && (
           <div
             ref={alertRef}

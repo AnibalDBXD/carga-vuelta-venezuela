@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
-  CreditCard,
   Loader2,
   Mail,
   Package,
@@ -75,10 +74,8 @@ function MyPayments() {
   };
   const sorted = [...(data ?? [])].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <p className="flex items-center gap-2 font-mono text-xs uppercase text-primary">
-        <CreditCard className="h-4 w-4" /> Soy cliente
-      </p>
+    <main className="mx-auto max-w-6xl px-4 py-10">
+      <p className="font-mono text-xs uppercase tracking-widest text-primary">Soy cliente</p>
       <h1
         className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
         style={{ viewTransitionName: "page-title" }}

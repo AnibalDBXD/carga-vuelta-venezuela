@@ -143,7 +143,7 @@ function PaymentPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
-      <p className="flex items-center gap-2 font-mono text-xs uppercase text-primary">
+      <p className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-primary">
         <CreditCard className="h-4 w-4" /> Pago de tu carga
       </p>
       <h1
