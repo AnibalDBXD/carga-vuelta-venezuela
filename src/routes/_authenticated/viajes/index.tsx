@@ -23,13 +23,18 @@ function Viajes() {
   });
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Mis viajes</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-4xl font-bold leading-[1.1] tracking-[-0.02em]">Mis viajes</h1>
         <Button asChild><Link to="/viajes/nuevo" search={{}}>Nuevo viaje</Link></Button>
       </div>
-      <div className="mt-6 space-y-3">
+      <p className="mt-2 text-muted-foreground">
+        Cada viaje guarda su plan de carga; desde acá puedes repetirlo o planear el regreso.
+      </p>
+      <div className="mt-8 space-y-3">
         {isLoading && <p className="text-muted-foreground">Cargando…</p>}
-        {!isLoading && data.length === 0 && <p className="text-muted-foreground">Todavía no has planificado viajes.</p>}
+        {!isLoading && data.length === 0 && (
+          <p className="text-muted-foreground">Todavía no has planificado viajes.</p>
+        )}
         {data.map((t) => {
           const pk = (t.packages as unknown as Pkg[]) ?? [];
           const free = t.vehicles
