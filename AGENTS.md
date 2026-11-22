@@ -11,7 +11,7 @@ App de logística para camioneros en Venezuela (base Valencia). El objetivo clav
 - Backend: Supabase local vía Supabase CLI (`bun run db:start`, requiere podman/docker; `DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock` con podman). Migraciones en `supabase/migrations/`; regenerar tipos con `bun run db:types`. Cliente navegador: `@/integrations/supabase/client`. Lógica de servidor con `createServerFn`; nada de Supabase Edge Functions. Credenciales de dev en `.env` (no committeado; ver `.env.example`).
 - 3D: three.js + @react-three/fiber/drei, solo en cliente.
 - Tests: vitest (`bunx vitest run`). Typecheck: `bun run typecheck` (`tsc --noEmit`).
-- Deploy: Vercel. `bun run build` usa el preset nitro `vercel` y emite `.vercel/output` (Build Output API, auto-detectado); `vercel.json` fija build/install con bun. Las env vars van en el dashboard de Vercel (`.env` no se commitea) y el backend requiere un proyecto Supabase hosted (`supabase link` + `db push`; `site_url`/redirects al dominio de Vercel).
+- Deploy: Vercel. `bun run build` usa el preset nitro `vercel` y emite `.vercel/output` (Build Output API, auto-detectado); `vercel.json` fija build/install con bun. Las env vars van en el dashboard de Vercel (`.env` no se commitea) y el backend requiere un proyecto Supabase hosted (`supabase link` + `db push`; `site_url`/redirects al dominio de Vercel). Guía paso a paso: `docs/despliegue.md`.
 
 ## Mapa de la app
 

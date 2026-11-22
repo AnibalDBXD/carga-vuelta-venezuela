@@ -179,7 +179,7 @@ Abre `http://localhost:5173`, entra a `/bolsa` y crea una cuenta desde `/auth` p
 | Comando | Qué hace |
 |---|---|
 | `bun run dev` | Dev server con SSR en `:5173` |
-| `bun run build` | Build de producción (Nitro, preset Cloudflare) |
+| `bun run build` | Build de producción (Nitro, preset Vercel) |
 | `bun run test` | Vitest |
 | `bun run typecheck` | `tsc --noEmit` |
 | `bun run lint` | ESLint |
@@ -203,3 +203,8 @@ los comprobantes van a un bucket privado `payment-proofs`.
 - En dev aparece una vez el aviso de React sobre desmontar un root durante el render; es HMR del
   canvas 3D y no afecta la build.
 - Sin tokens de Mapbox la app funciona, pero con rutas estimadas y sin autocompletado.
+
+## 12. Despliegue
+
+Guía completa para Supabase hosted + Vercel, incluyendo cómo trabajar como colaborador del repo:
+[`docs/despliegue.md`](./docs/despliegue.md).
