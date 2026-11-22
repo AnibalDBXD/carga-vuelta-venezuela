@@ -180,19 +180,46 @@ export { PALETTE };
 function CargoBox({
   b,
   color,
-  dim,
+  dimmed,
   highlighted,
+  delay,
 }: {
   b: Placed;
   color: string;
-  dim: boolean;
+  dimmed: boolean;
   highlighted: boolean;
+  delay: number;
 }) {
   const tex = useMemo(() => boxTextures(color, b.fragile), [color, b.fragile]);
-  const face = { roughness: 0.85, transparent: dim, opacity: dim ? 0.3 : 1 };
+  const face = { roughness: 0.85, transparent: dimmed, opacity: dimmed ? 0.3 : 1 };
+  const ref = useRef<Mesh>(null);
+  const time = useRef(0);
+  const done = useRef(delay <= 0);
+  const targetY = (b.z + b.h / 2) / 100;
+
+  useFrame((_, delta) => {
+    const mesh = ref.current;
+    if (!mesh || delay <= 0 || done.current) return;
+    time.current += delta;
+    const local = time.current - delay;
+    if (local < 0) {
+      mesh.visible = false;
+      return;
+    }
+    mesh.visible = true;
+    const p = Math.min(1, local / 0.3);
+    const eased = 1 - Math.pow(1 - p, 3);
+    // Cae desde un poco más arriba y crece: se lee como si la estuvieran montando.
+    mesh.scale.setScalar(0.4 + 0.6 * eased);
+    mesh.position.y = targetY + (1 - eased) * 0.5;
+    if (p >= 1) done.current = true;
+  });
+
   return (
     <mesh
-      position={[(b.x + b.l / 2) / 100, (b.z + b.h / 2) / 100, (b.y + b.w / 2) / 100]}
+      ref={ref}
+      position={[(b.x + b.l / 2) / 100, targetY, (b.y + b.w / 2) / 100]}
+      visible={delay <= 0}
       castShadow
     >
       <boxGeometry args={[b.l / 100 - 0.01, b.h / 100 - 0.01, b.w / 100 - 0.01]} />
@@ -661,61 +688,6 @@ function SemiBody({ L, W, cabL, chassis }: Dims) {
         </mesh>
       ))}
     </group>
-  );
-}
-
-function CargoBox({
-  b,
-  color,
-  dimmed,
-  highlighted,
-  delay,
-}: {
-  b: Placed;
-  color: string;
-  dimmed: boolean;
-  highlighted: boolean;
-  delay: number;
-}) {
-  const ref = useRef<Mesh>(null);
-  const time = useRef(0);
-  const done = useRef(delay <= 0);
-  const targetY = (b.z + b.h / 2) / 100;
-
-  useFrame((_, delta) => {
-    const mesh = ref.current;
-    if (!mesh || delay <= 0 || done.current) return;
-    time.current += delta;
-    const local = time.current - delay;
-    if (local < 0) {
-      mesh.visible = false;
-      return;
-    }
-    mesh.visible = true;
-    const p = Math.min(1, local / 0.3);
-    const eased = 1 - Math.pow(1 - p, 3);
-    // Cae desde un poco más arriba y crece: se lee como si la estuvieran montando.
-    mesh.scale.setScalar(0.4 + 0.6 * eased);
-    mesh.position.y = targetY + (1 - eased) * 0.5;
-    if (p >= 1) done.current = true;
-  });
-
-  return (
-    <mesh
-      ref={ref}
-      position={[(b.x + b.l / 2) / 100, targetY, (b.y + b.w / 2) / 100]}
-      visible={delay <= 0}
-      castShadow
-    >
-      <boxGeometry args={[b.l / 100 - 0.01, b.h / 100 - 0.01, b.w / 100 - 0.01]} />
-      <meshStandardMaterial
-        color={color}
-        roughness={0.7}
-        transparent={dimmed}
-        opacity={dimmed ? 0.3 : 1}
-      />
-      <Edges color={b.fragile ? "#ff3b3b" : highlighted ? "#f2c230" : "#1a1a1a"} />
-    </mesh>
   );
 }
 
