@@ -4,7 +4,7 @@ Documento de traspaso: qué es la app, qué se construyó a nivel visual y por q
 contradice al código, manda el código; este archivo explica la intención.
 
 - **Producto:** app de logística para camioneros en Venezuela, base Valencia.
-- **Promesa:** *Carga más. No regreses vacío.*
+- **Promesa:** *Carga más. No estés nunca vacío.*
 - **Concepto visual:** pavimento y señalización vial. Asfalto de noche, amarillo de línea
   central, blanco de borde.
 - **Idioma:** español (es-VE), tuteo, frases cortas.
@@ -24,7 +24,7 @@ CargaRuta resuelve las dos mitades del mismo problema:
 2. **Llenar los tramos libres:** publicar el espacio que sobra y recibir solicitudes de carga de
    gente que va hacia la misma ciudad.
 
-La narrativa pública evolucionó de "no regreses vacío" a **ida y vuelta**: no se trata solo del
+La narrativa pública pasó de "no estés nunca vacío" a **ida y vuelta**: no se trata solo del
 viaje de vuelta, se aprovecha el recorrido completo.
 
 ## 2. El modelo de negocio
@@ -180,7 +180,7 @@ para que quede al pie en páginas cortas.
 
 ## 6. Copy
 
-- Titular: **Carga más. No regreses vacío.**
+- Titular: **Carga más. No estés nunca vacío.**
 - Sección modelo: **Dos lados, el mismo viaje.**
 - Beneficios: **Carga en los dos sentidos.** con seis ítems: compartir el viaje, cobrar el tramo
   sin carga, la carga que ya va para allá, lo que de verdad cabe, flete cotizado, cargar una sola

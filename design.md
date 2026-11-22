@@ -6,7 +6,7 @@ más cercana de este documento antes de inventar un estilo nuevo.
 
 - **Producto:** app para camioneros en Venezuela. Planificación de viajes con rutas reales (Mapbox),
   acomodo de carga en 3D, bolsa de viajes con espacio libre y pago móvil de la plataforma.
-- **Promesa:** *Carga más. No regreses vacío.*
+- **Promesa:** *Carga más. No estés nunca vacío.*
 - **Concepto visual:** pavimento y señalización vial. Asfalto de noche, pintura amarilla de la
   línea central, blanco de borde y reflectores. Nada de camiones genéricos ni íconos de caja.
 

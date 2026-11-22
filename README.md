@@ -3,7 +3,7 @@
 App de logística para camioneros en Venezuela. Planifica viajes con rutas reales, acomoda la carga
 en 3D y llena el espacio libre con solicitudes de carga que se pagan por pago móvil.
 
-> **Promesa:** *Carga más. No regreses vacío.*
+> **Promesa:** *Carga más. No estés nunca vacío.*
 
 - Sistema de diseño y marca: [`design.md`](./design.md)
 - Contexto de producto, decisiones y pendientes: [`contexto.md`](./contexto.md)

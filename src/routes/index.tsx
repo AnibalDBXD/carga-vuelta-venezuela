@@ -9,13 +9,13 @@ import { packCargo } from "@/lib/packing";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CargaRuta — Optimiza tu carga y no regreses vacío" },
+      { title: "CargaRuta — Optimiza tu carga y no estés nunca vacío" },
       {
         name: "description",
         content:
           "App para camioneros en Venezuela: planifica rutas desde Valencia, acomoda la carga en 3D y consigue carga de retorno.",
       },
-      { property: "og:title", content: "CargaRuta — Optimiza tu carga y no regreses vacío" },
+      { property: "og:title", content: "CargaRuta — Optimiza tu carga y no estés nunca vacío" },
       {
         property: "og:description",
         content:
@@ -84,7 +84,7 @@ function Index() {
             >
               Carga más.
               <br />
-              No regreses vacío.
+              No estés nunca vacío.
             </h1>
             <p className="mt-5 max-w-lg text-lg text-muted-foreground">
               Describe tu camión y tus paquetes. CargaRuta acomoda la carga en 3D, traza tu ruta y
@@ -110,6 +110,7 @@ function Index() {
             colorKeys={["a", "b", "c"]}
             spin
             stagger={0.12}
+            doorLabel={false}
             className="h-[380px]"
           />
         </div>

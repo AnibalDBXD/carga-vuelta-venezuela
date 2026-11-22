@@ -54,6 +54,8 @@ type Props = {
   spin?: boolean;
   /** Segundos entre cajas para que la carga se vaya montando (0 = sin animación). */
   stagger?: number;
+  /** Etiqueta "PUERTA/MALETERO". La landing la oculta. */
+  doorLabel?: boolean;
 };
 
 // Look estándar (specs/002-vistas-3d.md): canvas transparente, sin fondo ni
@@ -69,6 +71,7 @@ export default function Truck3D({
   highlightedOrder,
   spin = false,
   stagger = 0,
+  doorLabel = true,
 }: Props) {
   const L = length / 100,
     W = width / 100,
@@ -148,18 +151,20 @@ export default function Truck3D({
                 />
               );
             })}
-            <Html position={[L, H + 0.15, W / 2]} center>
-              <span
-                style={{
-                  fontFamily: "IBM Plex Mono",
-                  fontSize: 11,
-                  color: "#f2c230",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {kind === "auto" ? "MALETERO ▸" : "PUERTA ▸"}
-              </span>
-            </Html>
+            {doorLabel && (
+              <Html position={[L, H + 0.15, W / 2]} center>
+                <span
+                  style={{
+                    fontFamily: "IBM Plex Mono",
+                    fontSize: 11,
+                    color: "#f2c230",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {kind === "auto" ? "MALETERO ▸" : "PUERTA ▸"}
+                </span>
+              </Html>
+            )}
           </group>
         </group>
         <OrbitControls

@@ -16,7 +16,7 @@ export function AppFooter() {
           <div className="md:col-span-2">
             <Logo />
             <p className="mt-4 max-w-sm text-sm text-muted-foreground">
-              Carga más. No regreses vacío. Planifica la carga en 3D, estima la ruta y comparte el
+              Carga más. No estés nunca vacío. Planifica la carga en 3D, estima la ruta y comparte el
               espacio libre de tus viajes de ida y vuelta.
             </p>
             <p className="mt-4 font-mono text-xs uppercase tracking-widest text-primary">
