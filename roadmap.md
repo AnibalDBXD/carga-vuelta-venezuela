@@ -1,0 +1,5 @@
+- [x] Añadir guía de montaje por bulto y filtro por altura para el 3D y la tabla.
+- [x] Verificar pasos, capas y visualización en escritorio y móvil.
+- [x] Compartir el regreso guardado mediante un enlace público y recibir solicitudes privadas de paquetes.
+- [x] Aceptar o rechazar solicitudes; incorporar las aceptadas al viaje y a la guía 3D.
+- [x] Verificar el flujo completo y sus permisos.
