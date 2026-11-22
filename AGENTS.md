@@ -1,4 +1,3 @@
-
 # CargaRuta — contexto para agentes
 
 ## Qué es
@@ -7,11 +6,11 @@ App de logística para camioneros en Venezuela (base Valencia). El objetivo clav
 
 ## Stack
 
-- TanStack Start v1 (React 19, Vite 7, SSR en workerd). Rutas en `src/routes`; nunca usar react-router-dom ni App.tsx.
+- TanStack Start v1 (React 19, Vite, SSR). Rutas en `src/routes`; nunca usar react-router-dom ni App.tsx.
 - Tailwind CSS v4 vía `src/styles.css` (tokens semánticos; no hardcodear colores en componentes).
-- Backend: Lovable Cloud (Supabase). Cliente navegador: `@/integrations/supabase/client`. Lógica de servidor con `createServerFn`; nada de Supabase Edge Functions.
+- Backend: Supabase local vía Supabase CLI (`bun run db:start`, requiere podman/docker; `DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock` con podman). Migraciones en `supabase/migrations/`; regenerar tipos con `bun run db:types`. Cliente navegador: `@/integrations/supabase/client`. Lógica de servidor con `createServerFn`; nada de Supabase Edge Functions. Credenciales de dev en `.env` (committeado a propósito).
 - 3D: three.js + @react-three/fiber/drei, solo en cliente.
-- Tests: vitest (`bunx vitest run`). Typecheck: `oj typecheck -b --noEmit`.
+- Tests: vitest (`bunx vitest run`). Typecheck: `bun run typecheck` (`tsc --noEmit`).
 
 ## Mapa de la app
 
@@ -23,7 +22,7 @@ App de logística para camioneros en Venezuela (base Valencia). El objetivo clav
 - `/recogidas/$token` — formulario público (sin cuenta) para solicitar recogida en un viaje de regreso compartido.
 - Área privada bajo `src/routes/_authenticated/`.
 
-## Datos (Lovable Cloud)
+## Datos (Supabase)
 
 - `vehicles` — tipo, nombre, placa, medidas internas (cm) y carga máx. (kg) por usuario.
 - `trips` — origen/destino (slugs de ciudad), fecha, vehículo, `is_return`, y `packages` como JSON.
@@ -40,7 +39,7 @@ App de logística para camioneros en Venezuela (base Valencia). El objetivo clav
 - Cargo layers and guided loading visibility live in pure TS `src/lib/loading-guide.ts`; presentation filters never modify the packing result or saved cargo.
 - Shared return-trip links use random capability tokens and narrowly scoped database RPCs; request rows remain owner-readable only, and accepting a pending request appends its package atomically under trip/request locks to prevent duplicates.
 - Route estimates (km, hours, tolls, checkpoints) are a preloaded matrix in `src/lib/venezuela.ts` — approximations, not official data; no external maps API.
-- WhatsApp sharing uses `wa.me` links with prefilled text; they are blocked inside the editor preview iframe but work on the published site — do not "fix" them.
+- WhatsApp sharing uses `wa.me` links with prefilled text.
 
 ## Diseño
 

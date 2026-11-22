@@ -14,7 +14,6 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
   return (
@@ -41,9 +40,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -85,12 +81,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "CargaRuta — Logística de carga en Venezuela" },
-      { name: "description", content: "Planifica viajes de carga, optimiza el espacio de tu camión y consigue carga de retorno." },
+      {
+        name: "description",
+        content:
+          "Planifica viajes de carga, optimiza el espacio de tu camión y consigue carga de retorno.",
+      },
       { property: "og:title", content: "CargaRuta — Logística de carga en Venezuela" },
-      { property: "og:description", content: "Planifica viajes de carga, optimiza el espacio de tu camión y consigue carga de retorno." },
+      {
+        property: "og:description",
+        content:
+          "Planifica viajes de carga, optimiza el espacio de tu camión y consigue carga de retorno.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -99,7 +102,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
