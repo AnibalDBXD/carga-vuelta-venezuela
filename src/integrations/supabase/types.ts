@@ -23,6 +23,31 @@ export type Database = {
   };
   public: {
     Tables: {
+      mcp_tokens: {
+        Row: {
+          created_at: string;
+          id: string;
+          label: string;
+          revoked_at: string | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          label?: string;
+          revoked_at?: string | null;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          label?: string;
+          revoked_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       package_requests: {
         Row: {
           amount_usd: number | null;
@@ -314,6 +339,7 @@ export type Database = {
         Row: {
           completed_at: string | null;
           created_at: string;
+          departed_at: string | null;
           departure_date: string;
           departure_time: string | null;
           destination: string;
@@ -330,6 +356,7 @@ export type Database = {
         Insert: {
           completed_at?: string | null;
           created_at?: string;
+          departed_at?: string | null;
           departure_date: string;
           departure_time?: string | null;
           destination: string;
@@ -345,6 +372,7 @@ export type Database = {
         Update: {
           completed_at?: string | null;
           created_at?: string;
+          departed_at?: string | null;
           departure_date?: string;
           departure_time?: string | null;
           destination?: string;
@@ -442,6 +470,11 @@ export type Database = {
         Args: { p_accept: boolean; p_amount?: number; p_chat_id: number; p_request: string };
         Returns: string;
       };
+      decide_package_request_mcp: {
+        Args: { p_accept: boolean; p_amount?: number; p_request: string; p_user: string };
+        Returns: string;
+      };
+      depart_trip: { Args: { p_trip: string }; Returns: string };
       insert_package_request: {
         Args: {
           p_delivery: string;

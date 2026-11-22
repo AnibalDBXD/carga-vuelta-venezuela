@@ -188,6 +188,18 @@ export async function chatWithTools(opts: {
   return lastText || "Necesito que lo intentemos de otra forma. ¿Me repites qué necesitas?";
 }
 
+// El modelo a veces envuelve el JSON en prosa o fences: extraer el primer {...}.
+export function extractJsonObject(text: string): Record<string, unknown> | null {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start === -1 || end <= start) return null;
+  try {
+    return JSON.parse(text.slice(start, end + 1)) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 /** Visión: estima un bulto a partir de la foto. Devuelve el JSON parseado o null. */
 export async function estimateFromImage(
   image: { base64: string; contentType: string },
@@ -206,14 +218,5 @@ export async function estimateFromImage(
     generationConfig: { temperature: 0.2, maxOutputTokens: 600 },
   });
   const parts = res.candidates?.[0]?.content?.parts ?? [];
-  const text = parts.map(partText).join("");
-  // El modelo a veces envuelve el JSON en prosa o fences: extraer el primer {...}.
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end <= start) return null;
-  try {
-    return JSON.parse(text.slice(start, end + 1)) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
+  return extractJsonObject(parts.map(partText).join(""));
 }

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShareTrip } from "@/components/TripRequests";
 import { ConnectTelegram } from "@/components/ConnectTelegram";
+import { McpAccess } from "@/components/McpAccess";
 
 export const Route = createFileRoute("/_authenticated/panel/viajes/")({
   head: () => ({
@@ -155,6 +156,7 @@ function Viajes() {
         </h1>
         <div className="flex items-center gap-2">
           <ConnectTelegram />
+          <McpAccess />
           <Button asChild>
             <Link to="/panel/viajes/nuevo" search={{}}>
               Nuevo viaje

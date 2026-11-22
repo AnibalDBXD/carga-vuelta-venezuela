@@ -114,12 +114,12 @@ Gemini API (AI Studio), Supabase, Mapbox, Vercel.
 
 ## Notificaciones añadidas (complemento, no reemplazo)
 
-| Evento | Solicitante | Conductor |
-| --- | --- | --- |
-| Solicitud nueva | — | correo + Telegram (botones ✅/❌/ver) |
-| Aceptada | correo + push + Telegram (instrucciones de pago) | — |
-| Comprobante subido | — | correo + Telegram (verificación) |
-| Pagada | correo + Telegram (`paid_notified_at`) | — |
+| Evento             | Solicitante                                      | Conductor                             |
+| ------------------ | ------------------------------------------------ | ------------------------------------- |
+| Solicitud nueva    | —                                                | correo + Telegram (botones ✅/❌/ver) |
+| Aceptada           | correo + push + Telegram (instrucciones de pago) | —                                     |
+| Comprobante subido | —                                                | correo + Telegram (verificación)      |
+| Pagada             | correo + Telegram (`paid_notified_at`)           | —                                     |
 
 Todo `Promise.allSettled` + logs: un fallo de Telegram/correo nunca invalida
 la mutación. Guards `notified_at`/`paid_notified_at` evitan duplicados.
@@ -153,10 +153,26 @@ la mutación. Guards `notified_at`/`paid_notified_at` evitan duplicados.
 - Vercel: el webhook procesa en-linea (workload <30 s típico); para alto
   volumen convendría cola externa — fuera de free tier, no se implementa.
 
-## Fase 2 (MCP, pendiente)
+## Fase 2 (MCP, implementada)
 
-`src/routes/api/mcp.ts` con `@modelcontextprotocol/sdk` (Streamable HTTP
-stateless) exponiendo las mismas tools de `assistant-tools.ts` (ver_oferta,
-guardar_*, enviar_solicitud, estado, datos_de_pago, lugares, decidir) con un
-`BotContext` por conexión autenticada. La autorización seguirá siendo
-capability por request/offer id + vínculo de conductor, nunca `user_metadata`.
+`src/routes/api/mcp.ts` con `@modelcontextprotocol/sdk`
+(`WebStandardStreamableHTTPServerTransport`, stateless: servidor y transporte
+nuevos por request). Las tools de `assistant-tools.ts` se exponen igual pero
+**sin sesión**: el borrador viaja con el cliente como argumento `draft` y
+cada tool mutadora lo devuelve en `structuredContent.draft`.
+
+- `src/lib/mcp-tools.ts` — resolveMcpUser (Bearer → mcp_tokens → user_id),
+  TOOLS con esquemas zod, `createMcpServer(userId)`.
+- Sin token: solo tools del solicitante (buscar_ofertas — filtra por
+  origen/destino —, ver_oferta, guardar_*, agregar/
+  quitar_bulto, agregar_nota, ver_borrador, enviar_solicitud,
+  estado_solicitud, datos_de_pago — devuelve el payload del QR en texto —,
+  lugares_para_embalar, estimar_bulto y subir_comprobante; ambas con imagen
+  por `imagen_url` pública (guard SSRF: no hosts privados) o
+  `imagen_base64` → mismo núcleo `submitProofBytes` que el bot).
+- Con token de conductor (`Authorization: Bearer <id>`):
+  `solicitudes_pendientes` y `decidir_solicitud` →
+  `decide_package_request_mcp(user, request, accept, amount)` que autoriza
+  por dueño del viaje y delega en `apply_request_decision`.
+- `mcp_tokens` — el id ES el bearer; el conductor genera/revoca claves desde
+  «API» en `/panel/viajes` (RLS propia, `revoked_at`, nunca `user_metadata`).

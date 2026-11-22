@@ -66,8 +66,11 @@ export type Flow = {
 };
 
 export type BotContext = {
+  /** chat_id de Telegram; 0 cuando la llamada viene del MCP (no hay chat). */
   chatId: number;
   flow: Flow;
+  /** user_id resuelto de un token MCP; autoriza las herramientas del conductor. */
+  userId?: string;
 };
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
@@ -229,8 +232,8 @@ const STATUS_TEXT: Record<string, string> = {
 
 // ---------- Utilidades de envío ----------
 
-const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const MAX_IMAGE = 5 * 1024 * 1024;
+export const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+export const MAX_IMAGE = 5 * 1024 * 1024;
 
 async function fetchTelegramImage(
   fileId: string,
@@ -614,7 +617,7 @@ export async function runTool(
         return "No se pudo enviar. La oferta pudo haber cerrado; dilo al usuario.";
       ctx.flow.request_id = String(requestId);
       ctx.flow.draft = { packages: [] };
-      await linkChatToRequest(ctx.chatId, String(requestId));
+      if (ctx.chatId > 0) await linkChatToRequest(ctx.chatId, String(requestId));
       try {
         await notifyDriverOfRequest(String(requestId));
       } catch (e) {
@@ -651,13 +654,15 @@ export async function runTool(
       try {
         const { rate } = await getBcvRate();
         const amountBs = Math.round(total * rate * 100) / 100;
-        const gif = pagoMovilQrGif(pagoMovilQrPayload(pm, amountBs));
+        const payload = pagoMovilQrPayload(pm, amountBs);
+        const gif = ctx.chatId > 0 ? pagoMovilQrGif(payload) : null;
         if (gif) {
           await sendPhoto(ctx.chatId, gif, `QR pago móvil · Bs ${formatBs(amountBs)}`).catch(
             () => undefined,
           );
         }
-        bs = `\nMonto: Bs ${formatBs(amountBs)} ($${formatUsd(total)} USD a tasa BCV ${formatBs(rate)})`;
+        // Sin chat (MCP) el payload del QR va en texto para que el agente lo renderice.
+        bs = `\nMonto: Bs ${formatBs(amountBs)} ($${formatUsd(total)} USD a tasa BCV ${formatBs(rate)})${ctx.chatId > 0 ? "" : `\nPayload del QR pago móvil: ${payload}`}`;
       } catch {
         bs = `\nMonto: $${formatUsd(total)} USD (no pude consultar la tasa BCV; paga el equivalente en Bs)`;
       }
@@ -686,16 +691,24 @@ export async function runTool(
       return `Sitios para embalar/enviar cerca:\n${lines.join("\n")}`;
     }
     case "decidir_solicitud": {
-      if (!(await driverLinked(ctx.chatId))) return "Este chat no está vinculado a un conductor.";
+      if (!ctx.userId && !(await driverLinked(ctx.chatId)))
+        return "Este chat no está vinculado a un conductor.";
       const requestId = String(args["request_id"] ?? "");
       const accept = Boolean(args["accept"]);
       const amount = args["amount_usd"] != null ? Number(args["amount_usd"]) : null;
-      const { data, error } = await serviceClient().rpc("decide_package_request_bot", {
-        p_chat_id: ctx.chatId,
-        p_request: requestId,
-        p_accept: accept,
-        ...(amount != null ? { p_amount: amount } : {}),
-      });
+      const { data, error } = ctx.userId
+        ? await serviceClient().rpc("decide_package_request_mcp", {
+            p_user: ctx.userId,
+            p_request: requestId,
+            p_accept: accept,
+            ...(amount != null ? { p_amount: amount } : {}),
+          })
+        : await serviceClient().rpc("decide_package_request_bot", {
+            p_chat_id: ctx.chatId,
+            p_request: requestId,
+            p_accept: accept,
+            ...(amount != null ? { p_amount: amount } : {}),
+          });
       if (error) return `No se pudo: ${error.message}`;
       if (accept) {
         try {
@@ -758,7 +771,7 @@ async function findPackingPlaces(
 
 // ---------- Fotos: estimación de bulto y comprobante ----------
 
-const ESTIMATE_PROMPT = `Eres experto en logística de encomiendas en Venezuela. Mira la foto del objeto que alguien quiere enviar y estima sus medidas YA EMBALADO para transporte.
+export const ESTIMATE_PROMPT = `Eres experto en logística de encomiendas en Venezuela. Mira la foto del objeto que alguien quiere enviar y estima sus medidas YA EMBALADO para transporte.
 Responde SOLO un JSON con: name (descripción corta en español), length, width, height (largo/ancho/alto en cm), weight (peso estimado en kg), fragile (boolean), confidence ("alta"|"media"|"baja"), notes (una frase corta si la estimación es incierta).
 Usa objetos de referencia comunes: un teclado estándar ~45×14×3 cm ~0.8 kg; una silla ~50×50×100 cm ~7 kg; caja de zapatos ~35×22×13 cm ~1 kg. Si no puedes estimar, responde {"error":"motivo"}.`;
 
@@ -811,16 +824,19 @@ export async function estimatePackagePhoto(
   };
 }
 
-export async function submitProofPhoto(ctx: BotContext, fileId: string): Promise<string> {
-  const reqId = ctx.flow.request_id ?? (await resolveRequestForChat(ctx.chatId));
-  if (!reqId) return "Este chat no tiene una solicitud registrada. Envía primero tu solicitud.";
+/**
+ * Núcleo del comprobante: valida que la solicitud espere pago, sube los bytes
+ * al bucket privado y registra/verifica el pago. Lo usa el bot (foto de
+ * Telegram) y el MCP (imagen base64 del agente).
+ */
+export async function submitProofBytes(
+  reqId: string,
+  image: { bytes: Uint8Array; contentType: string },
+): Promise<string> {
   const s = await fetchPaymentSummary(reqId);
   if (!s) return "No encontré esa solicitud.";
   if (s.status !== "awaiting_payment")
     return `La solicitud está ${STATUS_TEXT[s.status] ?? s.status}; ${s.status === "pending" ? "aún no puedes pagar" : "no espera un comprobante"}.`;
-  const image = await fetchTelegramImage(fileId).catch(() => null);
-  if (!image)
-    return "No pude leer esa imagen. El comprobante debe ser jpg, png o webp de máx. 5 MB.";
   const path = `${reqId}/${crypto.randomUUID()}`;
   const admin = serviceClient();
   const { error: upError } = await admin.storage
@@ -853,4 +869,18 @@ export async function submitProofPhoto(ctx: BotContext, fileId: string): Promise
       return "El plazo venció antes de confirmar el pago. La solicitud quedó expirada.";
   }
   return `Comprobante recibido: está en verificación. Te aviso cuando se confirme. También puedes verlo en ${appUrl()}/pagos/${reqId}`;
+}
+
+export async function submitProofPhoto(ctx: BotContext, fileId: string): Promise<string> {
+  const reqId = ctx.flow.request_id ?? (await resolveRequestForChat(ctx.chatId));
+  if (!reqId) return "Este chat no tiene una solicitud registrada. Envía primero tu solicitud.";
+  // Chequeo temprano: evita bajar la foto de Telegram si no espera pago.
+  const s = await fetchPaymentSummary(reqId);
+  if (!s) return "No encontré esa solicitud.";
+  if (s.status !== "awaiting_payment")
+    return `La solicitud está ${STATUS_TEXT[s.status] ?? s.status}; ${s.status === "pending" ? "aún no puedes pagar" : "no espera un comprobante"}.`;
+  const image = await fetchTelegramImage(fileId).catch(() => null);
+  if (!image)
+    return "No pude leer esa imagen. El comprobante debe ser jpg, png o webp de máx. 5 MB.";
+  return submitProofBytes(reqId, image);
 }
