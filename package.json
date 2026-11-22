@@ -64,6 +64,7 @@
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.575.0",
+    "mapbox-gl": "3.35.0",
     "nodemailer": "^10.6.1",
     "qrcode-generator": "^2.0.4",
     "react": "^19.2.0",

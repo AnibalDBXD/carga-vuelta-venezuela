@@ -15,10 +15,12 @@ export type PromoData = {
   originName: string;
   destinationName: string;
   date: string;
+  departureTime?: string | undefined;
   stops: string[];
   vehicle: PromoVehicle;
   freeM3: number;
   freeKg: number;
+  routeMapUrl?: string | undefined;
 };
 
 export const PROMO_FORMATS = {
@@ -157,6 +159,27 @@ function drawQr(
         );
 }
 
+// fetch → blob → objectURL: si CORS responde bien, el <img> del blob no contamina el canvas.
+async function loadMapImage(url: string): Promise<HTMLImageElement | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const obj = URL.createObjectURL(await res.blob());
+    try {
+      return await new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error("map image"));
+        img.src = obj;
+      });
+    } finally {
+      URL.revokeObjectURL(obj);
+    }
+  } catch {
+    return null;
+  }
+}
+
 export async function renderPromoCard(
   canvas: HTMLCanvasElement,
   data: PromoData,
@@ -176,6 +199,7 @@ export async function renderPromoCard(
     ).catch(() => {});
   }
   const c = themeColors();
+  const mapImg = data.routeMapUrl ? await loadMapImage(data.routeMapUrl) : null;
   const M = 72;
   const CW = W - M * 2;
   ctx.textBaseline = "top";
@@ -235,14 +259,13 @@ export async function renderPromoCard(
   const waypoints = [data.originName, ...stops, data.destinationName];
   const diagH = big ? 170 : 150;
 
-  const metaSingle = data.ownerName
-    ? `Sale el ${data.date} · Conduce ${data.ownerName}`
-    : `Sale el ${data.date}`;
+  const when = `Sale el ${data.date}${data.departureTime ? ` a las ${data.departureTime}` : ""}`;
+  const metaSingle = data.ownerName ? `${when} · Conduce ${data.ownerName}` : when;
   ctx.font = mono(400, 30);
   const metaLines =
     measure(metaSingle) <= CW || !data.ownerName
       ? [metaSingle]
-      : [`Sale el ${data.date}`, `Conduce ${data.ownerName}`];
+      : [when, `Conduce ${data.ownerName}`];
 
   const sections: { h: number; draw: (y: number) => void }[] = [];
 
@@ -281,9 +304,33 @@ export async function renderPromoCard(
     },
   });
 
+  const mapH = big ? 430 : 360;
   sections.push({
-    h: diagH,
+    h: mapImg ? mapH + 56 : diagH,
     draw: (y) => {
+      if (mapImg) {
+        roundRect(ctx, M, y, CW, mapH, 24);
+        ctx.save();
+        ctx.clip();
+        const scale = Math.max(CW / mapImg.width, mapH / mapImg.height);
+        const dw = mapImg.width * scale;
+        const dh = mapImg.height * scale;
+        ctx.drawImage(mapImg, M + (CW - dw) / 2, y + (mapH - dh) / 2, dw, dh);
+        ctx.restore();
+        ctx.strokeStyle = c.border;
+        ctx.lineWidth = 2;
+        roundRect(ctx, M, y, CW, mapH, 24);
+        ctx.stroke();
+        ctx.font = mono(400, 20);
+        ctx.fillStyle = c.muted;
+        ctx.textAlign = "right";
+        ctx.fillText("© Mapbox © OpenStreetMap", M + CW - 16, y + mapH - 34);
+        ctx.font = mono(600, 26);
+        ctx.textAlign = "center";
+        ctx.fillText(waypoints.join(" · "), M + CW / 2, y + mapH + 16);
+        ctx.textAlign = "left";
+        return;
+      }
       const midY = y + diagH / 2;
       ctx.strokeStyle = c.muted;
       ctx.lineWidth = 5;
