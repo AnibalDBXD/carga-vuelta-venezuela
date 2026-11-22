@@ -33,6 +33,7 @@ App de logística para camioneros en Venezuela (base Valencia). El objetivo clav
 - `push_subscriptions` — suscripciones Web Push ligadas a una solicitud; solo las escribe el RPC `attach_push_subscription` y las lee service_role.
 - Bucket `payment-proofs` (privado) — comprobantes en `<request_id>/<uuid>`; subida anónima por signed URL de servidor, lectura solo del dueño del viaje.
 - RLS habilitado en todo; los paquetes se añaden al JSON del viaje solo cuando `confirm_payment` marca `paid` (~2 s tras subir el comprobante, verificación simulada).
+- `supabase/seed.sql` — datos de prueba: corre solo en `supabase db reset` o a mano con `podman exec -i supabase_db_cargaruta psql -U postgres -d postgres < supabase/seed.sql` (el seed trunca las tablas de la app al inicio; es idempotente). Cuenta demo: `chofer@cargaruta.local` / `cargaruta123` — dueña de vehículos, viajes completados y pendientes, dos ofertas en la bolsa y solicitudes en todos los estados.
 
 ## Reglas de arquitectura
 
