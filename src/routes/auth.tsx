@@ -28,24 +28,31 @@ function AuthPage() {
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "up" && password !== confirm) {
+      return void toast.error("Las contraseñas no coinciden");
+    }
     setBusy(true);
     if (mode === "in") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       setBusy(false);
       if (error) return void toast.error("Correo o contraseña incorrectos");
-      navigate({ to: "/panel/viajes" });
+      const role = data.user?.user_metadata?.["role"];
+      navigate({ to: role === "cliente" ? "/bolsa" : "/panel/viajes" });
     } else {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { emailRedirectTo: window.location.origin },
       });
       setBusy(false);
       if (error) return void toast.error(error.message);
+      // Local no pide confirmar correo: hay sesión y sigue la elección de rol.
+      if (data.session) return void navigate({ to: "/bienvenida" });
       toast.success("Revisa tu correo para confirmar tu cuenta");
     }
   };
@@ -56,7 +63,7 @@ function AuthPage() {
         <h1 className="text-2xl font-bold" style={{ viewTransitionName: "page-title" }}>
           {mode === "in" ? "Entrar" : "Crear cuenta"}
         </h1>
-        <p className="mt-1 text-sm text-muted-foreground">Para camioneros y transportistas.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Para conductores y clientes.</p>
         <form onSubmit={submit} className="mt-6 space-y-3">
           <div>
             <Label htmlFor="email">Correo</Label>
@@ -79,6 +86,19 @@ function AuthPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+          {mode === "up" && (
+            <div>
+              <Label htmlFor="pw2">Confirmar contraseña</Label>
+              <Input
+                id="pw2"
+                type="password"
+                required
+                minLength={6}
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+              />
+            </div>
+          )}
           <Button type="submit" className="w-full" disabled={busy}>
             {mode === "in" ? "Entrar" : "Crear cuenta"}
           </Button>

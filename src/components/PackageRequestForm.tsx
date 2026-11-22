@@ -6,6 +6,7 @@ import type { Pkg } from "@/lib/packing";
 import { CARGO_PRESETS, type CargoPreset } from "@/lib/venezuela";
 import type { PackageRequestBody } from "@/lib/package-request";
 import { subscribeToRequest, pushSupported } from "@/lib/push-client";
+import { rememberRequest } from "@/lib/my-requests";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -210,6 +211,7 @@ export function PackageRequestForm({
       if (!id) throw new Error();
       if (timer.current) clearTimeout(timer.current);
       onPreview?.([]);
+      rememberRequest(id);
       setRequestId(id);
     } catch {
       setError("No se pudo enviar la solicitud. Revisa los datos o intenta más tarde.");

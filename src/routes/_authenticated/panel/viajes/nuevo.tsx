@@ -11,6 +11,7 @@ import { CityField } from "@/components/CityField";
 import type { Pkg } from "@/lib/packing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
@@ -435,24 +436,28 @@ function NuevoViaje() {
           </div>
           <div className="md:col-span-2 lg:col-span-1">
             <Label htmlFor="vehicle">Vehículo</Label>
-            <select
-              {...fieldProps("vehicle")}
-              className={cn(
-                sel,
-                errors["vehicle"] && "border-destructive focus-visible:ring-destructive",
-              )}
-              value={vehicleId}
-              onChange={(e) => {
-                setVehicleId(e.target.value);
-                clearError("vehicle");
-              }}
-            >
-              {vehicles.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.name}
-                </option>
-              ))}
-            </select>
+            {isLoading ? (
+              <Skeleton className="h-9 w-full" />
+            ) : (
+              <select
+                {...fieldProps("vehicle")}
+                className={cn(
+                  sel,
+                  errors["vehicle"] && "border-destructive focus-visible:ring-destructive",
+                )}
+                value={vehicleId}
+                onChange={(e) => {
+                  setVehicleId(e.target.value);
+                  clearError("vehicle");
+                }}
+              >
+                {vehicles.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name}
+                  </option>
+                ))}
+              </select>
+            )}
             {fieldError("vehicle")}
           </div>
           {route && (

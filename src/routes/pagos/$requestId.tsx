@@ -17,11 +17,13 @@ import {
   XCircle,
 } from "lucide-react";
 import { getPaymentSummary, getProofUploadUrl } from "@/lib/payments.functions";
+import { rememberRequest } from "@/lib/my-requests";
 import { supabase } from "@/integrations/supabase/client";
 import { cityName, VEHICLE_PRESETS, type VehicleKind } from "@/lib/venezuela";
 import { bankName, formatBs, formatUsd, pagoMovilQrPayload } from "@/lib/pago-movil";
 import type { PaymentSummary } from "@/lib/package-request";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Summary = PaymentSummary & {
   amount_bs: number | null;
@@ -56,13 +58,62 @@ export const Route = createFileRoute("/pagos/$requestId")({
       </p>
     </main>
   ),
+  pendingComponent: PaymentPageSkeleton,
   component: PaymentPage,
 });
+
+function PaymentPageSkeleton() {
+  return (
+    <main className="mx-auto max-w-4xl px-4 py-10" aria-hidden="true">
+      <Skeleton className="h-3 w-40" />
+      <Skeleton className="mt-3 h-10 w-72 max-w-full" />
+      <Skeleton className="mt-2 h-4 w-64" />
+      <div className="mt-6 rounded-lg border border-border bg-card p-4">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="mt-2 h-4 w-72 max-w-full" />
+        <Skeleton className="mt-1 h-4 w-56 max-w-full" />
+        <Skeleton className="mt-3 h-4 w-full" />
+        <Skeleton className="mt-3 h-6 w-44" />
+      </div>
+      <div className="mt-8 grid gap-8 md:grid-cols-5">
+        <div className="rounded-lg border border-border bg-card p-5 md:col-span-3">
+          <Skeleton className="h-6 w-44" />
+          <Skeleton className="mt-2 h-4 w-64 max-w-full" />
+          <div className="mt-4 divide-y divide-border">
+            {Array.from({ length: 5 }, (_, i) => (
+              <div key={i} className="flex items-center justify-between gap-3 py-2.5">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="md:col-span-2">
+          <div className="flex flex-col items-center rounded-lg border border-border bg-card p-5">
+            <Skeleton className="h-[204px] w-[204px]" />
+            <Skeleton className="mt-3 h-3 w-48" />
+          </div>
+          <div className="mt-6 rounded-lg border border-border bg-card p-5">
+            <Skeleton className="h-5 w-36" />
+            <Skeleton className="mt-2 h-4 w-56 max-w-full" />
+            <Skeleton className="mt-3 h-9 w-full" />
+            <Skeleton className="mt-4 h-9 w-full" />
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
 
 function PaymentPage() {
   const { requestId } = Route.useParams();
   const { data: summary } = useSuspenseQuery(summaryQuery(requestId));
   const qc = useQueryClient();
+  // Quien abre el enlace (propio o llegado por correo) queda registrado en
+  // "Mis pagos" de este dispositivo.
+  useEffect(() => {
+    rememberRequest(requestId);
+  }, [requestId]);
   // Mientras espera verificación, confirm_payment decide (simulación) e invalida el resumen.
   const review = useQuery({
     queryKey: ["payment-confirm", requestId],

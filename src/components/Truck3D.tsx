@@ -34,12 +34,11 @@ const MODELS: Record<VehicleKind, string> = {
   auto: "/models/kenney-sedan.glb",
   pickup: "/models/kenney-truck-flat.glb",
   furgon: "/models/kenney-van.glb",
-  camion350: "/models/kenney-truck.glb",
   camion750: "/models/kenney-delivery.glb",
   gandola: "/models/tevy-semi-truck.glb",
 };
 // Solo se precarga el modelo del vehículo mostrado (ver VehicleGLB): precargar
-// los 6 GLB de golpe descarga megabytes que casi nunca se usan.
+// los 5 GLB de golpe descarga megabytes que casi nunca se usan.
 
 type Props = {
   kind: VehicleKind;
@@ -109,18 +108,26 @@ export default function Truck3D({
           />
         </Environment>
         <group position={[-(L - s.cabL) / 2, 0, 0]}>
-          <ModelBoundary
-            fallback={
-              <>
-                <Body kind={kind} L={L} W={W} H={H} cabL={s.cabL} chassis={s.chassis} />
-                <Wheels axles={s.axles} track={s.track} r={s.wheelR} w={s.wheelW} />
-              </>
-            }
-          >
-            <Suspense fallback={null}>
-              <VehicleGLB kind={kind} L={L} cabL={s.cabL} ghost={ghost} />
-            </Suspense>
-          </ModelBoundary>
+          {MODELS[kind] ? (
+            <ModelBoundary
+              fallback={
+                <>
+                  <Body kind={kind} L={L} W={W} H={H} cabL={s.cabL} chassis={s.chassis} />
+                  <Wheels axles={s.axles} track={s.track} r={s.wheelR} w={s.wheelW} />
+                </>
+              }
+            >
+              <Suspense fallback={null}>
+                <VehicleGLB kind={kind} L={L} cabL={s.cabL} ghost={ghost} />
+              </Suspense>
+            </ModelBoundary>
+          ) : (
+            /* kind heredado sin GLB (p. ej. camion350): cuerpo procedural */
+            <>
+              <Body kind={kind} L={L} W={W} H={H} cabL={s.cabL} chassis={s.chassis} />
+              <Wheels axles={s.axles} track={s.track} r={s.wheelR} w={s.wheelW} />
+            </>
+          )}
           {/* cargo space */}
           <group position={[0, s.chassis, -W / 2]}>
             <mesh position={[L / 2, H / 2, W / 2]}>

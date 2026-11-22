@@ -5,7 +5,7 @@ Contrato visual que siguen **todas** las vistas 3D de la app (`/`, `/panel/vehic
 ## Carga y SSR
 
 - Siempre se monta vía `Truck3DView` (`src/components/Truck3DLazy.tsx`): `ClientOnly` + `lazy()` — three.js **nunca** corre durante SSR.
-- El fallback de carga es transparente (sin `bg`): solo el texto "Cargando modelo 3D…" en `text-muted-foreground`.
+- El fallback de carga es transparente (sin `bg` ni marco): la silueta plana del mismo vehículo (`VehicleThumb`) con `animate-pulse` y opacidad baja — nada de texto ni caja.
 
 ## Escena (look "flotante")
 

@@ -96,6 +96,84 @@ export const getProofUploadUrl = createServerFn({ method: "POST" })
     return { path: signed.path, token: signed.token };
   });
 
+// Reenvío de enlaces de pago: el cliente escribe su correo en /pagos y le
+// llegan sus solicitudes activas. Respuesta genérica (no revela si el correo
+// existe) y cooldown por correo para que no sirva de spam relay.
+const paymentLinksCooldown = new Map<string, number>();
+const PAYMENT_LINKS_COOLDOWN_MS = 10 * 60 * 1000;
+
+const ACTIVE_REQUEST_STATUSES = ["pending", "awaiting_payment", "payment_review"] as const;
+const REQUEST_STATUS_LABEL: Record<(typeof ACTIVE_REQUEST_STATUSES)[number], string> = {
+  pending: "esperando al conductor",
+  awaiting_payment: "por pagar",
+  payment_review: "verificando pago",
+};
+
+export const requestPaymentLinks = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) =>
+    z.object({ email: z.string().trim().toLowerCase().email().max(254) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const now = Date.now();
+    const last = paymentLinksCooldown.get(data.email);
+    if (last !== undefined && now - last < PAYMENT_LINKS_COOLDOWN_MS) return { sent: true };
+    paymentLinksCooldown.set(data.email, now);
+    const { data: requests, error } = await serviceClient()
+      .from("package_requests")
+      .select(
+        "id, sender_name, status, amount_usd, total_usd, payment_expires_at, trips(origin, destination, departure_date)",
+      )
+      .eq("email", data.email)
+      .in("status", [...ACTIVE_REQUEST_STATUSES])
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error || !requests?.length) return { sent: true };
+    const actionable = requests.filter(
+      (r) =>
+        r.status !== "awaiting_payment" ||
+        !r.payment_expires_at ||
+        new Date(r.payment_expires_at) > new Date(),
+    );
+    if (!actionable.length) return { sent: true };
+    const lines = actionable.map((r) => {
+      const trip = r.trips as {
+        origin: string;
+        destination: string;
+        departure_date: string;
+      } | null;
+      const route = trip ? `${cityName(trip.origin)} → ${cityName(trip.destination)}` : "Tu viaje";
+      const total = clientTotalUsd(r.amount_usd, r.total_usd);
+      const amount = total != null ? ` · $${total.toFixed(2)} USD` : "";
+      const status = REQUEST_STATUS_LABEL[r.status as keyof typeof REQUEST_STATUS_LABEL];
+      const url = `${appUrl()}/pagos/${r.id}`;
+      return `- ${route} (${trip?.departure_date ?? ""}) — ${status}${amount}: ${url}`;
+    });
+    const text = `${actionable[0]!.sender_name}: estas son tus solicitudes de espacio activas.\n\n${lines.join("\n")}\n\nCada enlace abre tu página de pago con el estado actual.`;
+    const html = `<p><strong>${actionable[0]!.sender_name}</strong>: estas son tus solicitudes de espacio activas.</p><ul>${actionable
+      .map((r) => {
+        const trip = r.trips as {
+          origin: string;
+          destination: string;
+          departure_date: string;
+        } | null;
+        const route = trip
+          ? `${cityName(trip.origin)} → ${cityName(trip.destination)}`
+          : "Tu viaje";
+        const total = clientTotalUsd(r.amount_usd, r.total_usd);
+        const amount = total != null ? ` · $${total.toFixed(2)} USD` : "";
+        const status = REQUEST_STATUS_LABEL[r.status as keyof typeof REQUEST_STATUS_LABEL];
+        const url = `${appUrl()}/pagos/${r.id}`;
+        return `<li>${route} (${trip?.departure_date ?? ""}) — ${status}${amount}: <a href="${url}">ver mi pago</a></li>`;
+      })
+      .join("")}</ul><p>Cada enlace abre tu página de pago con el estado actual.</p>`;
+    try {
+      await sendMail({ to: data.email, subject: "Tus enlaces de pago — CargaRuta", text, html });
+    } catch (e) {
+      console.error("[payment-links]", e);
+    }
+    return { sent: true };
+  });
+
 // Tras aceptar, el cliente llama esto: envía correo + push una sola vez (notified_at).
 export const notifyRequester = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ requestId: z.string().uuid() }).parse(input))

@@ -7,6 +7,7 @@ import { cityName } from "@/lib/venezuela";
 import { packCargo, type Pkg } from "@/lib/packing";
 import { groupTrips } from "@/lib/trip-groups";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ShareTrip } from "@/components/TripRequests";
 
 export const Route = createFileRoute("/_authenticated/panel/viajes/")({
@@ -161,7 +162,13 @@ function Viajes() {
         Cada viaje guarda su plan de carga; desde acá puedes repetirlo o planear el regreso.
       </p>
       <div className="mt-8 space-y-3">
-        {isLoading && <p className="text-muted-foreground">Cargando…</p>}
+        {isLoading && (
+          <>
+            {Array.from({ length: 3 }, (_, i) => (
+              <TripRowSkeleton key={i} />
+            ))}
+          </>
+        )}
         {!isLoading && data.length === 0 && (
           <p className="text-muted-foreground">Todavía no has planificado viajes.</p>
         )}
@@ -194,5 +201,22 @@ function Viajes() {
         })}
       </div>
     </main>
+  );
+}
+
+function TripRowSkeleton() {
+  return (
+    <div
+      className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4"
+      aria-hidden="true"
+    >
+      <div className="min-w-0 flex-1">
+        <Skeleton className="h-6 w-56 max-w-full" />
+        <Skeleton className="mt-2 h-4 w-72 max-w-full" />
+      </div>
+      <Skeleton className="h-9 w-28" />
+      <Skeleton className="h-9 w-24" />
+      <Skeleton className="h-9 w-36" />
+    </div>
   );
 }

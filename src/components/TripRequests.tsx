@@ -26,6 +26,7 @@ import { clientTotalUsd, type RequestStatus } from "@/lib/package-request";
 import { getExchangeRate, notifyRequester } from "@/lib/payments.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -569,7 +570,13 @@ export function TripRequests({
           )}
         </div>
       )}
-      {isLoading && <p className="mt-4 text-muted-foreground">Cargando solicitudes…</p>}
+      {isLoading && (
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 2 }, (_, i) => (
+            <RequestCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
       {isError && (
         <p className="mt-4 text-destructive">No se pudieron consultar las solicitudes.</p>
       )}
@@ -690,6 +697,26 @@ export function TripRequests({
   );
 }
 
+function RequestCardSkeleton() {
+  return (
+    <article className="rounded-lg border border-border bg-card p-4" aria-hidden="true">
+      <div className="flex justify-between gap-3">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-4 w-20" />
+      </div>
+      <Skeleton className="mt-2 h-4 w-56 max-w-full" />
+      <Skeleton className="mt-1 h-4 w-44 max-w-full" />
+      <Skeleton className="mt-3 h-4 w-full" />
+      <Skeleton className="mt-1 h-4 w-2/3" />
+      <Skeleton className="mt-2 h-4 w-48" />
+      <div className="mt-4 flex gap-2">
+        <Skeleton className="h-9 w-24" />
+        <Skeleton className="h-9 w-24" />
+      </div>
+    </article>
+  );
+}
+
 function AcceptDialog({
   request,
   routeKm,
@@ -784,9 +811,7 @@ function AcceptDialog({
                   <span className="text-xs">(tasa BCV {formatBs(rate.rate)})</span>
                 </p>
               )}
-              {valid && !rate && (
-                <p className="mt-2 text-xs text-muted-foreground">Consultando tasa BCV…</p>
-              )}
+              {valid && !rate && <Skeleton className="mt-2 h-4 w-56" />}
             </div>
             <Button disabled={!valid || busy} onClick={() => onConfirm(usd)}>
               <Check /> Aceptar por ${valid ? formatUsd(usd) : "…"} USD

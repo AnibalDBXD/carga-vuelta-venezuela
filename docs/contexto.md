@@ -67,7 +67,8 @@ Reglas del modelo vigente (rama `main`):
 Capacidades que sostienen los textos de la landing (verificadas en código):
 
 - `packing.ts`: tope de peso, pesado antes que liviano, nada sobre frágil, soporte del 70 % de la
-  base, lo de entrega más lejana al fondo.
+  base, lo de entrega más lejana al fondo, los frágiles coronan las pilas y los bultos rotan en
+  cualquiera de las 6 orientaciones.
 - `venezuela.ts`: matriz de rutas con km, horas (promedio 55 km/h), peajes y alcabalas
   aproximadas.
 - `loading-guide.ts`: capas y pasos de montaje.

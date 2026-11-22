@@ -9,6 +9,7 @@ import { Truck3DView } from "@/components/Truck3DLazy";
 import { VehicleForm, emptyVehicleForm, vehicleToForm } from "@/components/VehicleForm";
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/panel/vehiculos/$id")({
   head: () => ({
@@ -32,7 +33,7 @@ function Vehiculo() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
-  const [f, setF] = useState(emptyVehicleForm("camion350"));
+  const [f, setF] = useState(emptyVehicleForm("camion750"));
 
   const { data: vehicle, isLoading } = useQuery({
     queryKey: ["vehicle", id],
@@ -78,7 +79,7 @@ function Vehiculo() {
     onError: () => toast.error("No se pudo eliminar"),
   });
 
-  if (isLoading) return <main className="p-10 text-muted-foreground">Cargando…</main>;
+  if (isLoading) return <VehicleDetailSkeleton />;
   if (!vehicle) return <main className="p-10">Vehículo no encontrado.</main>;
 
   const kind = vehicle.kind as VehicleKind;
@@ -206,6 +207,47 @@ function Vehiculo() {
           />
         </section>
       )}
+    </main>
+  );
+}
+
+function VehicleDetailSkeleton() {
+  return (
+    <main className="mx-auto max-w-6xl px-4 py-10" aria-hidden="true">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="mt-3 h-10 w-56" />
+          <Skeleton className="mt-3 h-4 w-64" />
+        </div>
+        <Skeleton className="h-9 w-44" />
+      </div>
+      <section className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        <div className="rounded-lg border border-border bg-card p-5">
+          <div className="space-y-3">
+            {Array.from({ length: 3 }, (_, i) => (
+              <div key={i} className="flex items-baseline justify-between gap-4">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            ))}
+          </div>
+          <Skeleton className="mt-5 h-3 w-40" />
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {Array.from({ length: 4 }, (_, i) => (
+              <div key={i}>
+                <Skeleton className="h-3 w-14" />
+                <Skeleton className="mt-1.5 h-4 w-20" />
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 flex gap-3">
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-28" />
+          </div>
+        </div>
+        <Skeleton className="h-[420px]" />
+      </section>
     </main>
   );
 }

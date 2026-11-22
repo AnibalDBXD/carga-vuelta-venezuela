@@ -19,7 +19,6 @@ const TRUCKS: Record<
   pickup: { cabW: 48, cabH: 36, boxW: 66, boxH: 26, bed: true },
   // Van de techo alto: cabina y caja comparten altura para una silueta de una sola pieza.
   furgon: { cabW: 36, cabH: 54, boxW: 106, boxH: 54 },
-  camion350: { cabW: 34, cabH: 42, boxW: 108, boxH: 60 },
   camion750: { cabW: 36, cabH: 48, boxW: 118, boxH: 64 },
   gandola: { cabW: 38, cabH: 48, boxW: 126, boxH: 64, gap: 10, third: true },
 };
@@ -78,7 +77,7 @@ export function VehicleThumb({
     );
   }
 
-  const t = TRUCKS[kind] ?? TRUCKS.camion350;
+  const t = TRUCKS[kind] ?? TRUCKS.camion750;
   const cabX1 = X0 + t.cabW;
   const boxX0 = cabX1 + (t.gap ?? 0);
   const boxX1 = boxX0 + t.boxW;

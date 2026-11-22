@@ -29,39 +29,75 @@ export const Route = createFileRoute("/")({
 });
 
 const demoBoxes = () =>
-  packCargo({ length: 420, width: 200, height: 200, maxKg: 3500 }, [
+  packCargo({ length: 1300, width: 245, height: 260, maxKg: 30000 }, [
     {
       id: "a",
       name: "Harina",
-      length: 100,
+      length: 120,
       width: 120,
-      height: 90,
-      weight: 400,
-      qty: 4,
+      height: 150,
+      weight: 800,
+      qty: 22,
       fragile: false,
       deadline: "",
       recipient: "",
     },
     {
       id: "b",
-      name: "Electrodomésticos",
-      length: 60,
-      width: 60,
-      height: 80,
-      weight: 40,
-      qty: 6,
-      fragile: true,
+      name: "Neveras",
+      length: 70,
+      width: 70,
+      height: 170,
+      weight: 65,
+      qty: 14,
+      fragile: false,
       deadline: "",
       recipient: "",
     },
     {
       id: "c",
+      name: "Sacos de café",
+      length: 80,
+      width: 50,
+      height: 30,
+      weight: 50,
+      qty: 120,
+      fragile: false,
+      deadline: "",
+      recipient: "",
+    },
+    {
+      id: "d",
+      name: "Televisores",
+      length: 125,
+      width: 75,
+      height: 15,
+      weight: 15,
+      qty: 20,
+      fragile: true,
+      deadline: "",
+      recipient: "",
+    },
+    {
+      id: "e",
+      name: "Tambores",
+      length: 60,
+      width: 60,
+      height: 90,
+      weight: 60,
+      qty: 18,
+      fragile: false,
+      deadline: "",
+      recipient: "",
+    },
+    {
+      id: "f",
       name: "Repuestos",
       length: 50,
       width: 40,
       height: 40,
       weight: 20,
-      qty: 10,
+      qty: 40,
       fragile: false,
       deadline: "",
       recipient: "",
@@ -102,14 +138,14 @@ function Index() {
             </div>
           </div>
           <Truck3DView
-            kind="camion350"
-            length={420}
-            width={200}
-            height={200}
+            kind="gandola"
+            length={1300}
+            width={245}
+            height={260}
             boxes={boxes}
-            colorKeys={["a", "b", "c"]}
+            colorKeys={["a", "b", "c", "d", "e", "f"]}
             spin
-            stagger={0.12}
+            stagger={0.025}
             doorLabel={false}
             className="h-[380px]"
           />

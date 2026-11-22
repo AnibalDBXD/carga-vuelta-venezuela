@@ -16,10 +16,12 @@ App de logística para camioneros en Venezuela (base Valencia). El objetivo clav
 ## Mapa de la app
 
 - `/` — landing con demo 3D (`src/routes/index.tsx`).
-- `/auth` — login/registro (email + Google).
+- `/auth` — login/registro (email + contraseña con confirmación; sin verificación por correo en local — `enable_confirmations = false` — así que el registro inicia sesión y va a `/bienvenida`). El login redirige según `user_metadata.role`: `cliente` → `/bolsa`, resto → `/panel/viajes`.
+- `/bienvenida` — selección de rol post-registro: "Soy cliente" guarda `role: "cliente"` y va a `/bolsa`; "Quiero ser conductor" abre un mini-onboarding (nombre, cédula, WhatsApp) que queda `driver_status: "pending"` y se aprueba solo a los ~2 s (aprobación simulada) → `/panel/viajes`. El rol y los datos del conductor viven en `user_metadata` de auth: es editable por el usuario — solo para UX/redirección y prefill de los diálogos de compartir, NUNCA para autorización ni RLS. El layout `panel/route.tsx` redirige a `/bolsa` quien tenga `role: "cliente"`.
 - `/panel` — redirige a `/panel/viajes`. `/panel/viajes` — historial de viajes con badge de solicitudes pendientes por viaje; `/panel/viajes/nuevo` — formulario de viaje (origen/destino, fecha y hora estimada, vehículo, paquetes con presets de bultos `CARGO_PRESETS`); `/panel/viajes/$id` — plan de carga: 3D, guía de montaje paso a paso, filtro por capas, tabla de orden de carga (permite quitar bultos), solicitudes de recogida (cualquier viaje, no solo `is_return`).
-- `/panel/vehiculos` — CRUD de vehículos con presets venezolanos (pickup, furgón 350/NPR, 750, gandola) y visor 3D.
+- `/panel/vehiculos` — CRUD de vehículos con presets venezolanos (pickup, furgoneta, 750, gandola) y visor 3D.
 - `/bolsa` — "Bolsa de viajes": bolsa pública de camiones con espacio libre (`/retornos` redirige aquí); `/bolsa/$offerId` muestra el espacio del camión en 3D con vista previa del paquete del cliente y el formulario de solicitud. Nunca mencionar "retorno/regreso" en la cara al cliente. Atajo de demo: `Shift+J` (fuera de un campo) autocompleta la solicitud con datos ficticios.
+- `/pagos` — "Mis pagos" del cliente (menú "Soy cliente"): lista las solicitudes cuyo id quedó en localStorage (`src/lib/my-requests.ts` — se registra al enviar la solicitud y al abrir `/pagos/<id>`) y consulta el estado con `getPaymentSummary`; además un formulario reenvía los enlaces de pago por correo vía el server fn `requestPaymentLinks` (respuesta genérica, cooldown por correo).
 - `/recogidas/$token` — enlaces viejos (trip_shares): solo redirige a `/bolsa/$offerId` de la oferta del viaje.
 - Área privada bajo `src/routes/_authenticated/`.
 

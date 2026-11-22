@@ -1,15 +1,16 @@
 import { lazy, Suspense, type ComponentProps } from "react";
 import { ClientOnly } from "@tanstack/react-router";
 import type TruckType from "./Truck3D";
+import { VehicleThumb } from "./VehicleThumb";
 
 const Truck3D = lazy(() => import("./Truck3D"));
 
 export function Truck3DView(props: ComponentProps<typeof TruckType>) {
+  // Silueta plana del mismo vehículo como placeholder: transparente y sin marco,
+  // igual que el canvas que la reemplaza.
   const fallback = (
-    <div
-      className={`${props.className ?? ""} grid place-items-center text-sm text-muted-foreground`}
-    >
-      Cargando modelo 3D…
+    <div className={`${props.className ?? ""} grid place-items-center`}>
+      <VehicleThumb kind={props.kind} decorative className="h-1/2 w-2/3 animate-pulse opacity-30" />
     </div>
   );
   return (

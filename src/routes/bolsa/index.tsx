@@ -9,6 +9,7 @@ import { OfferDepartureBar } from "@/components/OfferDepartureBar";
 import { offerDeparted } from "@/lib/offer-time";
 import { PUBLIC_OFFER_COLUMNS, type PublicOffer } from "@/lib/package-request";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/bolsa/")({
   head: () => ({
@@ -91,7 +92,13 @@ function Bolsa() {
         </div>
       </div>
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        {isLoading && <p className="text-muted-foreground">Cargando…</p>}
+        {isLoading && (
+          <>
+            {Array.from({ length: 4 }, (_, i) => (
+              <OfferCardSkeleton key={i} />
+            ))}
+          </>
+        )}
         {isError && <p className="text-destructive">No se pudo consultar la bolsa de viajes.</p>}
         {!isLoading && !isError && list.length === 0 && (
           <p className="text-muted-foreground">
@@ -103,6 +110,25 @@ function Bolsa() {
         ))}
       </div>
     </main>
+  );
+}
+
+function OfferCardSkeleton() {
+  return (
+    <article className="rounded-lg border border-border bg-card p-5" aria-hidden="true">
+      <div className="flex items-center justify-between gap-4">
+        <Skeleton className="h-6 w-48" />
+        <Skeleton className="h-4 w-24" />
+      </div>
+      <Skeleton className="mt-2 h-4 w-40" />
+      <div className="mt-3 flex gap-6">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-24" />
+      </div>
+      <Skeleton className="mt-3 h-2 w-full" />
+      <Skeleton className="mt-1 h-3 w-24" />
+      <Skeleton className="mt-4 h-8 w-36" />
+    </article>
   );
 }
 

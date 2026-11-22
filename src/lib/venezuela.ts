@@ -132,7 +132,7 @@ export function suggestStops(fromId: string, toId: string): City[] {
     .map(({ city }) => city);
 }
 
-export type VehicleKind = "auto" | "pickup" | "furgon" | "camion350" | "camion750" | "gandola";
+export type VehicleKind = "auto" | "pickup" | "furgon" | "camion750" | "gandola";
 
 export const VEHICLE_PRESETS: Record<
   VehicleKind,
@@ -168,14 +168,6 @@ export const VEHICLE_PRESETS: Record<
     height_cm: 150,
     max_kg: 1000,
     example: "Chevrolet N300, Mitsubishi L300, Toyota Hiace",
-  },
-  camion350: {
-    label: "Camión 350 (furgón)",
-    length_cm: 420,
-    width_cm: 200,
-    height_cm: 200,
-    max_kg: 3500,
-    example: "Ford 350, Chevrolet NPR",
   },
   camion750: {
     label: "Camión 750 / Toronto",

@@ -1,8 +1,9 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Route as RouteIcon, Search, Truck } from "lucide-react";
+import { ChevronDown, CreditCard, Route as RouteIcon, Search, Truck } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,12 +16,15 @@ import { useSession } from "@/hooks/use-session";
 import { cn } from "@/lib/utils";
 
 type RoleItem = {
-  to: "/bolsa" | "/panel/viajes" | "/panel/vehiculos";
+  to: "/bolsa" | "/pagos" | "/panel/viajes" | "/panel/vehiculos";
   label: string;
   icon: typeof Search;
 };
 
-const clientItems: RoleItem[] = [{ to: "/bolsa", label: "Bolsa de viajes", icon: Search }];
+const clientItems: RoleItem[] = [
+  { to: "/bolsa", label: "Bolsa de viajes", icon: Search },
+  { to: "/pagos", label: "Mis pagos", icon: CreditCard },
+];
 
 const driverItems: RoleItem[] = [
   { to: "/panel/viajes", label: "Mis viajes", icon: RouteIcon },
@@ -76,11 +80,11 @@ function RoleMenu({
 }
 
 export function AppHeader() {
-  const { session } = useSession();
+  const { session, ready } = useSession();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const clientActive = pathname === "/bolsa" || pathname.startsWith("/bolsa/");
+  const clientActive = pathname.startsWith("/bolsa") || pathname.startsWith("/pagos");
   const driverActive = pathname.startsWith("/panel");
 
   const signOut = async () => {
@@ -112,7 +116,9 @@ export function AppHeader() {
               active={clientActive}
             />
           </nav>
-          {session ? (
+          {!ready ? (
+            <Skeleton className="h-8 w-16" />
+          ) : session ? (
             <Button size="sm" variant="ghost" onClick={signOut}>
               Salir
             </Button>

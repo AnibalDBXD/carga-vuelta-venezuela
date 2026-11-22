@@ -28,6 +28,7 @@ import { cargoLayers, loadingSteps, visibleCargo } from "@/lib/loading-guide";
 import { Truck3DView, BOX_COLORS } from "@/components/Truck3DLazy";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -121,7 +122,7 @@ function Trip() {
   const { data: fetched } = useQuery(
     tripRouteQuery(trip?.origin ?? "", trip?.destination ?? "", stops),
   );
-  if (isLoading) return <main className="p-10 text-muted-foreground">Cargando…</main>;
+  if (isLoading) return <TripDetailSkeleton />;
   if (!trip) return <main className="p-10">Viaje no encontrado.</main>;
   const v = trip.vehicles;
   const pkgs = (trip.packages as unknown as Pkg[]) ?? [];
@@ -584,6 +585,59 @@ function Trip() {
   );
 }
 
+function TripDetailSkeleton() {
+  return (
+    <main className="mx-auto max-w-6xl px-4 py-10" aria-hidden="true">
+      <Skeleton className="h-3 w-72 max-w-full" />
+      <Skeleton className="mt-3 h-10 w-80 max-w-full" />
+      <Skeleton className="mt-3 h-4 w-96 max-w-full" />
+      <Skeleton className="mt-6 h-72 w-full rounded-lg" />
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <Skeleton className="h-9 w-36" />
+        <Skeleton className="h-9 w-52" />
+        <Skeleton className="h-9 w-36" />
+        <Skeleton className="h-9 w-44" />
+      </div>
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <Skeleton className="h-[460px] lg:col-span-2" />
+        <div className="space-y-4">
+          {Array.from({ length: 2 }, (_, i) => (
+            <div key={i} className="rounded-lg border border-border bg-card p-4">
+              <div className="flex justify-between">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+              <Skeleton className="mt-3 h-2 w-full" />
+            </div>
+          ))}
+          <div className="rounded-lg border border-border bg-card p-4">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="mt-2 h-8 w-44" />
+          </div>
+        </div>
+      </div>
+      <Skeleton className="mt-10 h-7 w-40" />
+      <Skeleton className="mt-2 h-4 w-96 max-w-full" />
+      <div className="mt-4 overflow-x-auto rounded-lg border border-border">
+        <div className="space-y-0 p-3">
+          {Array.from({ length: 5 }, (_, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-4 border-b border-border py-3 last:border-0"
+            >
+              <Skeleton className="h-4 w-6" />
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 min-w-0 flex-1" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </main>
+  );
+}
+
 function Stat({ label, value, pct }: { label: string; value: string; pct: number }) {
   return (
     <div className="rounded-lg border border-border bg-card p-4">
@@ -653,9 +707,13 @@ function ShareReturn({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- precarga una vez; si el conductor editó, no pisar.
   }, [lastOffer, session]);
   useEffect(() => {
-    if (phone === "58" && lastOffer?.phone) setPhone(lastOffer.phone);
+    if (phone !== "58") return;
+    if (lastOffer?.phone) return void setPhone(lastOffer.phone);
+    const meta = session?.user.user_metadata as Record<string, unknown> | undefined;
+    const metaPhone = typeof meta?.["phone"] === "string" ? meta["phone"] : "";
+    if (metaPhone) setPhone(metaPhone);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- igual que arriba.
-  }, [lastOffer]);
+  }, [lastOffer, session]);
   const publish = async (e: React.FormEvent) => {
     e.preventDefault();
     // Las solicitudes de la bolsa cargan sobre el viaje de regreso: búscalo o créalo.

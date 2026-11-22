@@ -13,6 +13,7 @@ import { RouteMapView } from "@/components/RouteMapLazy";
 import { PackageRequestForm } from "@/components/PackageRequestForm";
 import type { GeoPoint } from "@/components/AddressField";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const offerQuery = (offerId: string) =>
   queryOptions({
@@ -47,8 +48,48 @@ export const Route = createFileRoute("/bolsa/$offerId")({
       </p>
     </main>
   ),
+  pendingComponent: OfferPageSkeleton,
   component: OfferPage,
 });
+
+function OfferPageSkeleton() {
+  return (
+    <main className="mx-auto max-w-6xl px-4 py-10" aria-hidden="true">
+      <Skeleton className="h-8 w-32" />
+      <Skeleton className="mt-4 h-3 w-56" />
+      <Skeleton className="mt-3 h-10 w-72 max-w-full" />
+      <Skeleton className="mt-6 h-64 w-full rounded-lg" />
+      <div className="mt-8 grid gap-10 lg:grid-cols-5">
+        <div className="lg:col-span-2">
+          <Skeleton className="h-4 w-48" />
+          <div className="mt-3 flex gap-6">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <Skeleton className="mt-6 h-[380px] w-full" />
+        </div>
+        <div className="space-y-7 lg:col-span-3">
+          {Array.from({ length: 3 }, (_, i) => (
+            <div key={i} className="space-y-4 border-t border-border pt-5">
+              <Skeleton className="h-6 w-36" />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="mt-1.5 h-9 w-full" />
+                </div>
+                <div>
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="mt-1.5 h-9 w-full" />
+                </div>
+              </div>
+            </div>
+          ))}
+          <Skeleton className="h-11 w-64 max-w-full" />
+        </div>
+      </div>
+    </main>
+  );
+}
 function OfferPage() {
   const { offerId } = Route.useParams();
   const { data: offer } = useSuspenseQuery(offerQuery(offerId));

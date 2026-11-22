@@ -33,9 +33,16 @@ VALUES ('00000000-0000-0000-0000-000000000000',
         '11111111-1111-1111-1111-111111111111',
         'authenticated', 'authenticated', 'chofer@cargaruta.local',
         extensions.crypt('cargaruta123', extensions.gen_salt('bf')),
-        now(), '{"provider":"email","providers":["email"]}', '{}',
+        now(), '{"provider":"email","providers":["email"]}',
+        '{"role":"conductor","full_name":"Chofer Demo","phone":"584121234567","driver_status":"approved"}',
         now(), now(), '', '', '', '')
 ON CONFLICT (id) DO NOTHING;
+
+-- El usuario ya puede existir de seeds anteriores: refrescar su metadata
+-- (rol/datos del onboarding) que ON CONFLICT no toca.
+UPDATE auth.users
+SET raw_user_meta_data = '{"role":"conductor","full_name":"Chofer Demo","phone":"584121234567","driver_status":"approved"}'::jsonb
+WHERE id = '11111111-1111-1111-1111-111111111111';
 
 INSERT INTO auth.identities (id, provider_id, user_id, identity_data, provider,
                              last_sign_in_at, created_at, updated_at)
@@ -53,7 +60,7 @@ INSERT INTO public.vehicles (id, user_id, name, kind, brand, model, plate,
                              length_cm, width_cm, height_cm, max_kg)
 VALUES
  ('22220000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111',
-  'El Burro', 'camion350', 'Chevrolet', 'NPR', 'A45-CD92', 420, 200, 200, 3500),
+  'El Burro', 'camion750', 'Chevrolet', 'FVR', 'A45-CD92', 650, 240, 240, 8000),
  ('22220000-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111',
   'La Bestia', 'camion750', 'Ford', 'F-750', 'B12-FG34', 650, 240, 240, 8000),
  ('22220000-0000-0000-0000-000000000003', '11111111-1111-1111-1111-111111111111',
@@ -158,7 +165,7 @@ VALUES
  ('44440000-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111',
   '33330000-0000-0000-0000-000000000007', 'José Rodríguez', '0414-555-0183',
   'maracay', 'valencia', CURRENT_DATE + 5, '08:00',
-  'camion350', 10, 2200,
+  'camion750', 10, 2200,
   'Regreso casi vacío, recojo en el centro de Maracay.', true),
  -- Otros conductores por todo el país.
  ('44440000-0000-0000-0000-000000000003', '99990000-0000-0000-0000-000000000001',
@@ -179,7 +186,7 @@ VALUES
  ('44440000-0000-0000-0000-000000000006', '99990000-0000-0000-0000-000000000004',
   '33330000-0000-0000-0000-000000000012', 'Oswaldo Peña', '0412-555-6650',
   'coro', 'maracay', CURRENT_DATE + 4, '07:00',
-  'camion350', 12, 2800,
+  'camion750', 12, 2800,
   'Bajo por Morón–Tucacas, puedo desviar a Tucacas puerto.', true),
  ('44440000-0000-0000-0000-000000000007', '99990000-0000-0000-0000-000000000005',
   '33330000-0000-0000-0000-000000000013', 'Transporte Oriente C.A.', '0291-555-4408',
@@ -199,7 +206,7 @@ VALUES
  ('44440000-0000-0000-0000-000000000010', '99990000-0000-0000-0000-000000000008',
   '33330000-0000-0000-0000-000000000016', 'Pedro Linares', '0426-555-1145',
   'acarigua', 'valencia', CURRENT_DATE + 9, '07:30',
-  'camion350', 9, 2500,
+  'camion750', 9, 2500,
   'Todos los lunes hago esta corrida.', true);
 
 -- -------------------------------------------------------------- solicitudes --

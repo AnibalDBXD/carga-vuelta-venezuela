@@ -10,6 +10,7 @@ import { VehicleThumb } from "@/components/VehicleThumb";
 import { VehicleForm, emptyVehicleForm } from "@/components/VehicleForm";
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/panel/vehiculos/")({
   head: () => ({
@@ -40,9 +41,9 @@ export const vehiclesQuery = {
 function Vehiculos() {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const { data: vehicles = [] } = useQuery(vehiclesQuery);
+  const { data: vehicles = [], isLoading } = useQuery(vehiclesQuery);
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState(emptyVehicleForm("camion350"));
+  const [f, setF] = useState(emptyVehicleForm("camion750"));
   const save = useMutation({
     mutationFn: async () => {
       const { error } = await supabase
@@ -117,7 +118,13 @@ function Vehiculos() {
         </section>
       ) : (
         <section className="mt-10" aria-label="Vehículos guardados">
-          {vehicles.length === 0 ? (
+          {isLoading ? (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }, (_, i) => (
+                <VehicleCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : vehicles.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border px-6 py-12 text-center">
               <Truck className="mx-auto h-6 w-6 text-muted-foreground" aria-hidden="true" />
               <h2 className="mt-3 text-lg font-bold">Aún no tienes vehículos</h2>
@@ -189,5 +196,23 @@ function Vehiculos() {
         </section>
       )}
     </main>
+  );
+}
+
+function VehicleCardSkeleton() {
+  return (
+    <article className="overflow-hidden rounded-lg border border-border bg-card" aria-hidden="true">
+      <div className="border-b border-border bg-background p-3">
+        <Skeleton className="h-24 w-full" />
+      </div>
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-2">
+          <Skeleton className="h-6 w-36" />
+          <Skeleton className="-mr-1 -mt-1 h-9 w-9 shrink-0" />
+        </div>
+        <Skeleton className="mt-2 h-4 w-44" />
+        <Skeleton className="mt-3 h-4 w-52 max-w-full" />
+      </div>
+    </article>
   );
 }

@@ -54,10 +54,42 @@ describe("packCargo", () => {
   });
 
   it("rotates a package 90° on the floor when it helps", () => {
-    // 100×200 no cabe de ancho (W=100) pero sí rotado a 200×100.
+    // 100×200 no cabe de ancho (W=100); la rotación que gana es la que deja la
+    // menor huella: parado a 100×100×200 de alto.
     const r = packCargo(truck, [box({ length: 100, width: 200 })]);
     expect(r.placed).toHaveLength(1);
-    expect(r.placed[0]).toMatchObject({ l: 200, w: 100 });
+    expect(r.placed[0]).toMatchObject({ l: 100, w: 100, h: 200 });
+  });
+
+  it("stands a package upright when only its height fits", () => {
+    // 150 de largo no cabe en L=100; parado a 50×50×150 sí.
+    const r = packCargo(truck, [box({ length: 150, width: 50, height: 50 })]);
+    expect(r.placed).toHaveLength(1);
+    expect(r.placed[0]).toMatchObject({ l: 50, w: 50, h: 150 });
+  });
+
+  it("caps stacks with fragile boxes instead of spreading them on the floor", () => {
+    // Los frágiles sobre el piso bloquean todo el espacio vertical encima:
+    // deben coronar las pilas. Caso real: gandola con sacos + televisores.
+    const r = packCargo({ length: 1300, width: 245, height: 260, maxKg: 30000 }, [
+      box({ id: "saco", length: 80, width: 50, height: 30, weight: 50, qty: 67 }),
+      box({
+        id: "tv",
+        name: "TV",
+        length: 125,
+        width: 75,
+        height: 15,
+        weight: 15,
+        qty: 32,
+        fragile: true,
+      }),
+      box({ id: "maleta", length: 60, width: 40, height: 25, weight: 20, qty: 7 }),
+      box({ id: "nevera", length: 70, width: 70, height: 170, weight: 65, qty: 7, fragile: true }),
+    ]);
+    expect(r.unplaced).toHaveLength(0);
+    const tvFloor = r.placed.filter((p) => p.pkgId === "tv" && p.z === 0 && p.h < 100);
+    // Ningún TV acostado en el piso desperdiciando la altura encima.
+    expect(tvFloor).toHaveLength(0);
   });
 
   it("rejects a package too big in a single dimension", () => {
