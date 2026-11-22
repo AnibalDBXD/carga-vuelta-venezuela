@@ -184,6 +184,12 @@ Marca como *sensitive* las que son secretos.
 | `PAGO_MOVIL_PHONE` | teléfono de pago | No |
 | `PAGO_MOVIL_DOCUMENT` | cédula/RIF | No |
 | `PAGO_MOVIL_HOLDER` | titular | No |
+| `TELEGRAM_BOT_TOKEN` | token de @BotFather | **Nunca** |
+| `TELEGRAM_WEBHOOK_SECRET` | secreto aleatorio que tú generas | **Nunca** |
+| `VITE_TELEGRAM_BOT` | username del bot (sin `@`) | Sí (es público) |
+| `GEMINI_API_KEY` | key de aistudio.google.com/apikey | **Nunca** |
+| `GEMINI_MODEL` | opcional, default `gemini-3.1-flash-lite-preview` | No |
+| `GEMINI_VISION_MODEL` | opcional, default = `GEMINI_MODEL` | No |
 
 Notas:
 
@@ -193,6 +199,31 @@ Notas:
 - Genera VAPID con `bunx web-push generate-vapid-keys` si aún no tienes claves.
 - `APP_URL` es el dominio público; los correos y enlaces de pago lo usan. Si queda en
   `localhost:5173`, los enlaces de producción apuntarán mal.
+- Sin `TELEGRAM_BOT_TOKEN` el bot y los botones de Telegram no aparecen y las notificaciones por
+  Telegram se omiten sin error — la app sigue funcionando solo con correo/push.
+- Sin `GEMINI_API_KEY` el bot contesta "asistente no configurado": las notificaciones siguen, pero el
+  chat conversacional no.
+
+### Bot de Telegram (opcional, todo free tier)
+
+Spec completo en `specs/003-telegram.md`. Resumen del alta:
+
+1. En Telegram, habla con **@BotFather** → `/newbot` → te da el `TELEGRAM_BOT_TOKEN` y eliges el
+   username (`VITE_TELEGRAM_BOT`, sin `@`).
+2. Genera un secreto para el webhook, ej. `bun -e 'console.log(crypto.randomUUID())'` →
+   `TELEGRAM_WEBHOOK_SECRET`.
+3. Crea la key de Gemini en <https://aistudio.google.com/apikey> → `GEMINI_API_KEY`.
+4. Con las cuatro variables ya desplegadas en Vercel, registra el webhook una sola vez:
+
+   ```bash
+   bun run bot:setup
+   ```
+
+   apunta a `APP_URL/api/telegram` y publica los comandos del bot (`/start`, `/estado`, …).
+
+5. En local no hace falta túnel: `bun run bot:dev` hace polling de `getUpdates` con la misma lógica
+   del webhook (y quita el webhook si había — vuelve a correr `bot:setup` al volver a prod).
+6. El conductor conecta su chat desde `/panel/viajes` → **Conectar Telegram**.
 
 ### En local (`.env`)
 
@@ -287,6 +318,8 @@ Haz esta lista en el dominio publicado:
 - [ ] Enviar una solicitud de carga; si `SMTP_URL` está bien, llega el correo al conductor.
 - [ ] Aceptar la solicitud, abrir `/pagos/<request_id>`, subir un comprobante JPG/PNG (< 5 MB) y
       confirmar el pago. El paquete debe aparecer en el viaje.
+- [ ] Telegram (si está configurado): el conductor conecta su chat, llega la solicitud con botones
+      ✅/❌, y el solicitante puede pedir espacio y pagar desde el bot.
 - [ ] RLS: con un segundo usuario, confirmar que no ve vehículos, viajes ni solicitudes ajenas.
 - [ ] PWA: el manifest carga y el service worker se registra.
 

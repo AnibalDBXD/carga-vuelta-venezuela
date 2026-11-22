@@ -55,6 +55,27 @@ export function citiesAlongGeometry(
 }
 
 /**
+ * Distancia mínima (km) de un punto a una polilínea y su posición a lo largo
+ * de ella (t = 0 en el primer vértice, 1 en el último, sin recortar). Misma
+ * aproximación equirectangular del resto del módulo.
+ */
+export function distanceToLine(line: LineString, p: LngLat): { dKm: number; t: number } {
+  const coords = line.coordinates;
+  if (coords.length === 0) return { dKm: Infinity, t: 0 };
+  const latMid = coords.reduce((s, c) => s + c[1], 0) / coords.length;
+  const cos = Math.cos((latMid * Math.PI) / 180);
+  const pts = coords.map((c) => toXY(c, cos));
+  const q = toXY(p, cos);
+  let best = { d: Infinity, along: 0 };
+  for (let i = 0; i < pts.length - 1; i++) {
+    const { d, t } = segmentDistance(q, pts[i]!, pts[i + 1]!);
+    if (d < best.d) best = { d, along: i + t };
+  }
+  if (pts.length < 2) return { dKm: Math.hypot(q[0] - pts[0]![0], q[1] - pts[0]![1]), t: 0 };
+  return { dKm: best.d, t: best.along / (pts.length - 1) };
+}
+
+/**
  * Posición de un punto sobre el eje origen→destino: `t` es la posición a lo
  * largo del corredor (0 = origen, 1 = destino, sin recortar) y `dKm` la
  * distancia perpendicular en km. Misma aproximación equirectangular de arriba.

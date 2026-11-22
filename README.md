@@ -144,7 +144,12 @@ bun run db:types            # regenera src/integrations/supabase/types.ts
 # 4. App
 bun run dev                 # http://localhost:5173
 # si el puerto está ocupado: bun run dev -- --port 8081
+
+# 5. Bot de Telegram (opcional; ver "Integraciones opcionales")
+bun run bot:dev             # polling del bot, sin webhook ni túnel
 ```
+
+**Todo de una vez:** `bun run dev:all` levanta Supabase + web + bot (Ctrl+C los apaga juntos).
 
 Con Podman en Linux, si el CLI no encuentra el socket:
 
@@ -161,6 +166,8 @@ export DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock
 | `SMTP_URL` o `MAILPIT_URL` | correos de aceptación y pago | en dev se leen en Mailpit |
 | `PAGO_MOVIL_*` | datos de cobro que ve el pagador | la página de pago avisa que no están configurados |
 | `BCV_FALLBACK_RATE` | tasa USD/VES si `bcv.org.ve` no responde | se usa la última tasa en caché |
+| `TELEGRAM_BOT_TOKEN` / `VITE_TELEGRAM_BOT` | bot de Telegram (spec `specs/003-telegram.md`) | sin bot; el resto de la app funciona igual |
+| `GEMINI_API_KEY` | asistente IA del bot (AI Studio free tier) | el chat responde "asistente no configurado" |
 
 Generar llaves VAPID: `bunx web-push generate-vapid-keys`.
 
@@ -178,7 +185,10 @@ Abre `http://localhost:5173`, entra a `/bolsa` y crea una cuenta desde `/auth` p
 
 | Comando | Qué hace |
 |---|---|
+| `bun run dev:all` | **Stack completo**: Supabase + web + bot en una terminal |
 | `bun run dev` | Dev server con SSR en `:5173` |
+| `bun run bot:dev` | Bot de Telegram por polling (desarrollo, sin webhook) |
+| `bun run bot:setup` | Registra el webhook y comandos del bot (producción) |
 | `bun run build` | Build de producción (Nitro, preset Vercel) |
 | `bun run test` | Vitest |
 | `bun run typecheck` | `tsc --noEmit` |

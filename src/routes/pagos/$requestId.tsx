@@ -16,7 +16,12 @@ import {
   Upload,
   XCircle,
 } from "lucide-react";
-import { getPaymentSummary, getProofUploadUrl } from "@/lib/payments.functions";
+import {
+  getPaymentSummary,
+  getProofUploadUrl,
+  notifyDriverProof,
+  notifyRequesterPaid,
+} from "@/lib/payments.functions";
 import { rememberRequest } from "@/lib/my-requests";
 import { supabase } from "@/integrations/supabase/client";
 import { cityName, VEHICLE_PRESETS, type VehicleKind } from "@/lib/venezuela";
@@ -128,6 +133,8 @@ function PaymentPage() {
   useEffect(() => {
     if (review.data && review.data !== "payment_review")
       void qc.invalidateQueries({ queryKey: ["payment-summary", requestId] });
+    if (review.data === "paid")
+      void notifyRequesterPaid({ data: { requestId } }).catch(() => undefined);
   }, [review.data, qc, requestId]);
 
   if (!summary)
@@ -339,6 +346,7 @@ function PaySection({
         p_path: path,
       });
       if (proofError) throw proofError;
+      void notifyDriverProof({ data: { requestId } }).catch(() => undefined);
       onUploaded();
     } catch {
       setError("No se pudo enviar el comprobante. Intenta de nuevo.");

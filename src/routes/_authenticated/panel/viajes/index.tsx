@@ -9,6 +9,7 @@ import { groupTrips } from "@/lib/trip-groups";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShareTrip } from "@/components/TripRequests";
+import { ConnectTelegram } from "@/components/ConnectTelegram";
 
 export const Route = createFileRoute("/_authenticated/panel/viajes/")({
   head: () => ({
@@ -152,11 +153,14 @@ function Viajes() {
         >
           Mis viajes
         </h1>
-        <Button asChild>
-          <Link to="/panel/viajes/nuevo" search={{}}>
-            Nuevo viaje
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <ConnectTelegram />
+          <Button asChild>
+            <Link to="/panel/viajes/nuevo" search={{}}>
+              Nuevo viaje
+            </Link>
+          </Button>
+        </div>
       </div>
       <p className="mt-2 text-muted-foreground">
         Cada viaje guarda su plan de carga; desde acá puedes repetirlo o planear el regreso.

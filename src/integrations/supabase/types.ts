@@ -35,6 +35,7 @@ export type Database = {
           notified_at: string | null;
           package: NonNullable<Json>;
           paid_at: string | null;
+          paid_notified_at: string | null;
           payment_expires_at: string | null;
           phone: string;
           pickup_address: string;
@@ -57,6 +58,7 @@ export type Database = {
           notified_at?: string | null;
           package: NonNullable<Json>;
           paid_at?: string | null;
+          paid_notified_at?: string | null;
           payment_expires_at?: string | null;
           phone: string;
           pickup_address: string;
@@ -78,6 +80,7 @@ export type Database = {
           notified_at?: string | null;
           package?: NonNullable<Json>;
           paid_at?: string | null;
+          paid_notified_at?: string | null;
           payment_expires_at?: string | null;
           phone?: string;
           pickup_address?: string;
@@ -196,6 +199,86 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      telegram_chats: {
+        Row: {
+          chat_id: number;
+          created_at: string;
+          id: string;
+          request_id: string | null;
+          user_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          chat_id: number;
+          created_at?: string;
+          id?: string;
+          request_id?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          chat_id?: number;
+          created_at?: string;
+          id?: string;
+          request_id?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "telegram_chats_request_id_fkey";
+            columns: ["request_id"];
+            isOneToOne: false;
+            referencedRelation: "package_requests";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      telegram_link_tokens: {
+        Row: {
+          created_at: string;
+          expires_at: string;
+          id: string;
+          used_at: string | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          used_at?: string | null;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          used_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      telegram_sessions: {
+        Row: {
+          chat_id: number;
+          flow: NonNullable<Json>;
+          history: NonNullable<Json>;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          chat_id: number;
+          flow?: NonNullable<Json>;
+          history?: NonNullable<Json>;
+          updated_at?: string;
+        };
+        Update: {
+          chat_id?: number;
+          flow?: NonNullable<Json>;
+          history?: NonNullable<Json>;
+          updated_at?: string;
+        };
+        Relationships: [];
       };
       trip_shares: {
         Row: {
@@ -342,6 +425,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      apply_request_decision: {
+        Args: { p_accept: boolean; p_amount?: number; p_id: string; p_owner: string };
+        Returns: string;
+      };
       attach_push_subscription: {
         Args: { p_auth: string; p_endpoint: string; p_p256dh: string; p_request: string };
         Returns: undefined;
@@ -349,6 +436,10 @@ export type Database = {
       confirm_payment: { Args: { p_request: string }; Returns: string };
       decide_package_request: {
         Args: { p_accept: boolean; p_amount?: number; p_id: string };
+        Returns: string;
+      };
+      decide_package_request_bot: {
+        Args: { p_accept: boolean; p_amount?: number; p_chat_id: number; p_request: string };
         Returns: string;
       };
       insert_package_request: {
