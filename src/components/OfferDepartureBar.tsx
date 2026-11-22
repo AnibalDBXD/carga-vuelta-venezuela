@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { offerDepartureAt, offerProgress } from "@/lib/offer-time";
 import type { PublicOffer } from "@/lib/package-request";
 
-// Barra de progreso del tiempo que le queda al viaje dentro de su ventana
-// (publicación → salida estimada): verde llena → roja casi vacía.
+// Barra de progreso del tiempo que le queda al viaje antes de la salida
+// estimada: llena ~20 h antes, ~5% (roja) a 1 h, vacía al salir.
 export function OfferDepartureBar({ offer }: { offer: PublicOffer }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {

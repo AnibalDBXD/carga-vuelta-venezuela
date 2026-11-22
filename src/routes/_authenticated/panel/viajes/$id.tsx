@@ -91,17 +91,33 @@ function Trip() {
       return data;
     },
   });
-  const stops: RouteStopInput[] = (requests ?? []).flatMap((r) =>
+  // Las paradas salen de los bultos del viaje (punto de recogida y destino
+  // de cada paquete) más las solicitudes en curso. Se deduplican porque una
+  // solicitud ya pagada también anexa su bulto a trips.packages.
+  const pkgStops: RouteStopInput[] = (
+    (trip?.packages as unknown as Pkg[] | undefined) ?? []
+  ).flatMap((p) => [
+    ...(p.pickup ? [{ requestId: p.id, kind: "pickup" as const, address: p.pickup }] : []),
+    ...(p.recipient ? [{ requestId: p.id, kind: "delivery" as const, address: p.recipient }] : []),
+  ]);
+  const requestStops: RouteStopInput[] = (requests ?? []).flatMap((r) =>
     (r.status === "awaiting_payment" &&
       r.payment_expires_at !== null &&
       r.payment_expires_at < new Date().toISOString()) ||
     (r.status !== "awaiting_payment" && r.status !== "payment_review" && r.status !== "paid")
       ? []
       : [
-          { requestId: r.id, kind: "pickup", address: r.pickup_address },
-          { requestId: r.id, kind: "delivery", address: r.delivery_address },
+          { requestId: r.id, kind: "pickup" as const, address: r.pickup_address },
+          { requestId: r.id, kind: "delivery" as const, address: r.delivery_address },
         ],
   );
+  const seenStops = new Set<string>();
+  const stops = [...pkgStops, ...requestStops].filter((s) => {
+    const key = `${s.kind}:${s.address.trim().toLowerCase()}`;
+    if (seenStops.has(key)) return false;
+    seenStops.add(key);
+    return true;
+  });
   const { data: fetched } = useQuery(
     tripRouteQuery(trip?.origin ?? "", trip?.destination ?? "", stops),
   );

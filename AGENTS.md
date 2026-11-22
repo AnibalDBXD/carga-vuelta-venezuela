@@ -11,6 +11,7 @@ App de logística para camioneros en Venezuela (base Valencia). El objetivo clav
 - Backend: Supabase local vía Supabase CLI (`bun run db:start`, requiere podman/docker; `DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock` con podman). Migraciones en `supabase/migrations/`; regenerar tipos con `bun run db:types`. Cliente navegador: `@/integrations/supabase/client`. Lógica de servidor con `createServerFn`; nada de Supabase Edge Functions. Credenciales de dev en `.env` (no committeado; ver `.env.example`).
 - 3D: three.js + @react-three/fiber/drei, solo en cliente.
 - Tests: vitest (`bunx vitest run`). Typecheck: `bun run typecheck` (`tsc --noEmit`).
+- Deploy: Vercel. `bun run build` usa el preset nitro `vercel` y emite `.vercel/output` (Build Output API, auto-detectado); `vercel.json` fija build/install con bun. Las env vars van en el dashboard de Vercel (`.env` no se commitea) y el backend requiere un proyecto Supabase hosted (`supabase link` + `db push`; `site_url`/redirects al dominio de Vercel).
 
 ## Mapa de la app
 
@@ -50,3 +51,7 @@ App de logística para camioneros en Venezuela (base Valencia). El objetivo clav
 ## Diseño
 
 Estilo industrial-logístico: asfalto oscuro con amarillo de señalización, tipografías Space Grotesk + IBM Plex Mono, en español. No usar estética genérica (Inter, gradientes púrpura/índigo).
+
+## Vigía (agente autónomo)
+
+El skill `/vigia` (`.devin/skills/vigia/SKILL.md`) hace una auditoría profunda — verificación mecánica + reglas de arquitectura + consistencia de flujos + Supabase — sobre el diff o el alcance que se le dé. Además hay una tarea programada en T3 Code («Vigía: auditar pushes a main») que se dispara por un webhook de GitHub en cada `push` a `main` (webhook id 715220431, filtro `body.ref == refs/heads/main`): hace `git fetch`, audita el rango `before..after` en un worktree aislado de `/tmp` (`bun install` + typecheck + vitest + eslint del diff), guarda el último SHA en `~/.local/state/vigia/` y reporta hallazgos por severidad sin tocar el árbol de trabajo.

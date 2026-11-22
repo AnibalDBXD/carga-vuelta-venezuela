@@ -6,10 +6,12 @@ const offer = (over: Partial<Parameters<typeof offerDeparted>[0]> = {}) => ({
   available_time: "18:30:00",
   ...over,
 });
+// Salida: 2026-11-23 18:30 VET = 22:30 UTC.
+const DEPARTS_UTC = "2026-11-23T22:30:00.000Z";
 
 describe("offerDepartureAt", () => {
   it("interpreta la hora como Venezuela (UTC-4)", () => {
-    expect(offerDepartureAt(offer()).toISOString()).toBe("2026-11-23T22:30:00.000Z");
+    expect(offerDepartureAt(offer()).toISOString()).toBe(DEPARTS_UTC);
   });
   it("sin hora, vence al final del día", () => {
     expect(offerDepartureAt(offer({ available_time: null })).toISOString()).toBe(
@@ -28,22 +30,18 @@ describe("offerDeparted", () => {
 });
 
 describe("offerProgress", () => {
-  const o = { ...offer(), created_at: "2026-11-23T14:30:00Z" }; // ventana de 8 h
-  it("empieza en 1 al publicarse", () => {
-    expect(offerProgress(o, new Date("2026-11-23T14:30:00Z"))).toBe(1);
+  it("va llena (1) con 20 h o más por delante", () => {
+    expect(offerProgress(offer(), new Date("2026-11-23T02:30:00Z"))).toBe(1);
+    expect(offerProgress(offer(), new Date("2026-11-22T10:00:00Z"))).toBe(1);
   });
-  it("va por la mitad a mitad de la ventana", () => {
-    expect(offerProgress(o, new Date("2026-11-23T18:30:00Z"))).toBe(0.5);
+  it("va por la mitad a 10 h de la salida", () => {
+    expect(offerProgress(offer(), new Date("2026-11-23T12:30:00Z"))).toBe(0.5);
   });
-  it("llega a 0 a la hora de salida", () => {
-    expect(offerProgress(o, new Date("2026-11-23T22:30:00Z"))).toBe(0);
+  it("1 h restante ≈ 5% (rojo)", () => {
+    expect(offerProgress(offer(), new Date("2026-11-23T21:30:00Z"))).toBeCloseTo(0.05);
   });
-  it("no baja de 0 ni sube de 1", () => {
-    expect(offerProgress(o, new Date("2026-11-24T00:00:00Z"))).toBe(0);
-    expect(offerProgress(o, new Date("2026-11-23T14:00:00Z"))).toBe(1);
-  });
-  it("created_at inválido o posterior a la salida da 0", () => {
-    expect(offerProgress({ ...o, created_at: "no-fecha" })).toBe(0);
-    expect(offerProgress({ ...o, created_at: "2026-11-24T00:00:00Z" })).toBe(0);
+  it("llega a 0 a la hora de salida y no baja de 0", () => {
+    expect(offerProgress(offer(), new Date(DEPARTS_UTC))).toBe(0);
+    expect(offerProgress(offer(), new Date("2026-11-24T00:00:00Z"))).toBe(0);
   });
 });

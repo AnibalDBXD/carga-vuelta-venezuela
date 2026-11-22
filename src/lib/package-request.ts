@@ -80,7 +80,6 @@ export type PublicOffer = {
   free_kg: number;
   driver_name: string;
   notes: string | null;
-  created_at: string;
 };
 export const PUBLIC_OFFER_COLUMNS =
-  "id,origin,destination,available_date,available_time,vehicle_kind,free_m3,free_kg,driver_name,notes,created_at";
+  "id,origin,destination,available_date,available_time,vehicle_kind,free_m3,free_kg,driver_name,notes";
