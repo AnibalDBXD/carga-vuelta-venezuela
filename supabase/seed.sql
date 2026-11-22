@@ -323,9 +323,80 @@ INSERT INTO public.trips (id, user_id, vehicle_id, origin, destination,
                           is_return, parent_trip_id, completed_at)
 SELECT '88880000-0000-0000-0000-000000000013', id,
        '88880000-0000-0000-0000-000000000002', 'maracay', 'caracas',
-       CURRENT_DATE + 4, '15:00', '[]'::jsonb,
+       CURRENT_DATE + 4, '15:00',
+       '[{"id":"88880000-0000-0000-0000-000000000024-1","name":"Resmas de papel carta","length":45,"width":35,"height":30,"weight":12,"qty":5,"fragile":false,"deadline":"","recipient":"Caracas, Sabana Grande, Papelería Central","pickup":"Maracay, Centro, calle Páez"}]'::jsonb,
        'Regreso de la entrega en Maracay', true,
        '88880000-0000-0000-0000-000000000012', NULL
+FROM auth.users WHERE email = 'test@test.com';
+
+-- Oferta de ese regreso en la bolsa + solicitudes en estados mixtos.
+INSERT INTO public.return_offers (id, user_id, trip_id, driver_name, phone,
+                                 origin, destination, available_date, available_time,
+                                 vehicle_kind, free_m3, free_kg, notes, active)
+SELECT '88880000-0000-0000-0000-000000000020', id,
+       '88880000-0000-0000-0000-000000000013', 'Ricardo Mora', '0412-555-8841',
+       'maracay', 'caracas', CURRENT_DATE + 4, '15:00',
+       'furgon', 5, 700,
+       'Salgo de Maracay en la tarde, entro por La Victoria.', true
+FROM auth.users WHERE email = 'test@test.com';
+
+INSERT INTO public.package_requests (id, trip_id, sender_name, phone, email,
+                                   pickup_address, delivery_address, package, notes,
+                                   status, created_at, decided_at, amount_usd, total_usd,
+                                   proof_path, proof_submitted_at, paid_at,
+                                   payment_expires_at)
+SELECT '88880000-0000-0000-0000-000000000021',
+       '88880000-0000-0000-0000-000000000013',
+       'Óptica La Central', '0243-555-2210', 'pedidos@opticalacentral.com',
+       'Maracay, Centro, cc Parque Aragua', 'Caracas, Sabana Grande, Blvd. de Sabana',
+       '[{"id":"88880000-0000-0000-0000-000000000021-1","name":"Cajas de lentes","length":40,"width":30,"height":25,"weight":6,"qty":3,"fragile":true,"deadline":"","recipient":"Caracas, Sabana Grande, Blvd. de Sabana","pickup":"Maracay, Centro, cc Parque Aragua"}]'::jsonb,
+       'Cajas pequeñas, van arriba.', 'pending', now() - interval '2 hours',
+       NULL, NULL, NULL, NULL, NULL, NULL, NULL
+FROM auth.users WHERE email = 'test@test.com';
+
+INSERT INTO public.package_requests (id, trip_id, sender_name, phone, email,
+                                   pickup_address, delivery_address, package, notes,
+                                   status, created_at, decided_at, amount_usd, total_usd,
+                                   proof_path, proof_submitted_at, paid_at,
+                                   payment_expires_at)
+SELECT '88880000-0000-0000-0000-000000000022',
+       '88880000-0000-0000-0000-000000000013',
+       'Librería El Estudiante', '0414-555-6673', 'envios@elestudiante.com',
+       'Maracay, Las Delicias, av. principal', 'Caracas, Chacao, cc Sambil',
+       '[{"id":"88880000-0000-0000-0000-000000000022-1","name":"Cajas de libros","length":50,"width":40,"height":35,"weight":18,"qty":4,"fragile":false,"deadline":"","recipient":"Caracas, Chacao, cc Sambil","pickup":"Maracay, Las Delicias, av. principal"}]'::jsonb,
+       'Libros pesados, apilar máximo de a dos.', 'pending', now() - interval '5 hours',
+       NULL, NULL, NULL, NULL, NULL, NULL, NULL
+FROM auth.users WHERE email = 'test@test.com';
+
+INSERT INTO public.package_requests (id, trip_id, sender_name, phone, email,
+                                   pickup_address, delivery_address, package, notes,
+                                   status, created_at, decided_at, amount_usd, total_usd,
+                                   proof_path, proof_submitted_at, paid_at,
+                                   payment_expires_at)
+SELECT '88880000-0000-0000-0000-000000000023',
+       '88880000-0000-0000-0000-000000000013',
+       'Perfumería Ávila', '0424-555-3320', 'despacho@perfumeriaavila.com',
+       'Maracay, La Soledad, calle 8', 'Caracas, El Recreo, cc El Recreo',
+       '[{"id":"88880000-0000-0000-0000-000000000023-1","name":"Cajas de perfumes","length":45,"width":35,"height":30,"weight":10,"qty":2,"fragile":true,"deadline":"","recipient":"Caracas, El Recreo, cc El Recreo","pickup":"Maracay, La Soledad, calle 8"}]'::jsonb,
+       'Frágil, nada pesado encima.', 'awaiting_payment', now() - interval '4 hours',
+       now() - interval '4 hours', 15.00, 18.75, NULL, NULL, NULL,
+       now() + interval '20 hours'
+FROM auth.users WHERE email = 'test@test.com';
+
+INSERT INTO public.package_requests (id, trip_id, sender_name, phone, email,
+                                   pickup_address, delivery_address, package, notes,
+                                   status, created_at, decided_at, amount_usd, total_usd,
+                                   proof_path, proof_submitted_at, paid_at,
+                                   payment_expires_at)
+SELECT '88880000-0000-0000-0000-000000000024',
+       '88880000-0000-0000-0000-000000000013',
+       'Papelería Central', '0212-555-7732', 'compras@papeleriacentral.net',
+       'Maracay, Centro, calle Páez', 'Caracas, Sabana Grande, Papelería Central',
+       '[{"id":"88880000-0000-0000-0000-000000000024-1","name":"Resmas de papel carta","length":45,"width":35,"height":30,"weight":12,"qty":5,"fragile":false,"deadline":"","recipient":"Caracas, Sabana Grande, Papelería Central","pickup":"Maracay, Centro, calle Páez"}]'::jsonb,
+       '', 'paid', now() - interval '2 days', now() - interval '2 days',
+       12.00, 15.00, '88880000-0000-0000-0000-000000000024/seed-comprobante.jpg',
+       now() - interval '1 day' - interval '5 hours', now() - interval '1 day',
+       now() - interval '1 day' + interval '19 hours'
 FROM auth.users WHERE email = 'test@test.com';
 
 COMMIT;
