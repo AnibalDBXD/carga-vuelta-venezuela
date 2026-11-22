@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 
@@ -20,9 +20,8 @@ export function AppHeader() {
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur">
       <div className="h-1 hazard-stripe" />
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4">
-        <Link to="/" className="flex items-center gap-2 font-bold tracking-tight">
-          <span className="grid h-8 w-8 place-items-center rounded bg-primary text-primary-foreground"><Truck className="h-4 w-4" /></span>
-          CargaRuta
+        <Link to="/" className="flex items-center gap-2.5">
+          <Logo />
         </Link>
         <nav className="hidden items-center gap-5 md:flex">
           <Link to="/bolsa" className={link}>Bolsa de viajes</Link>

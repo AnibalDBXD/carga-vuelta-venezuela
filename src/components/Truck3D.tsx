@@ -29,11 +29,12 @@ type Props = {
   colorKeys?: string[];
   highlightedOrder?: number;
   className?: string;
+  spin?: boolean;
 };
 
 // Look estándar (specs/002-vistas-3d.md): canvas transparente, sin fondo ni
 // piso — el camión flota sobre la página.
-export default function Truck3D({ kind, length, width, height, boxes = [], colorKeys = [], className, highlightedOrder }: Props) {
+export default function Truck3D({ kind, length, width, height, boxes = [], colorKeys = [], className, highlightedOrder, spin = false }: Props) {
   const L = length / 100, W = width / 100, H = height / 100;
   const s = spec(kind, L, W);
   const open = kind === "pickup" || kind === "auto";
@@ -81,7 +82,7 @@ export default function Truck3D({ kind, length, width, height, boxes = [], color
             </Html>
           </group>
         </group>
-        <OrbitControls makeDefault target={[0, 1, 0]} maxPolarAngle={Math.PI / 2.05} />
+        <OrbitControls makeDefault target={[0, 1, 0]} maxPolarAngle={Math.PI / 2.05} autoRotate={spin} autoRotateSpeed={0.35} />
       </Canvas>
     </div>
   );
