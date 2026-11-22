@@ -9,6 +9,8 @@ import { groupTrips } from "@/lib/trip-groups";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShareTrip } from "@/components/TripRequests";
+import { ConnectTelegram } from "@/components/ConnectTelegram";
+import { McpAccess } from "@/components/McpAccess";
 
 export const Route = createFileRoute("/_authenticated/panel/viajes/")({
   head: () => ({
@@ -145,26 +147,22 @@ function Viajes() {
   };
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="font-mono text-xs uppercase tracking-widest text-primary">
-            Panel del conductor
-          </p>
-          <h1
-            className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
-            style={{ viewTransitionName: "page-title" }}
-          >
-            Mis viajes
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            Cada viaje guarda su plan de carga; desde acá puedes repetirlo o planear el regreso.
-          </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1
+          className="text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
+          style={{ viewTransitionName: "page-title" }}
+        >
+          Mis viajes
+        </h1>
+        <div className="flex items-center gap-2">
+          <ConnectTelegram />
+          <McpAccess />
+          <Button asChild>
+            <Link to="/panel/viajes/nuevo" search={{}}>
+              Nuevo viaje
+            </Link>
+          </Button>
         </div>
-        <Button asChild>
-          <Link to="/panel/viajes/nuevo" search={{}}>
-            Nuevo viaje
-          </Link>
-        </Button>
       </div>
       <div className="mt-8 space-y-3">
         {isLoading && (

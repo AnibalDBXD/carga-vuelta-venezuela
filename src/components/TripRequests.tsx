@@ -6,6 +6,7 @@ import {
   Check,
   Copy,
   Download,
+  Send,
   Share2,
   X,
   Package,
@@ -23,7 +24,8 @@ import { canvasToBlob, PROMO_FORMATS, renderPromoCard, type PromoFormat } from "
 import { useSession } from "@/hooks/use-session";
 import { formatBs, formatUsd } from "@/lib/pago-movil";
 import { clientTotalUsd, type RequestStatus } from "@/lib/package-request";
-import { getExchangeRate, notifyRequester } from "@/lib/payments.functions";
+import { getExchangeRate, notifyRequester, notifyRequesterPaid } from "@/lib/payments.functions";
+import { getBotInfo } from "@/lib/telegram.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -148,6 +150,13 @@ export function ShareTrip({
         if (seq === renderSeq.current) toast.error("No se pudo generar la imagen");
       });
   }, [canvasEl, open, url, owner, stops, format, trip, vehicle, freeM3, freeKg, routeMapUrl]);
+  // Username del bot para el deep-link de Telegram (asistente que toma la
+  // solicitud por chat). Si no hay bot configurado, el botón no aparece.
+  const { data: bot } = useQuery({
+    queryKey: ["telegram-bot"],
+    queryFn: () => getBotInfo(),
+    staleTime: 10 * 60 * 1000,
+  });
   // El enlace compartido es la oferta de la bolsa del viaje (un solo flujo público).
   const { data: offer } = useQuery({
     queryKey: ["trip-offer", trip.id],
@@ -300,7 +309,18 @@ export function ShareTrip({
           quedan pendientes hasta que los aceptes.
         </p>
         <div className="flex flex-wrap gap-2">
-          <Button disabled={busy || !url} onClick={copy}>
+          {bot?.username && offer?.id && (
+            <Button asChild disabled={!url}>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href={`https://t.me/${bot.username}?start=offer_${offer.id}`}
+              >
+                <Send /> Telegram
+              </a>
+            </Button>
+          )}
+          <Button variant="outline" disabled={busy || !url} onClick={copy}>
             <Copy /> Copiar enlace
           </Button>
           <Button asChild variant="outline" disabled={!url}>
@@ -481,6 +501,7 @@ export function TripRequests({
           p_request: id,
         });
         if (!cancelled && !error && result === "paid") {
+          void notifyRequesterPaid({ data: { requestId: id } }).catch(() => undefined);
           void refresh();
           toast.success("Pago confirmado: la carga entró al viaje");
           return;

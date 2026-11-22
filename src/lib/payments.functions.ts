@@ -1,8 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { publicClient, serviceClient } from "./package-requests.functions";
+import {
+  publicClient,
+  serviceClient,
+  telegramChatIdsForRequest,
+  telegramChatIdsForUser,
+} from "./package-requests.functions";
 import { getBcvRate } from "./bcv";
-import { sendMail, sendPush, appUrl, type PushSubscriptionRow } from "./notify";
+import { sendMail, sendPush, sendTelegram, appUrl, type PushSubscriptionRow } from "./notify";
 import { clientTotalUsd, type PaymentSummary } from "./package-request";
 import { cityName } from "./venezuela";
 
@@ -174,52 +179,159 @@ export const requestPaymentLinks = createServerFn({ method: "POST" })
     return { sent: true };
   });
 
-// Tras aceptar, el cliente llama esto: envía correo + push una sola vez (notified_at).
+// Núcleo compartido: correo + push + Telegram al solicitante una sola vez
+// (guard notified_at). Lo llaman el server fn (flujo web) y el bot (cuando el
+// conductor acepta desde Telegram).
+export async function notifyRequesterAccepted(requestId: string): Promise<{ notified: boolean }> {
+  const admin = serviceClient();
+  const { data: request } = await admin
+    .from("package_requests")
+    .update({ notified_at: new Date().toISOString() })
+    .eq("id", requestId)
+    .eq("status", "awaiting_payment")
+    .is("notified_at", null)
+    .select("id, email, sender_name, amount_usd, total_usd, trip_id")
+    .maybeSingle();
+  if (!request) return { notified: false };
+  const { data: trip } = await admin
+    .from("trips")
+    .select("origin, destination, departure_date")
+    .eq("id", request.trip_id)
+    .single();
+  const { data: subs } = await admin
+    .from("push_subscriptions")
+    .select("id, endpoint, p256dh, auth")
+    .eq("request_id", requestId);
+  const chatIds = await telegramChatIdsForRequest(requestId);
+  const route = trip ? `${cityName(trip.origin)} → ${cityName(trip.destination)}` : "tu viaje";
+  // El monto avisado es lo que paga el cliente (total_usd), no el neto del conductor.
+  const totalUsd = clientTotalUsd(request.amount_usd, request.total_usd);
+  const amount = totalUsd
+    ? `$${Number(totalUsd).toLocaleString("es-VE", { minimumFractionDigits: 2 })}`
+    : "";
+  const payUrl = `${appUrl()}/pagos/${request.id}`;
+  const subject = "Aceptaron tu carga — falta el pago";
+  const text = `${request.sender_name}: el conductor aceptó tu carga en el viaje ${route} (${trip?.departure_date ?? ""}) por ${amount} USD.\n\nPaga aquí (datos de pago móvil y QR): ${payUrl}`;
+  const html = `<p><strong>${request.sender_name}</strong>: el conductor aceptó tu carga en el viaje <strong>${route}</strong> (${trip?.departure_date ?? ""}) por <strong>${amount} USD</strong>.</p><p><a href="${payUrl}">Pagar ahora con pago móvil</a> — verás los datos del banco y el QR.</p>`;
+  const results = await Promise.allSettled([
+    sendMail({ to: request.email, subject, text, html }),
+    ...(subs ?? []).map(async (sub) => {
+      const state = await sendPush(sub as PushSubscriptionRow, {
+        title: "Aceptaron tu carga",
+        body: `${route} · ${amount} USD — toca para pagar`,
+        url: payUrl,
+      });
+      if (state === "gone") await admin.from("push_subscriptions").delete().eq("id", sub.id);
+    }),
+    ...chatIds.map((chatId) =>
+      sendTelegram(
+        chatId,
+        `¡Aceptaron tu carga! El conductor tomó tu encomienda en el viaje ${route} (${trip?.departure_date ?? ""}) por ${amount} USD.\n\nPídeme los datos de pago móvil escribiendo «pagar» y envíame aquí la foto del comprobante. También puedes pagar en ${payUrl}`,
+      ),
+    ),
+  ]);
+  results.forEach((r) => {
+    if (r.status === "rejected") console.error("[notify]", r.reason);
+  });
+  return { notified: true };
+}
+
+// Tras aceptar, el cliente llama esto: correo + push + Telegram una sola vez.
 export const notifyRequester = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ requestId: z.string().uuid() }).parse(input))
-  .handler(async ({ data }) => {
-    const admin = serviceClient();
-    const { data: request } = await admin
-      .from("package_requests")
-      .update({ notified_at: new Date().toISOString() })
-      .eq("id", data.requestId)
-      .eq("status", "awaiting_payment")
-      .is("notified_at", null)
-      .select("id, email, sender_name, amount_usd, total_usd, trip_id")
-      .maybeSingle();
-    if (!request) return { notified: false };
-    const { data: trip } = await admin
-      .from("trips")
-      .select("origin, destination, departure_date")
-      .eq("id", request.trip_id)
-      .single();
-    const { data: subs } = await admin
-      .from("push_subscriptions")
-      .select("id, endpoint, p256dh, auth")
-      .eq("request_id", data.requestId);
-    const route = trip ? `${cityName(trip.origin)} → ${cityName(trip.destination)}` : "tu viaje";
-    // El monto avisado es lo que paga el cliente (total_usd), no el neto del conductor.
-    const totalUsd = clientTotalUsd(request.amount_usd, request.total_usd);
-    const amount = totalUsd
-      ? `$${Number(totalUsd).toLocaleString("es-VE", { minimumFractionDigits: 2 })}`
-      : "";
-    const payUrl = `${appUrl()}/pagos/${request.id}`;
-    const subject = "Aceptaron tu carga — falta el pago";
-    const text = `${request.sender_name}: el conductor aceptó tu carga en el viaje ${route} (${trip?.departure_date ?? ""}) por ${amount} USD.\n\nPaga aquí (datos de pago móvil y QR): ${payUrl}`;
-    const html = `<p><strong>${request.sender_name}</strong>: el conductor aceptó tu carga en el viaje <strong>${route}</strong> (${trip?.departure_date ?? ""}) por <strong>${amount} USD</strong>.</p><p><a href="${payUrl}">Pagar ahora con pago móvil</a> — verás los datos del banco y el QR.</p>`;
-    const results = await Promise.allSettled([
-      sendMail({ to: request.email, subject, text, html }),
-      ...(subs ?? []).map(async (sub) => {
-        const state = await sendPush(sub as PushSubscriptionRow, {
-          title: "Aceptaron tu carga",
-          body: `${route} · ${amount} USD — toca para pagar`,
-          url: payUrl,
-        });
-        if (state === "gone") await admin.from("push_subscriptions").delete().eq("id", sub.id);
-      }),
-    ]);
-    results.forEach((r) => {
-      if (r.status === "rejected") console.error("[notify]", r.reason);
-    });
-    return { notified: true };
+  .handler(({ data }) => notifyRequesterAccepted(data.requestId));
+
+// Pago confirmado: aviso una sola vez (guard paid_notified_at) por correo +
+// Telegram. Núcleo compartido entre el server fn y el bot.
+export async function notifyRequesterPaidCore(requestId: string): Promise<{ notified: boolean }> {
+  const admin = serviceClient();
+  const { data: request } = await admin
+    .from("package_requests")
+    .update({ paid_notified_at: new Date().toISOString() })
+    .eq("id", requestId)
+    .eq("status", "paid")
+    .is("paid_notified_at", null)
+    .select("id, email, sender_name, trip_id")
+    .maybeSingle();
+  if (!request) return { notified: false };
+  const { data: trip } = await admin
+    .from("trips")
+    .select("origin, destination, departure_date")
+    .eq("id", request.trip_id)
+    .single();
+  const route = trip ? `${cityName(trip.origin)} → ${cityName(trip.destination)}` : "tu viaje";
+  const chatIds = await telegramChatIdsForRequest(requestId);
+  const results = await Promise.allSettled([
+    sendMail({
+      to: request.email,
+      subject: "Pago confirmado — tu carga ya va en el viaje",
+      text: `${request.sender_name}: confirmamos tu pago. Tu carga ya está montada en el viaje ${route} (${trip?.departure_date ?? ""}).`,
+      html: `<p><strong>${request.sender_name}</strong>: confirmamos tu pago. Tu carga ya está montada en el viaje <strong>${route}</strong> (${trip?.departure_date ?? ""}).</p>`,
+    }),
+    ...chatIds.map((chatId) =>
+      sendTelegram(
+        chatId,
+        `Pago confirmado. Tu carga ya quedó montada en el viaje ${route} (${trip?.departure_date ?? ""}). ¡Buen viaje!`,
+      ),
+    ),
+  ]);
+  results.forEach((r) => {
+    if (r.status === "rejected") console.error("[notify-paid]", r.reason);
   });
+  return { notified: true };
+}
+
+export const notifyRequesterPaid = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({ requestId: z.string().uuid() }).parse(input))
+  .handler(({ data }) => notifyRequesterPaidCore(data.requestId));
+
+// El solicitante subió el comprobante: avisar al conductor (correo + Telegram)
+// para que sepa que el pago está en verificación. Núcleo compartido entre el
+// server fn (web) y el bot (foto por chat).
+export async function notifyDriverOfProof(requestId: string): Promise<{ notified: boolean }> {
+  const admin = serviceClient();
+  const { data: request } = await admin
+    .from("package_requests")
+    .select("id, sender_name, status, trip_id")
+    .eq("id", requestId)
+    .maybeSingle();
+  if (!request || request.status !== "payment_review") return { notified: false };
+  const { data: trip } = await admin
+    .from("trips")
+    .select("user_id, origin, destination")
+    .eq("id", request.trip_id)
+    .maybeSingle();
+  if (!trip) return { notified: false };
+  const route = `${cityName(trip.origin)} → ${cityName(trip.destination)}`;
+  const url = `${appUrl()}/panel/viajes/${request.trip_id}`;
+  const jobs: Promise<unknown>[] = [];
+  for (const chatId of await telegramChatIdsForUser(trip.user_id)) {
+    jobs.push(
+      sendTelegram(
+        chatId,
+        `${request.sender_name} subió el comprobante de pago en tu viaje ${route}. Se está verificando; si confirma, la carga entra sola al plan. Revisa el comprobante: ${url}`,
+      ),
+    );
+  }
+  const { data: user, error } = await admin.auth.admin.getUserById(trip.user_id);
+  const email = user?.user?.email;
+  if (!error && email) {
+    jobs.push(
+      sendMail({
+        to: email,
+        subject: "Comprobante recibido — verificando pago",
+        text: `${request.sender_name} subió el comprobante de pago en tu viaje ${route}. Revisa el comprobante: ${url}`,
+        html: `<p><strong>${request.sender_name}</strong> subió el comprobante de pago en tu viaje <strong>${route}</strong>.</p><p><a href="${url}">Revisar el comprobante</a></p>`,
+      }),
+    );
+  }
+  const results = await Promise.allSettled(jobs);
+  results.forEach((r) => {
+    if (r.status === "rejected") console.error("[notify-proof]", r.reason);
+  });
+  return { notified: true };
+}
+
+export const notifyDriverProof = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({ requestId: z.string().uuid() }).parse(input))
+  .handler(({ data }) => notifyDriverOfProof(data.requestId));

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   citiesAlongGeometry,
   corridorProjection,
+  distanceToLine,
   encodePolyline,
   googleMapsDirUrl,
   orderStops,
@@ -228,5 +229,31 @@ describe("simplifyToMaxPoints", () => {
     expect(out.length).toBeLessThanOrEqual(20);
     expect(out[0]).toEqual(zig[0]);
     expect(out.at(-1)).toEqual(zig.at(-1));
+  });
+});
+
+describe("distanceToLine", () => {
+  it("punto sobre la ruta: distancia ~0 y t por su posición", () => {
+    // Maracay es el vértice medio del ARC.
+    const { dKm, t } = distanceToLine(ARC, [-67.5958, 10.2469]);
+    expect(dKm).toBeLessThan(0.5);
+    expect(t).toBeCloseTo(0.5, 1);
+  });
+
+  it("punto detrás del origen queda con t negativa", () => {
+    // Un punto al oeste de Valencia (inicio del ARC).
+    const { t, dKm } = distanceToLine(ARC, [-68.5, 10.1]);
+    expect(t).toBeLessThan(0.05);
+    expect(dKm).toBeGreaterThan(20);
+  });
+
+  it("punto lejos de la ruta reporta la distancia real", () => {
+    // Maturín (~10.6, -63.2) está a cientos de km del ARC.
+    const { dKm } = distanceToLine(ARC, [-63.2, 10.6]);
+    expect(dKm).toBeGreaterThan(200);
+  });
+
+  it("línea vacía devuelve distancia infinita", () => {
+    expect(distanceToLine({ type: "LineString", coordinates: [] }, [-67, 10]).dKm).toBe(Infinity);
   });
 });

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -16,6 +17,7 @@ import {
   ListOrdered,
   RotateCcw,
   Trash2,
+  TruckIcon,
   X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +40,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ShareTrip, TripRequests } from "@/components/TripRequests";
+import { notifyTripDeparture } from "@/lib/tracking.functions";
+import { formatWhen } from "@/lib/utils";
 import { useSession } from "@/hooks/use-session";
 
 export const Route = createFileRoute("/_authenticated/panel/viajes/$id")({
@@ -122,6 +126,7 @@ function Trip() {
   const { data: fetched } = useQuery(
     tripRouteQuery(trip?.origin ?? "", trip?.destination ?? "", stops),
   );
+  const notifyDeparture = useServerFn(notifyTripDeparture);
   if (isLoading) return <TripDetailSkeleton />;
   if (!trip) return <main className="p-10">Viaje no encontrado.</main>;
   const v = trip.vehicles;
@@ -161,11 +166,16 @@ function Trip() {
     void qc.invalidateQueries({ queryKey: ["trips"] });
   };
   // Al completar se despublica el espacio en la bolsa; al reabrir no se
-  // reactiva: el conductor la reabre desde ShareTrip si quiere.
+  // reactiva: el conductor la reabre desde ShareTrip si quiere. Si nunca marcó
+  // "Salí", completar implica que salió: se rellena en el mismo update.
   const setCompleted = async (done: boolean) => {
+    const now = new Date().toISOString();
     const { error } = await supabase
       .from("trips")
-      .update({ completed_at: done ? new Date().toISOString() : null })
+      .update({
+        completed_at: done ? now : null,
+        ...(done && trip?.departed_at == null ? { departed_at: now } : {}),
+      })
       .eq("id", id);
     if (error) return void toast.error("No se pudo actualizar el viaje");
     if (done) await supabase.from("return_offers").update({ active: false }).eq("trip_id", id);
@@ -173,6 +183,14 @@ function Trip() {
     void qc.invalidateQueries({ queryKey: ["trips"] });
     void qc.invalidateQueries({ queryKey: ["return_offers"] });
     toast.success(done ? "Viaje marcado como completado" : "Viaje reabierto");
+  };
+  // Salida real del camión: alimenta "En camino" y la ETA en la página del cliente.
+  const depart = async () => {
+    const { error } = await supabase.rpc("depart_trip", { p_trip: id });
+    if (error) return void toast.error(error.message || "No se pudo marcar la salida");
+    void notifyDeparture({ data: { tripId: id } }).catch(() => undefined);
+    void qc.invalidateQueries({ queryKey: ["trip", id] });
+    toast.success("Salida marcada — los solicitantes fueron avisados");
   };
 
   return (
@@ -195,6 +213,11 @@ function Trip() {
         {trip.completed_at !== null && (
           <span className="rounded border border-primary/40 px-2 py-0.5 font-mono text-xs text-primary">
             Completado
+          </span>
+        )}
+        {trip.departed_at !== null && (
+          <span className="flex items-center gap-1 rounded border border-border px-2 py-0.5 font-mono text-xs text-muted-foreground">
+            <TruckIcon className="h-3 w-3" /> Salió {formatWhen(trip.departed_at)}
           </span>
         )}
       </div>
@@ -313,6 +336,11 @@ function Trip() {
         <span className="text-sm text-muted-foreground">
           {visible.length} de {steps.length} bultos visibles
         </span>
+        {trip.completed_at === null && trip.departed_at === null && (
+          <Button variant="outline" onClick={() => void depart()}>
+            <TruckIcon /> Salí
+          </Button>
+        )}
         {trip.completed_at === null ? (
           <Button variant="outline" onClick={() => void setCompleted(true)}>
             <CheckCheck /> Marcar como completado

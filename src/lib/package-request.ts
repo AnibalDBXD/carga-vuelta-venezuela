@@ -59,6 +59,9 @@ export type PaymentSummary = {
   origin: string;
   destination: string;
   departure_date: string;
+  departure_time: string | null;
+  departed_at: string | null;
+  completed_at: string | null;
   vehicle_kind: string | null;
   package: (Pkg & { pickup?: string; recipient?: string })[];
   sender_name: string;
@@ -66,6 +69,7 @@ export type PaymentSummary = {
   total_usd: number | null;
   status: RequestStatus;
   has_proof: boolean;
+  paid_at: string | null;
   payment_expires_at: string | null;
   payment_method: RequestPaymentMethod | null;
 };

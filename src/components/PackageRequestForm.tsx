@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Bell, CheckCircle2, CreditCard, Package, Plus, Send, X } from "lucide-react";
 import type { Pkg } from "@/lib/packing";
@@ -7,6 +8,7 @@ import { CARGO_PRESETS, type CargoPreset } from "@/lib/venezuela";
 import type { PackageRequestBody } from "@/lib/package-request";
 import { subscribeToRequest, pushSupported } from "@/lib/push-client";
 import { rememberRequest } from "@/lib/my-requests";
+import { getBotInfo } from "@/lib/telegram.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -101,6 +103,12 @@ export function PackageRequestForm({
   } | null>(null);
   const [busy, setBusy] = useState(false);
   const [requestId, setRequestId] = useState<string | undefined>();
+  const { data: bot } = useQuery({
+    queryKey: ["telegram-bot"],
+    queryFn: () => getBotInfo(),
+    enabled: requestId !== undefined,
+    staleTime: 10 * 60 * 1000,
+  });
   const [push, setPush] = useState<"idle" | "busy" | "done">("idle");
   const [error, setError] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -242,6 +250,22 @@ export function PackageRequestForm({
               <CreditCard /> Ir a mi página de pago
             </Link>
           </Button>
+        )}
+        {bot?.username && requestId && (
+          <div>
+            <Button asChild variant="outline" className="mt-4">
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href={`https://t.me/${bot.username}?start=req_${requestId}`}
+              >
+                <Send /> Continuar en Telegram
+              </a>
+            </Button>
+            <p className="mt-2 text-sm text-muted-foreground">
+              El asistente te avisa cuando te acepten y toma tu pago por chat.
+            </p>
+          </div>
         )}
         {pushSupported() && requestId && (
           <div className="mt-3">

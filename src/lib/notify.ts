@@ -1,6 +1,8 @@
-// Notificaciones al solicitante: correo (SMTP o Mailpit local) y Web Push.
-// Solo corre en servidor (desde createServerFn); las dependencias de Node se
-// importan dinámicamente para que no entren al bundle del cliente.
+// Notificaciones al solicitante: correo (SMTP o Mailpit local), Web Push y
+// Telegram (bot). Solo corre en servidor (desde createServerFn); las
+// dependencias de Node se importan dinámicamente para que no entren al bundle
+// del cliente.
+import { sendMessage, telegramConfigured, type TgMarkup } from "./telegram";
 
 export function appUrl(): string {
   return process.env["APP_URL"] ?? "http://localhost:5173";
@@ -42,6 +44,15 @@ export async function sendMail(msg: {
     return;
   }
   console.log(`[mail:skip] sin SMTP_URL ni MAILPIT_URL → ${msg.to}: ${msg.subject}`);
+}
+
+/** Telegram al chat vinculado. Silencioso si el bot no está configurado. */
+export async function sendTelegram(chatId: number, text: string, markup?: TgMarkup): Promise<void> {
+  if (!telegramConfigured()) {
+    console.log(`[tg:skip] sin TELEGRAM_BOT_TOKEN → ${chatId}`);
+    return;
+  }
+  await sendMessage(chatId, text, markup ? { markup } : undefined);
 }
 
 export type PushSubscriptionRow = { endpoint: string; p256dh: string; auth: string };
