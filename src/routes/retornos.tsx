@@ -32,10 +32,10 @@ function Retornos() {
     },
   });
   const list = data.filter((o) => (!origin || o.origin === origin) && (!dest || o.destination === dest));
-  const sel = "h-9 rounded-md border border-input bg-background px-3 text-sm";
+  const sel = "h-9 rounded-md border border-input bg-card px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="text-3xl font-bold">Bolsa de cargas de retorno</h1>
+      <h1 className="text-4xl font-bold leading-[1.1] tracking-[-0.02em] md:text-[2.5rem]">Bolsa de cargas de retorno</h1>
       <p className="mt-2 text-muted-foreground">Camiones con espacio libre en su viaje de regreso. Contacta directo por WhatsApp.</p>
       <div className="mt-6 flex flex-wrap gap-3">
         <select className={sel} value={origin} onChange={(e) => setOrigin(e.target.value)} aria-label="Origen">

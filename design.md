@@ -51,11 +51,13 @@ Reglas del símbolo:
 
 ### 1.2 Wordmark
 
-- Tipografía: **Stencil** (esténcil de carga), mayúsculas.
+- Tipografía: **Saira Stencil One** (equivalente libre de Stencil, servida desde Google Fonts).
+  El lockup de presentación se compuso con Stencil; para web se usa Saira Stencil One, que mantiene
+  el corte de esténcil a partir de 40 px y se comporta como una condensada limpia por debajo.
 - `CARGA` en Blanco de borde `#EFEDE3` · `RUTA` en Línea amarilla `#F7CE1E`.
 - Sin espacio tipográfico entre las palabras: la separación la hace el color.
-- Tracking `+3` a 88 px; el esténcil necesita aire o los puentes se tapan.
-- Peso único (Stencil no tiene variantes): el contraste lo dan el color y el esténcil.
+- Tracking `+0.03em`, mayúsculas siempre. En el header va a 17 px; el esténcil aparece a partir de 40 px.
+- Peso único (la familia no tiene variantes): el contraste lo dan el color y el esténcil.
 
 ### 1.3 Lockup y proporciones
 
@@ -167,9 +169,10 @@ Tres familias, tres funciones. No se agrega una cuarta.
 
 ### 3.1 Wordmark
 
-Ver §1.2. Stencil es fuente de sistema de Windows: **pendiente vectorizar** el wordmark para que
-sea idéntico en web, móvil e impresión. Mientras tanto, el logo no se reproduce con texto vivo
-en la app: se usa el SVG exportado.
+La web renderiza el wordmark con **Saira Stencil One** desde Google Fonts (ver §1.2), aplicada por
+`--font-brand` en `src/styles.css` y encapsulada en `src/components/Logo.tsx`. El lockup vectorial
+con Stencil sigue siendo la referencia para impresión: **pendiente vectorizar** el wordmark para
+que impresión y web sean idénticas.
 
 ### 3.2 Escala de interfaz (Space Grotesk)
 
@@ -258,11 +261,14 @@ Assets actuales en `public/`:
 |---|---|
 | `propuesta-2-curva-asfalto-nocturno.svg` / `.png` | lockup principal, 1080 × 1080 |
 | `paleta-asfalto-nocturno.svg` / `.png` | lámina de paleta, 1080 × 1080 |
+| `public/favicon.svg` | símbolo sobre Asfalto, 64 × 64 |
 | `tipografia-opciones.png` | referencia de tipografías evaluadas (descartable) |
+| `src/components/Logo.tsx` | `<LogoMark />`, `<LogoWordmark />`, `<Logo />` |
 
 Pendientes técnicos:
 
-1. **Vectorizar el wordmark** (Stencil → curvas) y publicar `logo.svg` + `logo-mark.svg`.
-2. **Favicon**: símbolo solo, 32 px, sobre Asfalto.
-3. **Tokens**: aplicar §2.4 en `src/styles.css` (un solo commit, sin tocar componentes).
-4. **Componente `<Logo />`**: variantes `mark` / `full`, tamaños por token, sin fuente externa.
+1. **Vectorizar el wordmark** (Stencil → curvas) para impresión; la web ya usa Saira Stencil One.
+2. **Tokens**: §2.4 ya aplicado en `src/styles.css` (incluye `color-scheme: dark` para los
+   desplegables nativos).
+3. **Controles nativos**: los `<select>` deben usar `bg-card`, no `bg-background`; si no, se
+   confunden con el fondo de la página.
