@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Boxes, Calculator, Layers, MapPin, Share2, Wallet } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RoleBenefits } from "@/components/RoleBenefits";
 import { RouteMatch } from "@/components/RouteMatch";
 import { Truck3DView } from "@/components/Truck3DLazy";
 import { packCargo } from "@/lib/packing";
@@ -133,56 +134,7 @@ function Index() {
           </p>
         </div>
       </section>
-      <section className="mx-auto max-w-6xl px-4 py-14">
-        <p className="font-mono text-xs uppercase tracking-widest text-primary">Beneficios</p>
-        <h2 className="mt-3 max-w-2xl text-3xl font-bold leading-tight md:text-4xl">
-          Carga en los dos sentidos.
-        </h2>
-        <p className="mt-3 max-w-2xl text-muted-foreground">
-          Hacer un viaje de ida y vuelta con un tramo vacío es dinero que se queda en la carretera.
-          Esto es lo que ya hace la app para evitarlo.
-        </p>
-        <div className="mt-10 grid gap-x-10 gap-y-8 md:grid-cols-2 lg:grid-cols-3">
-          {[
-            {
-              icon: Share2,
-              t: "El viaje se comparte, no se pierde",
-              d: "Planificas la ida y la vuelta, publicas el espacio en la bolsa y quien necesita esa ruta envía su solicitud. Tú apruebas qué sube y fijas el monto en dólares.",
-            },
-            {
-              icon: Wallet,
-              t: "El espacio también paga",
-              d: "Publicas los m³ y los kg disponibles y el solicitante paga el flete en la plataforma, en bolívares a la tasa BCV. Tú recibes la liquidación del viaje.",
-            },
-            {
-              icon: MapPin,
-              t: "La carga ya va para allá",
-              d: "La bolsa filtra por origen y destino: quien necesita mover algo ve los camiones que ya salen hacia su ciudad, en ida o en vuelta.",
-            },
-            {
-              icon: Boxes,
-              t: "Entra lo que de verdad cabe",
-              d: "El acomodo 3D respeta el peso máximo, apila lo pesado abajo y no pone nada sobre lo frágil. Antes de cerrar la puerta sabes cuánto espacio queda.",
-            },
-            {
-              icon: Calculator,
-              t: "Flete cotizado con números",
-              d: "Mapbox traza la ruta real con sus kilómetros y horas; la app agrega peajes, alcabalas y distancias aproximadas para poner precio sin adivinar.",
-            },
-            {
-              icon: Layers,
-              t: "Se carga una sola vez",
-              d: "La guía ordena el montaje por capas y por paso, con el orden de descarga incluido. La cuadrilla no reacomoda a mitad de ruta.",
-            },
-          ].map(({ icon: Icon, t, d }) => (
-            <div key={t} className="border-t border-border pt-5">
-              <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
-              <h3 className="mt-3 text-base font-bold">{t}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{d}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <RoleBenefits />
     </main>
   );
 }
