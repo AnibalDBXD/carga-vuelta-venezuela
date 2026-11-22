@@ -50,7 +50,8 @@ function Bolsa() {
   );
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="text-3xl font-bold">Bolsa de viajes</h1>
+      <p className="font-mono text-xs uppercase tracking-widest text-primary">Espacio disponible</p>
+      <h1 className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]">Bolsa de viajes</h1>
       <p className="mt-2 text-muted-foreground">
         Camiones con espacio libre para tu carga. Envía tu solicitud y el conductor te contactará.
       </p>

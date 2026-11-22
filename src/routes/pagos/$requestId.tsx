@@ -95,7 +95,7 @@ function PaymentPage() {
       <p className="flex items-center gap-2 font-mono text-xs uppercase text-primary">
         <CreditCard className="h-4 w-4" /> Pago de tu carga
       </p>
-      <h1 className="mt-2 text-3xl font-bold">
+      <h1 className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]">
         {cityName(s.origin)} → {cityName(s.destination)}
       </h1>
       <p className="mt-1 text-sm text-muted-foreground">

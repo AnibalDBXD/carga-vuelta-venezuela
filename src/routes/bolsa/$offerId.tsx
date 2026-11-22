@@ -90,7 +90,7 @@ function OfferPage() {
         <Truck className="h-4 w-4" /> Espacio disponible · {offer.available_date}
         {offer.available_time ? ` · ${offer.available_time.slice(0, 5)}` : ""}
       </p>
-      <h1 className="mt-2 text-3xl font-bold">
+      <h1 className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]">
         {cityName(offer.origin)} → {cityName(offer.destination)}
       </h1>
       {(() => {

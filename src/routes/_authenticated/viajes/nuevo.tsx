@@ -118,7 +118,7 @@ function NuevoViaje() {
     navigate({ to: "/viajes/$id", params: { id: data.id } });
   };
 
-  const sel = "h-9 w-full rounded-md border border-input bg-background px-3 text-sm";
+  const sel = "h-9 w-full rounded-md border border-input bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
   if (!isLoading && vehicles.length === 0)
     return (
       <main className="mx-auto max-w-xl px-4 py-16 text-center">
@@ -134,7 +134,7 @@ function NuevoViaje() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="text-3xl font-bold">{regreso ? "Planear viaje de regreso" : "Nuevo viaje"}</h1>
+      <h1 className="text-4xl font-bold leading-[1.1] tracking-[-0.02em]">{regreso ? "Planear viaje de regreso" : "Nuevo viaje"}</h1>
       <form onSubmit={submit} className="mt-6 space-y-6">
         <section className="grid gap-4 rounded-lg border border-border bg-card p-5 md:grid-cols-4">
           <CityField id="origin" label="Origen" value={origin} onChange={setOrigin} />

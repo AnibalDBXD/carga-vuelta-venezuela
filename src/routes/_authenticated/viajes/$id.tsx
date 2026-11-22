@@ -71,7 +71,7 @@ function Trip() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
       <p className="font-mono text-xs uppercase tracking-widest text-primary">{trip.is_return ? "Viaje de regreso · " : ""}{trip.departure_date}{trip.departure_time ? ` · ${trip.departure_time.slice(0, 5)}` : ""} · {v.name}</p>
-      <h1 className="mt-1 text-3xl font-bold">{cityName(trip.origin)} → {cityName(trip.destination)}</h1>
+      <h1 className="mt-1 text-4xl font-bold leading-[1.1] tracking-[-0.02em]">{cityName(trip.origin)} → {cityName(trip.destination)}</h1>
       {route && <p className="mt-2 text-sm text-muted-foreground">≈ {route.km} km · {route.hours} h de manejo · {route.via} · ~{route.checkpoints} alcabalas · ~{route.tolls} peajes{route.source === "estimate" && " · estimado"}</p>}
 
       {fromCity && toCity && (
@@ -108,7 +108,7 @@ function Trip() {
         {trip.is_return && <ShareTrip trip={trip} vehicle={v} freeM3={result.freeM3} freeKg={result.freeKg} />}
         <Button disabled={steps.length === 0} onClick={() => { setLayer(null); setStep(1); }}><ListOrdered /> {step === null ? "Guiar montaje paso a paso" : "Reiniciar guía"}</Button>
         <Label htmlFor="cargo-layer" className="flex items-center gap-2"><Layers className="h-4 w-4" /> Capas</Label>
-        <select id="cargo-layer" className="h-9 max-w-full rounded-md border border-input bg-background px-3 text-sm text-foreground" value={layer === null ? "all" : String(layer)} onChange={(e) => setLayer(e.target.value === "all" ? null : Number(e.target.value))}>
+        <select id="cargo-layer" className="h-9 max-w-full rounded-md border border-input bg-card px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" value={layer === null ? "all" : String(layer)} onChange={(e) => setLayer(e.target.value === "all" ? null : Number(e.target.value))}>
           <option value="all">Todas las capas</option>
           {layers.map((z, i) => <option key={z} value={z}>Capa {i + 1} · {z === 0 ? "Piso" : `Base a ${z} cm`}</option>)}
         </select>

@@ -59,6 +59,7 @@
   --color-success: var(--success);
   --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-brand: "Saira Stencil One", "Stencil", ui-sans-serif, sans-serif;
   --color-ring-offset-background: var(--background);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -77,39 +78,41 @@
 
 :root {
   --radius: 0.375rem;
-  --background: oklch(0.17 0.008 260);
-  --foreground: oklch(0.96 0.005 90);
-  --card: oklch(0.21 0.009 260);
-  --card-foreground: oklch(0.96 0.005 90);
-  --popover: oklch(0.21 0.009 260);
-  --popover-foreground: oklch(0.96 0.005 90);
-  --primary: oklch(0.86 0.17 92);
-  --primary-foreground: oklch(0.17 0.008 260);
-  --secondary: oklch(0.27 0.01 260);
-  --secondary-foreground: oklch(0.96 0.005 90);
-  --muted: oklch(0.25 0.008 260);
-  --muted-foreground: oklch(0.7 0.01 260);
-  --accent: oklch(0.3 0.012 260);
-  --accent-foreground: oklch(0.96 0.005 90);
-  --destructive: oklch(0.65 0.21 27);
+  color-scheme: dark;
+  /* Paleta de marca: Asfalto Nocturno. Ver design.md §2. */
+  --background: oklch(0.2 0.009 264.4);
+  --foreground: oklch(0.945 0.013 97.4);
+  --card: oklch(0.275 0.016 259.8);
+  --card-foreground: oklch(0.945 0.013 97.4);
+  --popover: oklch(0.275 0.016 259.8);
+  --popover-foreground: oklch(0.945 0.013 97.4);
+  --primary: oklch(0.862 0.172 93.8);
+  --primary-foreground: oklch(0.2 0.009 264.4);
+  --secondary: oklch(0.33 0.014 260);
+  --secondary-foreground: oklch(0.945 0.013 97.4);
+  --muted: oklch(0.305 0.012 260);
+  --muted-foreground: oklch(0.597 0.014 255.5);
+  --accent: oklch(0.35 0.016 260);
+  --accent-foreground: oklch(0.945 0.013 97.4);
+  --destructive: oklch(0.641 0.178 27.6);
   --destructive-foreground: oklch(0.98 0 0);
-  --success: oklch(0.75 0.16 150);
+  --success: oklch(0.719 0.146 157.3);
   --border: oklch(0.32 0.01 260);
   --input: oklch(0.32 0.01 260);
-  --ring: oklch(0.86 0.17 92);
-  --chart-1: oklch(0.86 0.17 92);
+  --ring: oklch(0.862 0.172 93.8);
+  --chart-1: oklch(0.862 0.172 93.8);
   --chart-2: oklch(0.7 0.15 230);
   --chart-3: oklch(0.72 0.17 150);
   --chart-4: oklch(0.7 0.18 40);
   --chart-5: oklch(0.65 0.2 330);
-  --sidebar: oklch(0.21 0.009 260);
-  --sidebar-foreground: oklch(0.96 0.005 90);
-  --sidebar-primary: oklch(0.86 0.17 92);
-  --sidebar-primary-foreground: oklch(0.17 0.008 260);
-  --sidebar-accent: oklch(0.3 0.012 260);
-  --sidebar-accent-foreground: oklch(0.96 0.005 90);
+  --sidebar: oklch(0.275 0.016 259.8);
+  --sidebar-foreground: oklch(0.945 0.013 97.4);
+  --sidebar-primary: oklch(0.862 0.172 93.8);
+  --sidebar-primary-foreground: oklch(0.2 0.009 264.4);
+  --sidebar-accent: oklch(0.35 0.016 260);
+  --sidebar-accent-foreground: oklch(0.945 0.013 97.4);
   --sidebar-border: oklch(0.32 0.01 260);
-  --sidebar-ring: oklch(0.86 0.17 92);
+  --sidebar-ring: oklch(0.862 0.172 93.8);
   --hazard: repeating-linear-gradient(-45deg, var(--primary) 0 14px, var(--background) 14px 28px);
 }
 
@@ -130,4 +133,119 @@
 @utility grid-asphalt {
   background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
   background-size: 48px 48px;
+}
+
+/* Burbujas de match ruta/paquetes en la landing */
+@layer components {
+  .route-bubble {
+    position: relative;
+  }
+  .route-bubble::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: 1.55rem;
+    width: 10px;
+    height: 10px;
+    transform: rotate(45deg);
+    background: var(--card);
+    border-left: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .route-bubble[aria-pressed="true"]::before {
+    border-color: color-mix(in oklch, var(--primary) 30%, var(--border));
+  }
+  .truck-bubble::after {
+    content: none;
+  }
+  @media (min-width: 1024px) {
+    .truck-bubble::after {
+      content: "";
+      position: absolute;
+      right: -6px;
+      top: 1.9rem;
+      width: 10px;
+      height: 10px;
+      transform: rotate(45deg);
+      background: var(--card);
+      border-top: 1px solid color-mix(in oklch, var(--primary) 35%, var(--border));
+      border-right: 1px solid color-mix(in oklch, var(--primary) 35%, var(--border));
+    }
+  }
+
+  .route-line {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--border) 0 6px,
+      transparent 6px 14px
+    );
+  }
+  .route-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--primary) 0 6px,
+      transparent 6px 14px
+    );
+    animation: route-flow 1.3s linear infinite;
+  }
+
+  .match-reveal .match-item {
+    opacity: 0;
+  }
+  .match-reveal.is-visible .match-item {
+    animation: bubble-in 0.55s cubic-bezier(0.22, 0.8, 0.3, 1) forwards;
+    animation-delay: calc(var(--i, 0) * 110ms);
+  }
+  .match-pop {
+    display: inline-block;
+    animation: match-pop 0.4s ease-out;
+  }
+}
+
+@keyframes route-flow {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 14px;
+  }
+}
+
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes match-pop {
+  0% {
+    transform: scale(0.85);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-line::after,
+  .match-pop {
+    animation: none;
+  }
+  .match-reveal .match-item {
+    opacity: 1;
+  }
+  .match-reveal.is-visible .match-item {
+    animation: none;
+  }
 }
