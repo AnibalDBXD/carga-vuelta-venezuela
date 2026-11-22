@@ -547,7 +547,7 @@ export function TripRequests({
           aria-label="Estado de solicitudes"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+          className="h-9 rounded-md border border-input bg-card px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           {FILTERS.map(([value, label]) => (
             <option key={value} value={value}>

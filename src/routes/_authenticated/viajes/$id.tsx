@@ -166,7 +166,10 @@ function Trip() {
         {trip.departure_time ? ` · ${trip.departure_time.slice(0, 5)}` : ""} · {v.name}
       </p>
       <div className="mt-1 flex flex-wrap items-center gap-3">
-        <h1 className="text-3xl font-bold" style={{ viewTransitionName: `trip-title-${id}` }}>
+        <h1
+          className="text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
+          style={{ viewTransitionName: `trip-title-${id}` }}
+        >
           {cityName(trip.origin)} → {cityName(trip.destination)}
         </h1>
         {trip.completed_at !== null && (
@@ -276,7 +279,7 @@ function Trip() {
         </Label>
         <select
           id="cargo-layer"
-          className="h-9 max-w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+          className="h-9 max-w-full rounded-md border border-input bg-card px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           value={layer === null ? "all" : String(layer)}
           onChange={(e) => setLayer(e.target.value === "all" ? null : Number(e.target.value))}
         >

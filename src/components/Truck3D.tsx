@@ -41,6 +41,7 @@ type Props = {
   colorKeys?: string[];
   highlightedOrder?: number;
   className?: string;
+  /** Rotación lenta, solo en la landing (design.md §4.4). */
   spin?: boolean;
 };
 

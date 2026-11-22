@@ -4,8 +4,8 @@ Documento de referencia de marca y UI. Todo lo visual del producto sale de aquí
 tipografía, línea gráfica y aplicaciones. Si algo no está definido acá, se resuelve con la regla
 más cercana de este documento antes de inventar un estilo nuevo.
 
-- **Producto:** app para camioneros en Venezuela. Planificación de carga en 3D, rutas por la red
-  troncal y bolsa de cargas de retorno.
+- **Producto:** app para camioneros en Venezuela. Planificación de viajes con rutas reales (Mapbox),
+  acomodo de carga en 3D, bolsa de viajes con espacio libre y pago móvil de la plataforma.
 - **Promesa:** *Carga más. No regreses vacío.*
 - **Concepto visual:** pavimento y señalización vial. Asfalto de noche, pintura amarilla de la
   línea central, blanco de borde y reflectores. Nada de camiones genéricos ni íconos de caja.
@@ -239,10 +239,11 @@ sin textura ni bisel. El esténcil del wordmark y las líneas del símbolo son e
 ## 5. Voz y microcopy
 
 - Español venezolano, tuteo, frases cortas y concretas.
-- Se habla de **carga, viaje y retorno**, no de "soluciones logísticas".
+- Se habla de **carga, viaje y espacio libre**, no de "soluciones logísticas". En la cara pública
+  del cliente manda la **bolsa de viajes**; el "retorno" es un concepto interno del conductor.
 - Cifras siempre con unidad y separador de miles: `3.500 kg`, `12,4 m³`, `420 × 200 × 200 cm`.
-- Los estados se nombran por lo que el camionero gana: "espacio libre", "carga de retorno",
-  "no regreses vacío".
+- Los estados se nombran por lo que el camionero gana: "espacio libre", "solicitud de recogida",
+  "pago confirmado".
 
 ---
 

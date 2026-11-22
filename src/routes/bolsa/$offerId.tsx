@@ -98,7 +98,7 @@ function OfferPage() {
         {offer.available_time ? ` · ${offer.available_time.slice(0, 5)}` : ""}
       </p>
       <h1
-        className="mt-2 text-3xl font-bold"
+        className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
         style={{ viewTransitionName: `offer-title-${offerId}` }}
       >
         {cityName(offer.origin)} → {cityName(offer.destination)}

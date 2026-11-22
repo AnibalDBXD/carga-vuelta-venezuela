@@ -3,7 +3,7 @@ import { Logo } from "@/components/Logo";
 
 const links = [
   { to: "/viajes/nuevo", label: "Planificar un viaje" },
-  { to: "/retornos", label: "Bolsa de retornos" },
+  { to: "/bolsa", label: "Bolsa de viajes" },
   { to: "/viajes", label: "Mis viajes" },
   { to: "/vehiculos", label: "Mis vehículos" },
 ] as const;
@@ -46,7 +46,7 @@ export function AppFooter() {
             © {new Date().getFullYear()} CargaRuta · Venezuela
           </p>
           <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            Carga · Ruta · Retorno
+            Carga · Ruta · Viaje
           </p>
         </div>
       </div>

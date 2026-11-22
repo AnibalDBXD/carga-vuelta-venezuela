@@ -203,3 +203,119 @@ html:active-view-transition-type(from-detail)::view-transition-new(root) {
     animation-name: vt-fade-out;
   }
 }
+
+
+/* Burbujas de match ruta/paquetes en la landing */
+@layer components {
+  .route-bubble {
+    position: relative;
+  }
+  .route-bubble::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: 1.55rem;
+    width: 10px;
+    height: 10px;
+    transform: rotate(45deg);
+    background: var(--card);
+    border-left: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .route-bubble[aria-pressed="true"]::before {
+    border-color: color-mix(in oklch, var(--primary) 30%, var(--border));
+  }
+  .truck-bubble::after {
+    content: none;
+  }
+  @media (min-width: 1024px) {
+    .truck-bubble::after {
+      content: "";
+      position: absolute;
+      right: -6px;
+      top: 1.9rem;
+      width: 10px;
+      height: 10px;
+      transform: rotate(45deg);
+      background: var(--card);
+      border-top: 1px solid color-mix(in oklch, var(--primary) 35%, var(--border));
+      border-right: 1px solid color-mix(in oklch, var(--primary) 35%, var(--border));
+    }
+  }
+
+  .route-line {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--border) 0 6px,
+      transparent 6px 14px
+    );
+  }
+  .route-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--primary) 0 6px,
+      transparent 6px 14px
+    );
+    animation: route-flow 1.3s linear infinite;
+  }
+
+  .match-reveal .match-item {
+    opacity: 0;
+  }
+  .match-reveal.is-visible .match-item {
+    animation: bubble-in 0.55s cubic-bezier(0.22, 0.8, 0.3, 1) forwards;
+    animation-delay: calc(var(--i, 0) * 110ms);
+  }
+  .match-pop {
+    display: inline-block;
+    animation: match-pop 0.4s ease-out;
+  }
+}
+
+@keyframes route-flow {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 14px;
+  }
+}
+
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes match-pop {
+  0% {
+    transform: scale(0.85);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-line::after,
+  .match-pop {
+    animation: none;
+  }
+  .match-reveal .match-item {
+    opacity: 1;
+  }
+  .match-reveal.is-visible .match-item {
+    animation: none;
+  }
+}

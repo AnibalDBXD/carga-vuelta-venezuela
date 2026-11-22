@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Boxes, Calculator, Layers, MapPin, Share2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RouteMatch } from "@/components/RouteMatch";
 import { Truck3DView } from "@/components/Truck3DLazy";
 import { packCargo } from "@/lib/packing";
 
@@ -85,7 +86,7 @@ function Index() {
               No regreses vacío.
             </h1>
             <p className="mt-5 max-w-lg text-lg text-muted-foreground">
-              Describe tu camión y tus paquetes. CargaRuta acomoda la carga en 3D, estima la ruta y
+              Describe tu camión y tus paquetes. CargaRuta acomoda la carga en 3D, traza tu ruta y
               publica el espacio libre de tus viajes de ida y vuelta para que otros te contraten.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -95,7 +96,7 @@ function Index() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link to="/bolsa">Buscar camión</Link>
+                <Link to="/bolsa">Buscar espacio</Link>
               </Button>
             </div>
           </div>
@@ -111,6 +112,7 @@ function Index() {
           />
         </div>
       </section>
+      <RouteMatch />
       <section className="border-b border-border">
         <div className="mx-auto max-w-6xl px-4 py-14">
           <div className="max-w-2xl">
@@ -120,8 +122,9 @@ function Index() {
             </h2>
             <p className="mt-3 text-muted-foreground">
               El camión ya tiene que salir y la carga ya tiene que llegar. CargaRuta los pone en la
-              misma ruta: el conductor ofrece el espacio que le sobra, el cliente paga el flete por
-              pago móvil y la plataforma se lo liquida al conductor.
+              misma ruta: el conductor publica el espacio que le sobra, quien necesita mover algo
+              envía su solicitud y, cuando el conductor fija el precio, se paga en la plataforma. El
+              paquete entra en el viaje cuando el pago se confirma.
             </p>
           </div>
           <p className="mt-6 max-w-2xl text-sm text-muted-foreground">
@@ -144,12 +147,12 @@ function Index() {
             {
               icon: Share2,
               t: "El viaje se comparte, no se pierde",
-              d: "Planificas la ida y la vuelta y compartes el tramo que llevas libre con un enlace. Quien tenga carga en esa ruta pide la recogida sin crear cuenta; tú apruebas qué sube.",
+              d: "Planificas la ida y la vuelta, publicas el espacio en la bolsa y quien necesita esa ruta envía su solicitud. Tú apruebas qué sube y fijas el monto en dólares.",
             },
             {
               icon: Wallet,
-              t: "El tramo sin carga también paga",
-              d: "Publicas los m³ y los kg disponibles y pones tu precio al aceptar cada solicitud. El interesado paga por pago móvil a la plataforma, que luego te liquida el flete.",
+              t: "El espacio también paga",
+              d: "Publicas los m³ y los kg disponibles y el solicitante paga el flete en la plataforma, en bolívares a la tasa BCV. Tú recibes la liquidación del viaje.",
             },
             {
               icon: MapPin,
@@ -164,7 +167,7 @@ function Index() {
             {
               icon: Calculator,
               t: "Flete cotizado con números",
-              d: "Kilómetros, horas de marcha, peajes y alcabalas aproximadas de la red troncal, para poner precio al viaje sin adivinar.",
+              d: "Mapbox traza la ruta real con sus kilómetros y horas; la app agrega peajes, alcabalas y distancias aproximadas para poner precio sin adivinar.",
             },
             {
               icon: Layers,
