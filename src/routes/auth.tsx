@@ -37,7 +37,7 @@ function AuthPage() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       setBusy(false);
       if (error) return void toast.error("Correo o contraseña incorrectos");
-      navigate({ to: "/viajes" });
+      navigate({ to: "/panel/viajes" });
     } else {
       const { error } = await supabase.auth.signUp({
         email,

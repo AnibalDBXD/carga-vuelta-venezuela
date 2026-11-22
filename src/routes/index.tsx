@@ -92,7 +92,7 @@ function Index() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
-                <Link to="/viajes/nuevo">
+                <Link to="/panel/viajes/nuevo">
                   Planificar un viaje <ArrowRight />
                 </Link>
               </Button>

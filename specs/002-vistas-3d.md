@@ -1,6 +1,6 @@
 # Spec: Vistas 3D del camión
 
-Contrato visual que siguen **todas** las vistas 3D de la app (`/`, `/vehiculos`, `/viajes/$id`, `/bolsa/$offerId` y cualquier uso futuro). La única implementación es `src/components/Truck3D.tsx`; no se crean escenas paralelas.
+Contrato visual que siguen **todas** las vistas 3D de la app (`/`, `/panel/vehiculos`, `/panel/viajes/$id`, `/bolsa/$offerId` y cualquier uso futuro). La única implementación es `src/components/Truck3D.tsx`; no se crean escenas paralelas.
 
 ## Carga y SSR
 
@@ -28,4 +28,4 @@ Contrato visual que siguen **todas** las vistas 3D de la app (`/`, `/vehiculos`,
 
 ## Verificación
 
-- `bun run typecheck` tras tocar el componente; revisión visual en `/vehiculos` (sin bultos) y `/viajes/$id` (con bultos, guía paso a paso y filtro de capas).
+- `bun run typecheck` tras tocar el componente; revisión visual en `/panel/vehiculos` (sin bultos) y `/panel/viajes/$id` (con bultos, guía paso a paso y filtro de capas).

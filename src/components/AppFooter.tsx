@@ -2,10 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { Logo } from "@/components/Logo";
 
 const links = [
-  { to: "/viajes/nuevo", label: "Planificar un viaje" },
+  { to: "/panel/viajes/nuevo", label: "Planificar un viaje" },
   { to: "/bolsa", label: "Bolsa de viajes" },
-  { to: "/viajes", label: "Mis viajes" },
-  { to: "/vehiculos", label: "Mis vehículos" },
+  { to: "/panel/viajes", label: "Mis viajes" },
+  { to: "/panel/vehiculos", label: "Mis vehículos" },
 ] as const;
 
 export function AppFooter() {

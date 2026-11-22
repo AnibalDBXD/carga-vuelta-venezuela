@@ -10,7 +10,7 @@ import { VehicleForm, emptyVehicleForm, vehicleToForm } from "@/components/Vehic
 
 import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/_authenticated/vehiculos/$id")({
+export const Route = createFileRoute("/_authenticated/panel/vehiculos/$id")({
   head: () => ({
     meta: [
       { title: "Detalle del vehículo — CargaRuta" },
@@ -73,7 +73,7 @@ function Vehiculo() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["vehicles"] });
-      navigate({ to: "/vehiculos" });
+      navigate({ to: "/panel/vehiculos" });
     },
     onError: () => toast.error("No se pudo eliminar"),
   });
@@ -102,7 +102,7 @@ function Vehiculo() {
           </p>
         </div>
         <Button asChild variant="outline">
-          <Link to="/vehiculos">
+          <Link to="/panel/vehiculos">
             <ArrowLeft /> Volver a mis vehículos
           </Link>
         </Button>

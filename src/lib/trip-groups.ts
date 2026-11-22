@@ -3,6 +3,7 @@ export type TripLike = {
   origin: string;
   destination: string;
   departure_date: string;
+  departure_time?: string | null;
   vehicle_id?: string | null;
   vehicles?: { id?: string | null } | null;
 };
@@ -39,6 +40,11 @@ export function groupTrips<T extends TripLike>(trips: T[]): TripGroup<T>[] {
       group.trips.some((a) =>
         group.trips.some((b) => b.origin === a.destination && b.destination === a.origin),
       );
+    // Ordena las patas por hora de salida del origen (sin hora va al final),
+    // para que la ida y la vuelta se lean en orden cronológico.
+    group.trips.sort((a, b) =>
+      (a.departure_time ?? "99:99").localeCompare(b.departure_time ?? "99:99"),
+    );
   }
   return groups;
 }

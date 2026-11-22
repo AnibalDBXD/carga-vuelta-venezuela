@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/dialog";
 import { ShareTrip, TripRequests } from "@/components/TripRequests";
 
-export const Route = createFileRoute("/_authenticated/viajes/$id")({
+export const Route = createFileRoute("/_authenticated/panel/viajes/$id")({
   head: () => ({
     meta: [
       { title: "Plan de carga paso a paso — CargaRuta" },
@@ -163,7 +163,8 @@ function Trip() {
       <p className="font-mono text-xs uppercase tracking-widest text-primary">
         {trip.is_return ? "Viaje de regreso · " : ""}
         {trip.departure_date}
-        {trip.departure_time ? ` · ${trip.departure_time.slice(0, 5)}` : ""} · {v.name}
+        {trip.departure_time ? ` · sale ${trip.departure_time.slice(0, 5)}` : " · sin hora de salida"}{" "}
+        · {v.name}
       </p>
       <div className="mt-1 flex flex-wrap items-center gap-3">
         <h1
@@ -462,7 +463,7 @@ function Trip() {
                 maxKg={v.max_kg}
               />
               <Button asChild variant="outline" className="w-full">
-                <Link to="/viajes/nuevo" search={{ from: trip.id, regreso: true }}>
+                <Link to="/panel/viajes/nuevo" search={{ from: trip.id, regreso: true }}>
                   <Repeat /> Planear la carga del regreso
                 </Link>
               </Button>
@@ -689,7 +690,7 @@ function ShareReturn({
             <Input type="date" required value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           <div>
-            <Label>Hora estimada de salida</Label>
+            <Label>Hora de salida del origen</Label>
             <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
           </div>
           <div>

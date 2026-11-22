@@ -18,7 +18,7 @@ import { vehiclesQuery } from "../vehiculos";
 
 type Search = { from?: string; regreso?: boolean };
 
-export const Route = createFileRoute("/_authenticated/viajes/nuevo")({
+export const Route = createFileRoute("/_authenticated/panel/viajes/nuevo")({
   validateSearch: (s: Record<string, unknown>): Search => ({
     ...(typeof s["from"] === "string" ? { from: s["from"] } : {}),
     ...(s["regreso"] === true || s["regreso"] === "true" ? { regreso: true } : {}),
@@ -228,6 +228,9 @@ function NuevoViaje() {
     if (origin && destination && origin === destination)
       next["destination"] = "El destino debe ser distinto del origen.";
     if (!date) next["date"] = "Indica la fecha de salida.";
+    else if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(new Date(`${date}T12:00:00`).getTime()))
+      next["date"] = "La fecha de salida no es válida.";
+    if (!time) next["time"] = "Indica la hora de salida del origen.";
     if (!vehicleId) next["vehicle"] = "Selecciona el vehículo con el que harás el viaje.";
 
     pkgs.forEach((p, index) => {
@@ -309,7 +312,7 @@ function NuevoViaje() {
       toast.error(explained.summary);
       return;
     }
-    navigate({ to: "/viajes/$id", params: { id: data.id } });
+    navigate({ to: "/panel/viajes/$id", params: { id: data.id } });
   };
 
   const sel =
@@ -324,7 +327,7 @@ function NuevoViaje() {
           Necesitamos las medidas del espacio de carga para acomodar los paquetes.
         </p>
         <Button asChild className="mt-6">
-          <Link to="/vehiculos">Registrar vehículo</Link>
+          <Link to="/panel/vehiculos">Registrar vehículo</Link>
         </Button>
       </main>
     );
@@ -384,6 +387,7 @@ function NuevoViaje() {
             <Input
               {...fieldProps("date")}
               type="date"
+              required
               value={date}
               onChange={(e) => {
                 setDate(e.target.value);
@@ -393,16 +397,20 @@ function NuevoViaje() {
             {fieldError("date")}
           </div>
           <div>
-            <Label htmlFor="time">Hora estimada de salida</Label>
+            <Label htmlFor="time">Hora de salida del origen</Label>
             <Input
               {...fieldProps("time")}
               type="time"
+              required
               value={time}
               onChange={(e) => {
                 setTime(e.target.value);
                 clearError("time");
               }}
             />
+            <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
+              Hora local del punto de origen. Con ella se ordenan la ida y la vuelta del mismo día.
+            </p>
             {fieldError("time")}
           </div>
           <div className="md:col-span-2 lg:col-span-1">

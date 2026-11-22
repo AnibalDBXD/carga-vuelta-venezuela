@@ -50,7 +50,7 @@ const roles = [
     title: "Hago una ruta con mi camión",
     icon: Truck,
     cta: "Publicar mi ruta",
-    to: "/viajes/nuevo" as const,
+    to: "/panel/viajes/nuevo" as const,
     benefits: [
       {
         icon: Truck,

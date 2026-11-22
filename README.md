@@ -35,10 +35,11 @@ Centro Occidental). El producto está en español (es-VE) y está pensado para u
 |---|---|
 | `/` | Landing: demo 3D, cómo funciona el modelo y beneficios |
 | `/auth` | Registro e inicio de sesión (email + Google) |
-| `/viajes` | Historial de viajes del conductor |
-| `/viajes/nuevo` | Origen, destino, fecha y hora estimada, vehículo y paquetes |
-| `/viajes/$id` | Plan de carga: ruta en mapa, 3D, guía de montaje por capas, orden de carga y solicitudes |
-| `/vehiculos` | Flota: listado con miniaturas por tipo, alta y detalle de cada vehículo |
+| `/panel` | Redirige a `/panel/viajes` |
+| `/panel/viajes` | Historial de viajes del conductor |
+| `/panel/viajes/nuevo` | Origen, destino, fecha y hora estimada, vehículo y paquetes |
+| `/panel/viajes/$id` | Plan de carga: ruta en mapa, 3D, guía de montaje por capas, orden de carga y solicitudes |
+| `/panel/vehiculos` | Flota: listado con miniaturas por tipo, alta y detalle de cada vehículo |
 | `/bolsa` | Bolsa de viajes pública: camiones con espacio libre |
 | `/bolsa/$offerId` | Detalle de la oferta, vista 3D del espacio y formulario de solicitud |
 | `/pagos/$requestId` | Pago móvil: monto en USD, equivalente en Bs a tasa BCV, QR y comprobante |

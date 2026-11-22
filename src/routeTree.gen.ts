@@ -17,11 +17,12 @@ import { Route as BolsaIndexRouteImport } from './routes/bolsa/index'
 import { Route as BolsaOfferIdRouteImport } from './routes/bolsa/$offerId'
 import { Route as PagosRequestIdRouteImport } from './routes/pagos/$requestId'
 import { Route as RecogidasTokenRouteImport } from './routes/recogidas/$token'
-import { Route as AuthenticatedVehiculosIndexRouteImport } from './routes/_authenticated/vehiculos/index'
-import { Route as AuthenticatedVehiculosIdRouteImport } from './routes/_authenticated/vehiculos/$id'
-import { Route as AuthenticatedViajesIndexRouteImport } from './routes/_authenticated/viajes/index'
-import { Route as AuthenticatedViajesIdRouteImport } from './routes/_authenticated/viajes/$id'
-import { Route as AuthenticatedViajesNuevoRouteImport } from './routes/_authenticated/viajes/nuevo'
+import { Route as AuthenticatedPanelIndexRouteImport } from './routes/_authenticated/panel/index'
+import { Route as AuthenticatedPanelVehiculosIndexRouteImport } from './routes/_authenticated/panel/vehiculos/index'
+import { Route as AuthenticatedPanelVehiculosIdRouteImport } from './routes/_authenticated/panel/vehiculos/$id'
+import { Route as AuthenticatedPanelViajesIndexRouteImport } from './routes/_authenticated/panel/viajes/index'
+import { Route as AuthenticatedPanelViajesIdRouteImport } from './routes/_authenticated/panel/viajes/$id'
+import { Route as AuthenticatedPanelViajesNuevoRouteImport } from './routes/_authenticated/panel/viajes/nuevo'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -62,33 +63,39 @@ const RecogidasTokenRoute = RecogidasTokenRouteImport.update({
   path: '/recogidas/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedVehiculosIndexRoute =
-  AuthenticatedVehiculosIndexRouteImport.update({
-    id: '/vehiculos/',
-    path: '/vehiculos/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedVehiculosIdRoute =
-  AuthenticatedVehiculosIdRouteImport.update({
-    id: '/vehiculos/$id',
-    path: '/vehiculos/$id',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedViajesIndexRoute =
-  AuthenticatedViajesIndexRouteImport.update({
-    id: '/viajes/',
-    path: '/viajes/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedViajesIdRoute = AuthenticatedViajesIdRouteImport.update({
-  id: '/viajes/$id',
-  path: '/viajes/$id',
+const AuthenticatedPanelIndexRoute = AuthenticatedPanelIndexRouteImport.update({
+  id: '/panel/',
+  path: '/panel/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedViajesNuevoRoute =
-  AuthenticatedViajesNuevoRouteImport.update({
-    id: '/viajes/nuevo',
-    path: '/viajes/nuevo',
+const AuthenticatedPanelVehiculosIndexRoute =
+  AuthenticatedPanelVehiculosIndexRouteImport.update({
+    id: '/panel/vehiculos/',
+    path: '/panel/vehiculos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPanelVehiculosIdRoute =
+  AuthenticatedPanelVehiculosIdRouteImport.update({
+    id: '/panel/vehiculos/$id',
+    path: '/panel/vehiculos/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPanelViajesIndexRoute =
+  AuthenticatedPanelViajesIndexRouteImport.update({
+    id: '/panel/viajes/',
+    path: '/panel/viajes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPanelViajesIdRoute =
+  AuthenticatedPanelViajesIdRouteImport.update({
+    id: '/panel/viajes/$id',
+    path: '/panel/viajes/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPanelViajesNuevoRoute =
+  AuthenticatedPanelViajesNuevoRouteImport.update({
+    id: '/panel/viajes/nuevo',
+    path: '/panel/viajes/nuevo',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -100,11 +107,12 @@ export interface FileRoutesByFullPath {
   '/pagos/$requestId': typeof PagosRequestIdRoute
   '/recogidas/$token': typeof RecogidasTokenRoute
   '/bolsa/': typeof BolsaIndexRoute
-  '/vehiculos/$id': typeof AuthenticatedVehiculosIdRoute
-  '/viajes/$id': typeof AuthenticatedViajesIdRoute
-  '/viajes/nuevo': typeof AuthenticatedViajesNuevoRoute
-  '/vehiculos/': typeof AuthenticatedVehiculosIndexRoute
-  '/viajes/': typeof AuthenticatedViajesIndexRoute
+  '/panel/': typeof AuthenticatedPanelIndexRoute
+  '/panel/vehiculos/$id': typeof AuthenticatedPanelVehiculosIdRoute
+  '/panel/viajes/$id': typeof AuthenticatedPanelViajesIdRoute
+  '/panel/viajes/nuevo': typeof AuthenticatedPanelViajesNuevoRoute
+  '/panel/vehiculos/': typeof AuthenticatedPanelVehiculosIndexRoute
+  '/panel/viajes/': typeof AuthenticatedPanelViajesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -114,11 +122,12 @@ export interface FileRoutesByTo {
   '/pagos/$requestId': typeof PagosRequestIdRoute
   '/recogidas/$token': typeof RecogidasTokenRoute
   '/bolsa': typeof BolsaIndexRoute
-  '/vehiculos/$id': typeof AuthenticatedVehiculosIdRoute
-  '/viajes/$id': typeof AuthenticatedViajesIdRoute
-  '/viajes/nuevo': typeof AuthenticatedViajesNuevoRoute
-  '/vehiculos': typeof AuthenticatedVehiculosIndexRoute
-  '/viajes': typeof AuthenticatedViajesIndexRoute
+  '/panel': typeof AuthenticatedPanelIndexRoute
+  '/panel/vehiculos/$id': typeof AuthenticatedPanelVehiculosIdRoute
+  '/panel/viajes/$id': typeof AuthenticatedPanelViajesIdRoute
+  '/panel/viajes/nuevo': typeof AuthenticatedPanelViajesNuevoRoute
+  '/panel/vehiculos': typeof AuthenticatedPanelVehiculosIndexRoute
+  '/panel/viajes': typeof AuthenticatedPanelViajesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -130,11 +139,12 @@ export interface FileRoutesById {
   '/pagos/$requestId': typeof PagosRequestIdRoute
   '/recogidas/$token': typeof RecogidasTokenRoute
   '/bolsa/': typeof BolsaIndexRoute
-  '/_authenticated/vehiculos/$id': typeof AuthenticatedVehiculosIdRoute
-  '/_authenticated/viajes/$id': typeof AuthenticatedViajesIdRoute
-  '/_authenticated/viajes/nuevo': typeof AuthenticatedViajesNuevoRoute
-  '/_authenticated/vehiculos/': typeof AuthenticatedVehiculosIndexRoute
-  '/_authenticated/viajes/': typeof AuthenticatedViajesIndexRoute
+  '/_authenticated/panel/': typeof AuthenticatedPanelIndexRoute
+  '/_authenticated/panel/vehiculos/$id': typeof AuthenticatedPanelVehiculosIdRoute
+  '/_authenticated/panel/viajes/$id': typeof AuthenticatedPanelViajesIdRoute
+  '/_authenticated/panel/viajes/nuevo': typeof AuthenticatedPanelViajesNuevoRoute
+  '/_authenticated/panel/vehiculos/': typeof AuthenticatedPanelVehiculosIndexRoute
+  '/_authenticated/panel/viajes/': typeof AuthenticatedPanelViajesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -146,11 +156,12 @@ export interface FileRouteTypes {
     | '/pagos/$requestId'
     | '/recogidas/$token'
     | '/bolsa/'
-    | '/vehiculos/$id'
-    | '/viajes/$id'
-    | '/viajes/nuevo'
-    | '/vehiculos/'
-    | '/viajes/'
+    | '/panel/'
+    | '/panel/vehiculos/$id'
+    | '/panel/viajes/$id'
+    | '/panel/viajes/nuevo'
+    | '/panel/vehiculos/'
+    | '/panel/viajes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -160,11 +171,12 @@ export interface FileRouteTypes {
     | '/pagos/$requestId'
     | '/recogidas/$token'
     | '/bolsa'
-    | '/vehiculos/$id'
-    | '/viajes/$id'
-    | '/viajes/nuevo'
-    | '/vehiculos'
-    | '/viajes'
+    | '/panel'
+    | '/panel/vehiculos/$id'
+    | '/panel/viajes/$id'
+    | '/panel/viajes/nuevo'
+    | '/panel/vehiculos'
+    | '/panel/viajes'
   id:
     | '__root__'
     | '/'
@@ -175,11 +187,12 @@ export interface FileRouteTypes {
     | '/pagos/$requestId'
     | '/recogidas/$token'
     | '/bolsa/'
-    | '/_authenticated/vehiculos/$id'
-    | '/_authenticated/viajes/$id'
-    | '/_authenticated/viajes/nuevo'
-    | '/_authenticated/vehiculos/'
-    | '/_authenticated/viajes/'
+    | '/_authenticated/panel/'
+    | '/_authenticated/panel/vehiculos/$id'
+    | '/_authenticated/panel/viajes/$id'
+    | '/_authenticated/panel/viajes/nuevo'
+    | '/_authenticated/panel/vehiculos/'
+    | '/_authenticated/panel/viajes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -251,58 +264,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecogidasTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/vehiculos/': {
-      id: '/_authenticated/vehiculos/'
-      path: '/vehiculos'
-      fullPath: '/vehiculos/'
-      preLoaderRoute: typeof AuthenticatedVehiculosIndexRouteImport
+    '/_authenticated/panel/': {
+      id: '/_authenticated/panel/'
+      path: '/panel'
+      fullPath: '/panel/'
+      preLoaderRoute: typeof AuthenticatedPanelIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/vehiculos/$id': {
-      id: '/_authenticated/vehiculos/$id'
-      path: '/vehiculos/$id'
-      fullPath: '/vehiculos/$id'
-      preLoaderRoute: typeof AuthenticatedVehiculosIdRouteImport
+    '/_authenticated/panel/vehiculos/': {
+      id: '/_authenticated/panel/vehiculos/'
+      path: '/panel/vehiculos'
+      fullPath: '/panel/vehiculos/'
+      preLoaderRoute: typeof AuthenticatedPanelVehiculosIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/viajes/': {
-      id: '/_authenticated/viajes/'
-      path: '/viajes'
-      fullPath: '/viajes/'
-      preLoaderRoute: typeof AuthenticatedViajesIndexRouteImport
+    '/_authenticated/panel/vehiculos/$id': {
+      id: '/_authenticated/panel/vehiculos/$id'
+      path: '/panel/vehiculos/$id'
+      fullPath: '/panel/vehiculos/$id'
+      preLoaderRoute: typeof AuthenticatedPanelVehiculosIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/viajes/$id': {
-      id: '/_authenticated/viajes/$id'
-      path: '/viajes/$id'
-      fullPath: '/viajes/$id'
-      preLoaderRoute: typeof AuthenticatedViajesIdRouteImport
+    '/_authenticated/panel/viajes/': {
+      id: '/_authenticated/panel/viajes/'
+      path: '/panel/viajes'
+      fullPath: '/panel/viajes/'
+      preLoaderRoute: typeof AuthenticatedPanelViajesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/viajes/nuevo': {
-      id: '/_authenticated/viajes/nuevo'
-      path: '/viajes/nuevo'
-      fullPath: '/viajes/nuevo'
-      preLoaderRoute: typeof AuthenticatedViajesNuevoRouteImport
+    '/_authenticated/panel/viajes/$id': {
+      id: '/_authenticated/panel/viajes/$id'
+      path: '/panel/viajes/$id'
+      fullPath: '/panel/viajes/$id'
+      preLoaderRoute: typeof AuthenticatedPanelViajesIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/panel/viajes/nuevo': {
+      id: '/_authenticated/panel/viajes/nuevo'
+      path: '/panel/viajes/nuevo'
+      fullPath: '/panel/viajes/nuevo'
+      preLoaderRoute: typeof AuthenticatedPanelViajesNuevoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedVehiculosIdRoute: typeof AuthenticatedVehiculosIdRoute
-  AuthenticatedViajesIdRoute: typeof AuthenticatedViajesIdRoute
-  AuthenticatedViajesNuevoRoute: typeof AuthenticatedViajesNuevoRoute
-  AuthenticatedVehiculosIndexRoute: typeof AuthenticatedVehiculosIndexRoute
-  AuthenticatedViajesIndexRoute: typeof AuthenticatedViajesIndexRoute
+  AuthenticatedPanelIndexRoute: typeof AuthenticatedPanelIndexRoute
+  AuthenticatedPanelVehiculosIdRoute: typeof AuthenticatedPanelVehiculosIdRoute
+  AuthenticatedPanelViajesIdRoute: typeof AuthenticatedPanelViajesIdRoute
+  AuthenticatedPanelViajesNuevoRoute: typeof AuthenticatedPanelViajesNuevoRoute
+  AuthenticatedPanelVehiculosIndexRoute: typeof AuthenticatedPanelVehiculosIndexRoute
+  AuthenticatedPanelViajesIndexRoute: typeof AuthenticatedPanelViajesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedVehiculosIdRoute: AuthenticatedVehiculosIdRoute,
-  AuthenticatedViajesIdRoute: AuthenticatedViajesIdRoute,
-  AuthenticatedViajesNuevoRoute: AuthenticatedViajesNuevoRoute,
-  AuthenticatedVehiculosIndexRoute: AuthenticatedVehiculosIndexRoute,
-  AuthenticatedViajesIndexRoute: AuthenticatedViajesIndexRoute,
+  AuthenticatedPanelIndexRoute: AuthenticatedPanelIndexRoute,
+  AuthenticatedPanelVehiculosIdRoute: AuthenticatedPanelVehiculosIdRoute,
+  AuthenticatedPanelViajesIdRoute: AuthenticatedPanelViajesIdRoute,
+  AuthenticatedPanelViajesNuevoRoute: AuthenticatedPanelViajesNuevoRoute,
+  AuthenticatedPanelVehiculosIndexRoute: AuthenticatedPanelVehiculosIndexRoute,
+  AuthenticatedPanelViajesIndexRoute: AuthenticatedPanelViajesIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

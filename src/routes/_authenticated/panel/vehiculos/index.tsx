@@ -11,7 +11,7 @@ import { VehicleForm, emptyVehicleForm } from "@/components/VehicleForm";
 
 import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/_authenticated/vehiculos/")({
+export const Route = createFileRoute("/_authenticated/panel/vehiculos/")({
   head: () => ({
     meta: [
       { title: "Mis vehículos — CargaRuta" },
@@ -138,7 +138,7 @@ function Vehiculos() {
                 return (
                   <article
                     key={v.id}
-                    onClick={() => navigate({ to: "/vehiculos/$id", params: { id: v.id } })}
+                    onClick={() => navigate({ to: "/panel/vehiculos/$id", params: { id: v.id } })}
                     className="cursor-pointer overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-muted-foreground"
                   >
                     <div className="border-b border-border bg-background p-3">

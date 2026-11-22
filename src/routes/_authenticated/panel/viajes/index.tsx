@@ -9,7 +9,7 @@ import { groupTrips } from "@/lib/trip-groups";
 import { Button } from "@/components/ui/button";
 import { ShareTrip } from "@/components/TripRequests";
 
-export const Route = createFileRoute("/_authenticated/viajes/")({
+export const Route = createFileRoute("/_authenticated/panel/viajes/")({
   head: () => ({
     meta: [
       { title: "Mis viajes — CargaRuta" },
@@ -72,7 +72,7 @@ function Viajes() {
         key={t.id}
         className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4"
       >
-        <Link to="/viajes/$id" params={{ id: t.id }} className="min-w-0 flex-1">
+        <Link to="/panel/viajes/$id" params={{ id: t.id }} className="min-w-0 flex-1">
           <p
             className="flex flex-wrap items-center gap-2 text-lg font-bold"
             style={{ viewTransitionName: `trip-title-${t.id}` }}
@@ -85,8 +85,8 @@ function Viajes() {
             )}
           </p>
           <p className="text-sm text-muted-foreground">
-            {t.departure_date}
-            {t.departure_time ? ` · ${t.departure_time.slice(0, 5)}` : ""} ·{" "}
+            {t.departure_date} ·{" "}
+            {t.departure_time ? `salida ${t.departure_time.slice(0, 5)}` : "sin hora de salida"} ·{" "}
             {t.vehicles?.name ?? "Sin vehículo"} · {pk.reduce((s, p) => s + p.qty, 0)} bultos
           </p>
         </Link>
@@ -102,7 +102,7 @@ function Viajes() {
           )}
         </Button>
         <Button asChild size="sm" variant="outline">
-          <Link to="/viajes/nuevo" search={{ from: t.id }}>
+          <Link to="/panel/viajes/nuevo" search={{ from: t.id }}>
             <Copy /> Repetir
           </Link>
         </Button>
@@ -115,7 +115,7 @@ function Viajes() {
           />
         ) : (
           <Button asChild size="sm" variant="outline">
-            <Link to="/viajes/nuevo" search={{ from: t.id, regreso: true }}>
+            <Link to="/panel/viajes/nuevo" search={{ from: t.id, regreso: true }}>
               <Repeat /> Planear regreso
             </Link>
           </Button>
@@ -133,7 +133,7 @@ function Viajes() {
           Mis viajes
         </h1>
         <Button asChild>
-          <Link to="/viajes/nuevo" search={{}}>
+          <Link to="/panel/viajes/nuevo" search={{}}>
             Nuevo viaje
           </Link>
         </Button>
@@ -146,8 +146,11 @@ function Viajes() {
         {!isLoading && data.length === 0 && (
           <p className="text-muted-foreground">Todavía no has planificado viajes.</p>
         )}
-        {groups.map((g) =>
-          g.roundTrip ? (
+        {groups.map((g) => {
+          const times = g.trips
+            .map((t) => t.departure_time?.slice(0, 5))
+            .filter((value): value is string => Boolean(value));
+          return g.roundTrip ? (
             <section
               key={g.key}
               aria-label="Viaje de ida y vuelta"
@@ -160,6 +163,7 @@ function Viajes() {
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {g.trips[0]?.departure_date} · {g.trips[0]?.vehicles?.name ?? "Sin vehículo"} ·{" "}
+                  {times.length > 0 ? `${times.join(" → ")} · ` : "sin hora · "}
                   {g.trips.length} viajes
                 </p>
               </header>
@@ -167,8 +171,8 @@ function Viajes() {
             </section>
           ) : (
             g.trips.map(renderTrip)
-          ),
-        )}
+          );
+        })}
       </div>
     </main>
   );

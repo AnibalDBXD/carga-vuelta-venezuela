@@ -43,6 +43,14 @@ describe("groupTrips", () => {
     expect(groups[0]!.roundTrip).toBe(false);
   });
 
+  it("ordena las patas por hora de salida del origen", () => {
+    const groups = groupTrips([
+      trip({ id: "vuelta", origin: "caracas", destination: "valencia", departure_time: "15:30:00" }),
+      trip({ id: "ida", departure_time: "06:00:00" }),
+    ]);
+    expect(groups[0]!.trips.map((t) => t.id)).toEqual(["ida", "vuelta"]);
+  });
+
   it("usa el id del vehículo embebido cuando existe", () => {
     const groups = groupTrips([
       trip({ id: "a", vehicle_id: null, vehicles: { id: "v9" } }),
