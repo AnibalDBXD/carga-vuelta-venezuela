@@ -10,7 +10,7 @@ aceptarlas/rechazarlas.
 ## Endpoint
 
 ```
-POST https://<tu-dominio>/api/mcp      (en local: http://localhost:5173/api/mcp)
+POST https://cargaruta.vercel.app/api/mcp      (en local: http://localhost:5173/api/mcp)
 ```
 
 - Transporte: **Streamable HTTP** del protocolo MCP, modo **stateless**
@@ -30,7 +30,7 @@ POST https://<tu-dominio>/api/mcp      (en local: http://localhost:5173/api/mcp)
 {
   "mcpServers": {
     "cargaruta": {
-      "url": "https://<tu-dominio>/api/mcp",
+      "url": "https://cargaruta.vercel.app/api/mcp",
       "headers": { "Authorization": "Bearer <clave-del-conductor>" }
     }
   }
@@ -43,7 +43,7 @@ del solicitante.
 **Clientes que solo hablan stdio** — puente con `mcp-remote`:
 
 ```sh
-npx mcp-remote https://<tu-dominio>/api/mcp \
+npx mcp-remote https://cargaruta.vercel.app/api/mcp \
   --header "Authorization: Bearer <clave-del-conductor>"
 ```
 
@@ -55,7 +55,7 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 
 const client = new Client({ name: "mi-agente", version: "1.0.0" });
 await client.connect(
-  new StreamableHTTPClientTransport(new URL("https://<tu-dominio>/api/mcp"), {
+  new StreamableHTTPClientTransport(new URL("https://cargaruta.vercel.app/api/mcp"), {
     requestInit: { headers: { Authorization: `Bearer ${process.env.CARGARUTA_KEY}` } },
   }),
 );

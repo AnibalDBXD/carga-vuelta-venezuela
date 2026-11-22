@@ -61,13 +61,13 @@ Guarda el **project ref**. Lo encuentras en la URL del dashboard o en **Settings
 
 En **Project Settings → API** (o **API Keys**):
 
-| Dato | Variable de la app | Uso |
-|---|---|---|
-| Project URL (`https://<ref>.supabase.co`) | `SUPABASE_URL` / `VITE_SUPABASE_URL` | API |
-| Publishable key (`sb_publishable_...`) | `SUPABASE_PUBLISHABLE_KEY` / `VITE_SUPABASE_PUBLISHABLE_KEY` | Navegador |
-| Secret key (`sb_secret_...`) | `SUPABASE_SECRET_KEY` | Solo servidor |
-| Contraseña de la DB | — | `supabase link` / `db push` |
-| Connection string | — | `psql` (solo si aplica el seed) |
+| Dato                                      | Variable de la app                                           | Uso                             |
+| ----------------------------------------- | ------------------------------------------------------------ | ------------------------------- |
+| Project URL (`https://<ref>.supabase.co`) | `SUPABASE_URL` / `VITE_SUPABASE_URL`                         | API                             |
+| Publishable key (`sb_publishable_...`)    | `SUPABASE_PUBLISHABLE_KEY` / `VITE_SUPABASE_PUBLISHABLE_KEY` | Navegador                       |
+| Secret key (`sb_secret_...`)              | `SUPABASE_SECRET_KEY`                                        | Solo servidor                   |
+| Contraseña de la DB                       | —                                                            | `supabase link` / `db push`     |
+| Connection string                         | —                                                            | `psql` (solo si aplica el seed) |
 
 Si tu proyecto todavía usa las llaves legacy, usa `anon` como publishable y `service_role` como
 secret. La app soporta ambas.
@@ -164,32 +164,32 @@ salen del servidor con `SMTP_URL` (nodemailer). Configúralo en Vercel, no aquí
 ### En Vercel
 
 **Project → Settings → Environment Variables** (Production; agrega Preview solo si lo necesitas).
-Marca como *sensitive* las que son secretos.
+Marca como _sensitive_ las que son secretos.
 
-| Variable | Valor | Se expone al navegador |
-|---|---|---|
-| `SUPABASE_URL` | `https://<ref>.supabase.co` | No (SSR) |
-| `SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_...` | No (SSR) |
-| `SUPABASE_SECRET_KEY` | `sb_secret_...` | **Nunca** |
-| `VITE_SUPABASE_URL` | `https://<ref>.supabase.co` | Sí |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_...` | Sí (es pública) |
-| `APP_URL` | `https://<tu-dominio>` | No (enlaces en correos) |
-| `VITE_MAPBOX_TOKEN` | token `pk...` | Sí |
-| `MAPBOX_TOKEN` | mismo `pk...` o un `sk...` | No (servidor) |
-| `VITE_VAPID_PUBLIC_KEY` | clave pública VAPID | Sí |
-| `VAPID_PRIVATE_KEY` | clave privada VAPID | **Nunca** |
-| `SMTP_URL` | `smtps://usuario:clave@smtp.proveedor.com:465` | No |
-| `BCV_FALLBACK_RATE` | opcional, ej. `40` | No |
-| `PAGO_MOVIL_BANK` | banco que cobra | No |
-| `PAGO_MOVIL_PHONE` | teléfono de pago | No |
-| `PAGO_MOVIL_DOCUMENT` | cédula/RIF | No |
-| `PAGO_MOVIL_HOLDER` | titular | No |
-| `TELEGRAM_BOT_TOKEN` | token de @BotFather | **Nunca** |
-| `TELEGRAM_WEBHOOK_SECRET` | secreto aleatorio que tú generas | **Nunca** |
-| `VITE_TELEGRAM_BOT` | username del bot (sin `@`) | Sí (es público) |
-| `GEMINI_API_KEY` | key de aistudio.google.com/apikey | **Nunca** |
-| `GEMINI_MODEL` | opcional, default `gemini-3.1-flash-lite-preview` | No |
-| `GEMINI_VISION_MODEL` | opcional, default = `GEMINI_MODEL` | No |
+| Variable                        | Valor                                             | Se expone al navegador  |
+| ------------------------------- | ------------------------------------------------- | ----------------------- |
+| `SUPABASE_URL`                  | `https://<ref>.supabase.co`                       | No (SSR)                |
+| `SUPABASE_PUBLISHABLE_KEY`      | `sb_publishable_...`                              | No (SSR)                |
+| `SUPABASE_SECRET_KEY`           | `sb_secret_...`                                   | **Nunca**               |
+| `VITE_SUPABASE_URL`             | `https://<ref>.supabase.co`                       | Sí                      |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_...`                              | Sí (es pública)         |
+| `APP_URL`                       | `https://<tu-dominio>`                            | No (enlaces en correos) |
+| `VITE_MAPBOX_TOKEN`             | token `pk...`                                     | Sí                      |
+| `MAPBOX_TOKEN`                  | mismo `pk...` o un `sk...`                        | No (servidor)           |
+| `VITE_VAPID_PUBLIC_KEY`         | clave pública VAPID                               | Sí                      |
+| `VAPID_PRIVATE_KEY`             | clave privada VAPID                               | **Nunca**               |
+| `SMTP_URL`                      | `smtps://usuario:clave@smtp.proveedor.com:465`    | No                      |
+| `BCV_FALLBACK_RATE`             | opcional, ej. `40`                                | No                      |
+| `PAGO_MOVIL_BANK`               | banco que cobra                                   | No                      |
+| `PAGO_MOVIL_PHONE`              | teléfono de pago                                  | No                      |
+| `PAGO_MOVIL_DOCUMENT`           | cédula/RIF                                        | No                      |
+| `PAGO_MOVIL_HOLDER`             | titular                                           | No                      |
+| `TELEGRAM_BOT_TOKEN`            | token de @BotFather                               | **Nunca**               |
+| `TELEGRAM_WEBHOOK_SECRET`       | secreto aleatorio que tú generas                  | **Nunca**               |
+| `VITE_TELEGRAM_BOT`             | username del bot (sin `@`)                        | Sí (es público)         |
+| `GEMINI_API_KEY`                | key de aistudio.google.com/apikey                 | **Nunca**               |
+| `GEMINI_MODEL`                  | opcional, default `gemini-3.1-flash-lite-preview` | No                      |
+| `GEMINI_VISION_MODEL`           | opcional, default = `GEMINI_MODEL`                | No                      |
 
 Notas:
 
@@ -224,6 +224,13 @@ Spec completo en `specs/003-telegram.md`. Resumen del alta:
 5. En local no hace falta túnel: `bun run bot:dev` hace polling de `getUpdates` con la misma lógica
    del webhook (y quita el webhook si había — vuelve a correr `bot:setup` al volver a prod).
 6. El conductor conecta su chat desde `/panel/viajes` → **Conectar Telegram**.
+
+### Servidor MCP (opcional)
+
+`/api/mcp` expone las mismas tools a agentes externos (guía en `docs/mcp.md`). No requiere
+variables nuevas: usa las `SUPABASE_*` ya desplegadas. Solo hay que aplicar la migración
+`mcp_tokens` con `supabase db push` y el conductor genera sus claves desde `/panel/viajes` →
+**API**.
 
 ### En local (`.env`)
 
@@ -343,18 +350,18 @@ Haz esta lista en el dominio publicado:
 
 ## 9. Problemas frecuentes
 
-| Síntoma | Causa probable | Solución |
-|---|---|---|
-| `supabase db push` pide login o falla con 401 | Sesión del CLI vencida | `bunx supabase login` y repetir |
-| `db push` no encuentra el proyecto | Falta `link` | `bunx supabase link --project-ref <ref>` |
-| “relation already exists” al migrar | Esquema creado a mano en el dashboard | Revisa `migration list`; usa `supabase migration repair` con cuidado o recrea el proyecto |
-| `new row violates row-level security policy` | Sesión ausente o política incorrecta | Verifica login y políticas de la tabla |
-| Registro no permite entrar | Confirm email activo | Confirma el correo o desactiva “Confirm email” para la demo |
-| No llegan correos de la app | `SMTP_URL` vacío o Mailpit en prod | Configura SMTP real en Vercel y redeploy |
-| “Mapa no disponible” | Falta `VITE_MAPBOX_TOKEN` en el build | Agrega la variable y redeploy |
-| Error al subir comprobante | Bucket/políticas o límite 5 MB | Revisa Storage y el tipo de archivo |
-| Build falla por Node | Versión de Node en Vercel | Fija Node.js 22.x en Settings |
-| Preview de Vercel no autentica | Redirect URL no permitida | Agrega el patrón de preview en Supabase Auth |
+| Síntoma                                       | Causa probable                        | Solución                                                                                  |
+| --------------------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `supabase db push` pide login o falla con 401 | Sesión del CLI vencida                | `bunx supabase login` y repetir                                                           |
+| `db push` no encuentra el proyecto            | Falta `link`                          | `bunx supabase link --project-ref <ref>`                                                  |
+| “relation already exists” al migrar           | Esquema creado a mano en el dashboard | Revisa `migration list`; usa `supabase migration repair` con cuidado o recrea el proyecto |
+| `new row violates row-level security policy`  | Sesión ausente o política incorrecta  | Verifica login y políticas de la tabla                                                    |
+| Registro no permite entrar                    | Confirm email activo                  | Confirma el correo o desactiva “Confirm email” para la demo                               |
+| No llegan correos de la app                   | `SMTP_URL` vacío o Mailpit en prod    | Configura SMTP real en Vercel y redeploy                                                  |
+| “Mapa no disponible”                          | Falta `VITE_MAPBOX_TOKEN` en el build | Agrega la variable y redeploy                                                             |
+| Error al subir comprobante                    | Bucket/políticas o límite 5 MB        | Revisa Storage y el tipo de archivo                                                       |
+| Build falla por Node                          | Versión de Node en Vercel             | Fija Node.js 22.x en Settings                                                             |
+| Preview de Vercel no autentica                | Redirect URL no permitida             | Agrega el patrón de preview en Supabase Auth                                              |
 
 ---
 
