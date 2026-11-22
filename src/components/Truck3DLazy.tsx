@@ -5,7 +5,7 @@ import type TruckType from "./Truck3D";
 const Truck3D = lazy(() => import("./Truck3D"));
 
 export function Truck3DView(props: ComponentProps<typeof TruckType>) {
-  const fallback = <div className={`${props.className ?? ""} grid place-items-center bg-card text-sm text-muted-foreground`}>Cargando modelo 3D…</div>;
+  const fallback = <div className={`${props.className ?? ""} grid place-items-center text-sm text-muted-foreground`}>Cargando modelo 3D…</div>;
   return (
     <ClientOnly fallback={fallback}>
       <Suspense fallback={fallback}><Truck3D {...props} /></Suspense>
