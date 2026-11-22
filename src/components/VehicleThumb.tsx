@@ -12,14 +12,13 @@ const TRUCKS: Record<
     boxW: number;
     boxH: number;
     bed?: boolean;
-    flat?: boolean;
     gap?: number;
     third?: boolean;
   }
 > = {
   pickup: { cabW: 48, cabH: 36, boxW: 66, boxH: 26, bed: true },
   // Van de techo alto: cabina y caja comparten altura para una silueta de una sola pieza.
-  furgon: { cabW: 30, cabH: 54, boxW: 112, boxH: 54, flat: true },
+  furgon: { cabW: 36, cabH: 54, boxW: 106, boxH: 54 },
   camion350: { cabW: 34, cabH: 42, boxW: 108, boxH: 60 },
   camion750: { cabW: 36, cabH: 48, boxW: 118, boxH: 64 },
   gandola: { cabW: 38, cabH: 48, boxW: 126, boxH: 64, gap: 10, third: true },
@@ -94,23 +93,40 @@ export function VehicleThumb({
   return (
     <svg viewBox="0 30 240 80" {...a11y} className={className}>
       <g transform={`translate(${shift} 0)`}>
-        {/* cabina */}
+        {/* cabina: el frente mira a la izquierda, con el parabrisas inclinado hacia atrás */}
         <path
-          d={`M${X0} ${GROUND} L${X0} ${cabTop} L${cabX1 - 7} ${cabTop} L${cabX1} ${cabTop + 11} L${cabX1} ${GROUND} Z`}
+          d={`M${X0} ${GROUND} L${X0} ${cabTop + 11} L${X0 + 7} ${cabTop} L${cabX1} ${cabTop} L${cabX1} ${GROUND} Z`}
           fill="var(--primary)"
         />
         <path
-          d={`M${X0 + 6} ${cabTop + 6} L${cabX1 - 10} ${cabTop + 6} L${cabX1 - 5} ${cabTop + 16} L${X0 + 6} ${cabTop + 16} Z`}
+          d={`M${X0 + 4} ${cabTop + 17} L${X0 + 11} ${cabTop + 5} L${cabX1 - 6} ${cabTop + 5} L${cabX1 - 6} ${cabTop + 17} Z`}
           fill="var(--background)"
           opacity="0.65"
         />
         {/* carrocería */}
         {t.bed ? (
           <>
+            {/* cama abierta: baranda, piso, compuerta y mamparo */}
             <rect
               x={boxX0}
               y={GROUND - t.boxH}
               width={t.boxW}
+              height="6"
+              fill="var(--foreground)"
+              opacity="0.9"
+            />
+            <rect
+              x={boxX0}
+              y={GROUND - 6}
+              width={t.boxW}
+              height="6"
+              fill="var(--foreground)"
+              opacity="0.9"
+            />
+            <rect
+              x={boxX1 - 6}
+              y={GROUND - t.boxH}
+              width="6"
               height={t.boxH}
               fill="var(--foreground)"
               opacity="0.9"
@@ -118,10 +134,10 @@ export function VehicleThumb({
             <rect
               x={boxX0}
               y={GROUND - t.boxH}
-              width={t.boxW}
-              height="5"
-              fill="var(--background)"
-              opacity="0.25"
+              width="4"
+              height={t.boxH}
+              fill="var(--foreground)"
+              opacity="0.55"
             />
           </>
         ) : (

@@ -34,7 +34,7 @@ const clients: Client[] = [
     business: "Bodega La Esquina",
     city: "Maracay",
     note: "Recoge en ruta",
-    pkg: "12 cajas de harina",
+    pkg: "12 bultos de harina",
     weight: "480 kg",
     volume: 1.2,
     distance: "a 3 km de la ARC",
