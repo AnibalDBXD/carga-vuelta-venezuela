@@ -127,7 +127,7 @@ fuera. Definirla es el siguiente paso comercial, no técnico.
 
 ```sh
 git clone <repo>
-cd carga-vuelta-venezuela
+cd cargaruta
 bun install
 
 # 1. Variables de entorno
