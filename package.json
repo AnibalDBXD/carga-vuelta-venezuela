@@ -86,7 +86,7 @@
     "vaul": "^1.1.2",
     "vite-tsconfig-paths": "^6.0.2",
     "web-push": "^4.0.0",
-    "zod": "^3.25.76"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
@@ -111,7 +111,7 @@
     "supabase": "^3.2.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "8.1.5",
-    "vitest": "^4.1.10"
+    "vite": "8.1.6",
+    "vitest": "^4.1.12"
   }
 }
