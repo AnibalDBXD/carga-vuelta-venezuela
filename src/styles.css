@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Tailwind v4 entry: config lives here, with no tailwind.config.js or PostCSS plugin.
  * - Keep every @import in this top block, above @theme and the rest of the file. Install an
  *   npm package before @importing its CSS. Never @import a remote URL (web fonts, CDN CSS): the
@@ -317,5 +317,33 @@ html:active-view-transition-type(from-detail)::view-transition-new(root) {
   }
   .match-reveal.is-visible .match-item {
     animation: none;
+  }
+}
+
+/* Landing · comparación antes/después.
+ * Animación ligada al scroll: --p1/--p2 (0→1) las pone el componente según la
+ * posición de la sección. Sin JS quedan en 1 y todo se ve normal. */
+.compare-route {
+  transform-origin: left center;
+  transform: scaleX(var(--p, 1));
+}
+.compare-card {
+  opacity: clamp(0, var(--p, 1), 1);
+  transform: translateY(calc((1 - var(--p, 1)) * 18px)) scale(calc(0.985 + 0.015 * var(--p, 1)));
+}
+.compare-bar {
+  width: calc(var(--bar, 100%) * var(--p, 1));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compare-card {
+    opacity: 1;
+    transform: none;
+  }
+  .compare-route {
+    transform: none;
+  }
+  .compare-bar {
+    width: var(--bar, 100%);
   }
 }
