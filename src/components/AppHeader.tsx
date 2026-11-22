@@ -33,7 +33,6 @@ export function AppHeader() {
         </nav>
         <div className="ml-auto flex items-center gap-2">
           {session ? (<>
-            <Button asChild size="sm"><Link to="/viajes/nuevo">Nuevo viaje</Link></Button>
             <Button size="sm" variant="ghost" onClick={signOut}>Salir</Button>
           </>) : (
             <Button asChild size="sm"><Link to="/auth">Entrar</Link></Button>
