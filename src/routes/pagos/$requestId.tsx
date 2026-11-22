@@ -8,11 +8,14 @@ import {
   AlertTriangle,
   Check,
   CheckCircle2,
+  CircleDashed,
   Copy,
   CreditCard,
   Loader2,
   MapPin,
   Package,
+  PackageCheck,
+  TruckIcon,
   Upload,
   XCircle,
 } from "lucide-react";
@@ -25,6 +28,8 @@ import {
 import { rememberRequest } from "@/lib/my-requests";
 import { supabase } from "@/integrations/supabase/client";
 import { cityName, VEHICLE_PRESETS, type VehicleKind } from "@/lib/venezuela";
+import { tripRouteQuery } from "@/lib/routes.functions";
+import { formatWhen } from "@/lib/utils";
 import { bankName, formatBs, formatUsd, pagoMovilQrPayload } from "@/lib/pago-movil";
 import type { PaymentSummary } from "@/lib/package-request";
 import { Button } from "@/components/ui/button";
@@ -40,6 +45,8 @@ const summaryQuery = (requestId: string) =>
     queryKey: ["payment-summary", requestId],
     queryFn: () => getPaymentSummary({ data: { requestId } }) as Promise<Summary | null>,
     staleTime: 0,
+    // La página queda abierta esperando hitos (aceptación, salida, entrega).
+    refetchInterval: 30_000,
   });
 
 export const Route = createFileRoute("/pagos/$requestId")({
@@ -221,13 +228,7 @@ function PaymentPage() {
           text="Recibimos tu comprobante. En unos segundos se confirma el pago y tu carga queda montada en el viaje."
         />
       )}
-      {s.status === "paid" && (
-        <Notice
-          icon={<CheckCircle2 className="h-10 w-10 text-primary" />}
-          title="Pago confirmado"
-          text="Tu carga ya está en el plan del viaje. El conductor puede ver tu comprobante y tu recogida."
-        />
-      )}
+      {s.status === "paid" && <TrackingSection summary={s} />}
       {s.status === "pending" && (
         <Notice
           icon={<Loader2 className="h-10 w-10 text-muted-foreground" />}
@@ -273,6 +274,103 @@ function PaymentCountdown({ expiresAt }: { expiresAt: string }) {
     <p className="mt-6 flex items-center gap-2 font-mono text-sm text-muted-foreground">
       <AlertTriangle className="h-4 w-4 shrink-0 text-primary" /> {label}
     </p>
+  );
+}
+
+// Detalles del viaje útiles para el cliente + estado real del camión.
+// Tres hitos, todos de datos reales del viaje (no del GPS): salida que marca
+// el conductor (departed_at) y llegada cuando completa el viaje (completed_at).
+// Las horas son estimadas — la página se reconsulta sola cada 30 s.
+function TrackingSection({ summary: s }: { summary: Summary }) {
+  const { data: route } = useQuery(tripRouteQuery(s.origin, s.destination));
+  // Base de la ETA: salida real si ya salió; si no, la salida programada
+  // (Venezuela es UTC-4 fijo, sin horario de verano).
+  const base = s.departed_at
+    ? new Date(s.departed_at)
+    : new Date(`${s.departure_date}T${s.departure_time ?? "00:00:00"}-04:00`);
+  const eta = route ? new Date(base.getTime() + route.hours * 3_600_000) : null;
+  const arrived = s.completed_at !== null;
+  const steps: { label: string; at: string | null }[] = [
+    { label: "Pago confirmado", at: s.paid_at },
+    { label: "Salió del origen", at: s.departed_at },
+    { label: "Llegó al destino", at: s.completed_at },
+  ];
+  const current = steps.findIndex((st) => st.at === null);
+  // Mientras un paso sigue pendiente se explica el estado actual del camión.
+  const pendingHint =
+    current === 1
+      ? `El conductor está por salir — salida estimada ${s.departure_date}${
+          s.departure_time ? ` a las ${s.departure_time.slice(0, 5)}` : ""
+        }`
+      : current === 2
+        ? `Está en camino${eta ? ` — llegada estimada ~${formatWhen(eta.toISOString())}` : ""}`
+        : null;
+  return (
+    <section className="mt-8" aria-label="Estado de tu carga">
+      <p className="flex items-center gap-2 text-sm font-semibold text-primary">
+        <CheckCircle2 className="h-5 w-5" /> Pago confirmado — tu carga va en el viaje
+      </p>
+      <div className="mt-4 rounded-lg border border-border bg-card p-4">
+        <dl className="grid gap-3 text-sm sm:grid-cols-3">
+          <div>
+            <dt className="font-mono text-xs uppercase text-muted-foreground">Salida estimada</dt>
+            <dd className="mt-0.5 font-semibold">
+              {s.departure_date}
+              {s.departure_time ? ` · ${s.departure_time.slice(0, 5)}` : " · hora por confirmar"}
+            </dd>
+          </div>
+          <div>
+            <dt className="font-mono text-xs uppercase text-muted-foreground">Camión</dt>
+            <dd className="mt-0.5 font-semibold">
+              {s.departed_at ? `Salió ${formatWhen(s.departed_at)}` : "Aún no sale"}
+            </dd>
+          </div>
+          <div>
+            <dt className="font-mono text-xs uppercase text-muted-foreground">
+              {arrived ? "Llegó" : "Llegada estimada"}
+            </dt>
+            <dd className="mt-0.5 font-semibold">
+              {arrived
+                ? formatWhen(s.completed_at!)
+                : eta
+                  ? `~${formatWhen(eta.toISOString())}`
+                  : "—"}
+            </dd>
+          </div>
+        </dl>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Las horas son estimadas: dependen del tráfico y las alcabalas en ruta.
+        </p>
+      </div>
+      <ol className="mt-6 space-y-4">
+        {steps.map((st, i) => {
+          const done = st.at !== null;
+          const active = !done && i === current;
+          return (
+            <li key={st.label} className="flex items-start gap-3">
+              {done ? (
+                <PackageCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              ) : active ? (
+                <TruckIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              ) : (
+                <CircleDashed className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+              )}
+              <div>
+                <p className={done || active ? "font-semibold" : "text-muted-foreground"}>
+                  {st.label}
+                </p>
+                {done && (
+                  <p className="font-mono text-xs text-muted-foreground">{formatWhen(st.at!)}</p>
+                )}
+                {active && pendingHint && (
+                  <p className="text-xs text-muted-foreground">{pendingHint}</p>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }
 

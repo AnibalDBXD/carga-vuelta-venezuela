@@ -153,8 +153,19 @@ const STATUS_BADGE: Record<
 
 const TERMINAL: RequestStatus[] = ["rejected", "expired"];
 
+// Sub-estado de una solicitud pagada según el estado real del camión.
+function cargoStage(s: Summary): string {
+  if (s.completed_at) return "Llegó";
+  if (s.departed_at) return "En camino";
+  return "Por salir";
+}
+
 function RequestCard({ summary: s, onRemove }: { summary: Summary; onRemove: () => void }) {
-  const badge = STATUS_BADGE[s.status];
+  const badge =
+    s.status === "paid"
+      ? // La pagada muestra el sub-estado del tracking, no solo "Pagada".
+        { label: cargoStage(s), variant: "outline" as const }
+      : STATUS_BADGE[s.status];
   const bultos = s.package.reduce((sum, p) => sum + p.qty, 0);
   const minutesLeft = s.payment_expires_at
     ? Math.round((new Date(s.payment_expires_at).getTime() - Date.now()) / 60_000)
