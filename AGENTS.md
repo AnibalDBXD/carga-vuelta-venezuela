@@ -19,7 +19,7 @@ App de logística para camioneros en Venezuela (base Valencia). El objetivo clav
 - `/auth` — login/registro (email + Google).
 - `/panel` — redirige a `/panel/viajes`. `/panel/viajes` — historial de viajes con badge de solicitudes pendientes por viaje; `/panel/viajes/nuevo` — formulario de viaje (origen/destino, fecha y hora estimada, vehículo, paquetes con presets de bultos `CARGO_PRESETS`); `/panel/viajes/$id` — plan de carga: 3D, guía de montaje paso a paso, filtro por capas, tabla de orden de carga (permite quitar bultos), solicitudes de recogida (cualquier viaje, no solo `is_return`).
 - `/panel/vehiculos` — CRUD de vehículos con presets venezolanos (pickup, furgón 350/NPR, 750, gandola) y visor 3D.
-- `/bolsa` — "Bolsa de viajes": bolsa pública de camiones con espacio libre (`/retornos` redirige aquí); `/bolsa/$offerId` muestra el espacio del camión en 3D con vista previa del paquete del cliente y el formulario de solicitud. Nunca mencionar "retorno/regreso" en la cara al cliente.
+- `/bolsa` — "Bolsa de viajes": bolsa pública de camiones con espacio libre (`/retornos` redirige aquí); `/bolsa/$offerId` muestra el espacio del camión en 3D con vista previa del paquete del cliente y el formulario de solicitud. Nunca mencionar "retorno/regreso" en la cara al cliente. Atajo de demo: `Shift+J` (fuera de un campo) autocompleta la solicitud con datos ficticios.
 - `/recogidas/$token` — enlaces viejos (trip_shares): solo redirige a `/bolsa/$offerId` de la oferta del viaje.
 - Área privada bajo `src/routes/_authenticated/`.
 
