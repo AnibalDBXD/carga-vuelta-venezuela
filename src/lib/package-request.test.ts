@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { offerRequestSchema, requestPackages, type OfferRequestInput } from "./package-request";
+import { offerRequestSchema, type OfferRequestInput } from "./package-request";
 import { packCargo } from "./packing";
 import { loadingSteps } from "./loading-guide";
+// Forma que insert_package_request (RPC) guarda en package_requests.package:
+// id por bulto + recogida/entrega de la solicitud en cada uno.
+const requestPkgs = (input: OfferRequestInput, id = "request-id") =>
+  input.packages.map((pkg, i) => ({
+    ...pkg,
+    id: `${id}-${i + 1}`,
+    pickup: input.pickup,
+    recipient: input.delivery,
+  }));
 const input: OfferRequestInput = {
   offerId: "11111111-1111-4111-8111-111111111111",
   sender: "Ana Pérez",
@@ -40,7 +49,7 @@ describe("solicitudes de regreso", () => {
     expect("status" in parsed).toBe(false);
   });
   it("conserva recogida y entrega en cada paquete de la solicitud", () => {
-    const pkgs = requestPackages("request-id", input);
+    const pkgs = requestPkgs(input);
     expect(pkgs).toHaveLength(2);
     expect(pkgs[0]?.pickup).toBe("Caracas, Los Ruices, calle 5");
     expect(pkgs[0]?.recipient).toBe("Valencia, San Diego, avenida 2");
@@ -49,7 +58,7 @@ describe("solicitudes de regreso", () => {
     expect(pkgs[0]?.id).not.toBe(pkgs[1]?.id);
   });
   it("incluye todos los bultos solicitados en el plan 3D y los pasos de montaje", () => {
-    const pkgs = requestPackages("request-id", input);
+    const pkgs = requestPkgs(input);
     const result = packCargo({ length: 400, width: 200, height: 200, maxKg: 1000 }, pkgs);
     expect(result.placed).toHaveLength(3);
     expect(loadingSteps(result.placed)).toHaveLength(3);

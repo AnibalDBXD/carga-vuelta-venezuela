@@ -114,6 +114,7 @@
   --sidebar-border: oklch(0.32 0.01 260);
   --sidebar-ring: oklch(0.862 0.172 93.8);
   --hazard: repeating-linear-gradient(-45deg, var(--primary) 0 14px, var(--background) 14px 28px);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @layer base {
@@ -133,4 +134,72 @@
 @utility grid-asphalt {
   background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
   background-size: 48px 48px;
+}
+
+/*
+ * View Transitions (src/router.tsx defaultViewTransition). Page changes get a
+ * short crossfade; navigating to a detail route (to-detail) pushes the new page
+ * in from the right, and going back (from-detail) pops it out the same way.
+ * Browsers without startViewTransition just navigate normally.
+ */
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-push-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+@keyframes vt-pop-out {
+  to {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 200ms;
+  animation-timing-function: var(--ease-out);
+}
+
+/* Shared-element morphs (page-title, *-title-*, offer-space-*) use the same pacing. */
+::view-transition-group(*) {
+  animation-duration: 200ms;
+  animation-timing-function: var(--ease-out);
+}
+
+html:active-view-transition-type(to-detail)::view-transition-old(root) {
+  animation-name: vt-fade-out;
+}
+html:active-view-transition-type(to-detail)::view-transition-new(root) {
+  animation-name: vt-push-in;
+}
+html:active-view-transition-type(from-detail)::view-transition-old(root) {
+  animation-name: vt-pop-out;
+}
+html:active-view-transition-type(from-detail)::view-transition-new(root) {
+  animation-name: vt-fade-in;
+}
+
+/* Reduced motion: keep the orientation cue as a quick fade, drop the slide. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 120ms;
+  }
+  html:active-view-transition-type(to-detail)::view-transition-new(root) {
+    animation-name: vt-fade-in;
+  }
+  html:active-view-transition-type(from-detail)::view-transition-old(root) {
+    animation-name: vt-fade-out;
+  }
 }

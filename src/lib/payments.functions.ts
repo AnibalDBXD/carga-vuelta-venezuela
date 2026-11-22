@@ -5,7 +5,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { publicClient } from "./package-requests.functions";
 import { getBcvRate } from "./bcv";
 import { sendMail, sendPush, appUrl, type PushSubscriptionRow } from "./notify";
-import type { PaymentSummary } from "./package-request";
+import { clientTotalUsd, type PaymentSummary } from "./package-request";
 import { cityName } from "./venezuela";
 
 // Service role solo en servidor: lee email/suscripciones y firma URLs de storage.
@@ -50,22 +50,41 @@ export const getPaymentSummary = createServerFn({ method: "GET" })
     if (!summary) return null;
     const raw = summary as unknown as Omit<PaymentSummary, "package"> & { package: unknown };
     // Solicitudes viejas guardan un objeto; las nuevas un arreglo de bultos.
+    // total_usd = lo que paga el cliente (amount_usd + 25% de servicio). Filas
+    // viejas sin total_usd congelado usan el mismo ×1.25 como fallback.
     const s: PaymentSummary = {
       ...raw,
       package: (Array.isArray(raw.package)
         ? raw.package
         : [raw.package]) as PaymentSummary["package"],
+      total_usd: clientTotalUsd(raw.amount_usd, raw.total_usd),
     };
+    // El RPC es STABLE (no puede escribir): el vencimiento se refleja solo en la
+    // respuesta para que la página no muestre datos de pago tras el plazo.
+    if (
+      s.status === "awaiting_payment" &&
+      s.payment_expires_at !== null &&
+      new Date(s.payment_expires_at) < new Date()
+    ) {
+      return {
+        ...s,
+        status: "expired",
+        payment_method: null,
+        amount_bs: null,
+        bcv_rate: null,
+        bcv_fetched_at: null,
+      };
+    }
     const payment_method = ["awaiting_payment", "payment_review", "paid"].includes(s.status)
       ? platformPaymentMethod()
       : null;
-    if (s.status === "awaiting_payment" && s.amount_usd) {
+    if (s.status === "awaiting_payment" && s.total_usd != null) {
       try {
         const { rate, fetchedAt } = await getBcvRate();
         return {
           ...s,
           payment_method,
-          amount_bs: Math.round(s.amount_usd * rate * 100) / 100,
+          amount_bs: Math.round(s.total_usd * rate * 100) / 100,
           bcv_rate: rate,
           bcv_fetched_at: fetchedAt,
         };
@@ -109,7 +128,7 @@ export const notifyRequester = createServerFn({ method: "POST" })
       .eq("id", data.requestId)
       .eq("status", "awaiting_payment")
       .is("notified_at", null)
-      .select("id, email, sender_name, amount_usd, trip_id")
+      .select("id, email, sender_name, amount_usd, total_usd, trip_id")
       .maybeSingle();
     if (!request) return { notified: false };
     const { data: trip } = await admin
@@ -122,8 +141,10 @@ export const notifyRequester = createServerFn({ method: "POST" })
       .select("id, endpoint, p256dh, auth")
       .eq("request_id", data.requestId);
     const route = trip ? `${cityName(trip.origin)} → ${cityName(trip.destination)}` : "tu viaje";
-    const amount = request.amount_usd
-      ? `$${Number(request.amount_usd).toLocaleString("es-VE", { minimumFractionDigits: 2 })}`
+    // El monto avisado es lo que paga el cliente (total_usd), no el neto del conductor.
+    const totalUsd = clientTotalUsd(request.amount_usd, request.total_usd);
+    const amount = totalUsd
+      ? `$${Number(totalUsd).toLocaleString("es-VE", { minimumFractionDigits: 2 })}`
       : "";
     const payUrl = `${appUrl()}/pagos/${request.id}`;
     const subject = "Aceptaron tu carga — falta el pago";

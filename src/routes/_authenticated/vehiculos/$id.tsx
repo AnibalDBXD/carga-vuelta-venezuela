@@ -90,7 +90,10 @@ function Vehiculo() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="font-mono text-xs uppercase tracking-widest text-primary">Flota</p>
-          <h1 className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]">
+          <h1
+            className="mt-2 text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
+            style={{ viewTransitionName: `vehicle-title-${id}` }}
+          >
             {vehicle.name}
           </h1>
           <p className="mt-2 text-muted-foreground">

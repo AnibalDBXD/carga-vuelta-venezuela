@@ -122,7 +122,9 @@ function NuevoViaje() {
   if (!isLoading && vehicles.length === 0)
     return (
       <main className="mx-auto max-w-xl px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold">Primero registra tu vehículo</h1>
+        <h1 className="text-2xl font-bold" style={{ viewTransitionName: "page-title" }}>
+          Primero registra tu vehículo
+        </h1>
         <p className="mt-2 text-muted-foreground">
           Necesitamos las medidas del espacio de carga para acomodar los paquetes.
         </p>
@@ -134,7 +136,9 @@ function NuevoViaje() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="text-3xl font-bold">{regreso ? "Planear viaje de regreso" : "Nuevo viaje"}</h1>
+      <h1 className="text-3xl font-bold" style={{ viewTransitionName: "page-title" }}>
+        {regreso ? "Planear viaje de regreso" : "Nuevo viaje"}
+      </h1>
       <form onSubmit={submit} className="mt-6 space-y-6">
         <section className="grid gap-4 rounded-lg border border-border bg-card p-5 md:grid-cols-4">
           <CityField id="origin" label="Origen" value={origin} onChange={setOrigin} />

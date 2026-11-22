@@ -95,7 +95,7 @@ function PaymentPage() {
       <p className="flex items-center gap-2 font-mono text-xs uppercase text-primary">
         <CreditCard className="h-4 w-4" /> Pago de tu carga
       </p>
-      <h1 className="mt-2 text-3xl font-bold">
+      <h1 className="mt-2 text-3xl font-bold" style={{ viewTransitionName: "page-title" }}>
         {cityName(s.origin)} → {cityName(s.destination)}
       </h1>
       <p className="mt-1 text-sm text-muted-foreground">
@@ -130,9 +130,9 @@ function PaymentPage() {
             <strong>Entrega:</strong> {s.package[0]?.recipient}
           </span>
         </p>
-        {s.amount_usd != null && (
+        {(s.total_usd ?? s.amount_usd) != null && (
           <p className="mt-3 font-mono text-lg font-bold">
-            ${formatUsd(s.amount_usd)} USD
+            ${formatUsd(s.total_usd ?? s.amount_usd ?? 0)} USD
             {s.amount_bs != null && (
               <span className="ml-2 text-sm font-normal text-muted-foreground">
                 = Bs {formatBs(s.amount_bs)}
@@ -283,7 +283,7 @@ function PaySection({
         <h2 className="text-xl font-bold">Paga por pago móvil</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Transfiere <strong>Bs {formatBs(summary.amount_bs)}</strong> ($
-          {formatUsd(summary.amount_usd ?? 0)} USD a tasa BCV) a:
+          {formatUsd(summary.total_usd ?? summary.amount_usd ?? 0)} USD a tasa BCV) a:
         </p>
         <dl className="mt-4 divide-y divide-border">
           {rows.map(([label, value]) => (

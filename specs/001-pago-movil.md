@@ -55,7 +55,14 @@ Bucket privado `payment-proofs`. Objetos en `<request_id>/<uuid>.<ext>`. Políti
 
 - Server fn `getBcvRate()` → `{ rate, fetchedAt }`: hace `fetch('https://www.bcv.org.ve/')`, extrae el USD del bloque `id="dolar"` (decimales con coma, ej. `36,500000`) y lo normaliza a número. Se ejecuta solo en servidor — nunca se expone el HTML ni se parsea en el cliente.
 - Caché en memoria del proceso (módulo) con TTL ~1 h; si el fetch falla devuelve la última tasa conocida; si nunca hubo una, `BCV_FALLBACK_RATE` de env o error controlado ("No se pudo obtener la tasa BCV").
-- El equivalente en Bs se calcula en el server fn que sirve la página de pago (`amount_bs = amount_usd * rate`), así el solicitante siempre ve la tasa del día y el QR/datos de pago móvil llevan Bs. En el correo/push se menciona el monto en USD.
+- El equivalente en Bs se calcula en el server fn que sirve la página de pago (`amount_bs = total_usd * rate`), así el solicitante siempre ve la tasa del día y el QR/datos de pago móvil llevan Bs. En el correo/push se menciona el monto en USD (el total que paga el solicitante).
+
+## Comisión de la plataforma (25%)
+
+- El conductor fija `amount_usd` al aceptar: es **lo que recibe** (neto). `PLATFORM_FEE = 0.25` en `src/lib/package-request.ts`.
+- `total_usd = amount_usd × 1.25` se **congela en la fila** `package_requests` al aceptar y es lo que paga el solicitante (en Bs a tasa BCV). La empresa cobra el total y liquida al conductor por fuera de la app.
+- Filas viejas sin `total_usd` usan el mismo ×1.25 como fallback vía `clientTotalUsd(amount_usd, total_usd)`, así lo mostrado/cobrado al solicitante es siempre el total.
+- En la vista del conductor el monto se etiqueta "para ti" (neto); al solicitante se le muestra solo el total en `/pagos/<id>`, correo y push.
 
 ## Notificaciones
 
@@ -82,7 +89,7 @@ Bucket privado `payment-proofs`. Objetos en `<request_id>/<uuid>.<ext>`. Políti
 
 ## Fuera de alcance
 
-- Verificación bancaria real del pago (hoy se simula con el retardo de `confirm_payment`); confirmación manual del conductor; reembolsos; comisiones de plataforma; formato QR EMV interbancario.
+- Verificación bancaria real del pago (hoy se simula con el retardo de `confirm_payment`); confirmación manual del conductor; reembolsos; liquidación automática al conductor; formato QR EMV interbancario.
 
 ## Verificación
 

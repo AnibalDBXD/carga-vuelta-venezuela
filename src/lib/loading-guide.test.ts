@@ -3,9 +3,48 @@ import { cargoLayers, loadingSteps, visibleCargo } from "./loading-guide";
 import type { Placed } from "./packing";
 
 const boxes: Placed[] = [
-  { pkgId: "glass", unit: 1, name: "Vidrio", x: 0, y: 0, z: 60, l: 40, w: 40, h: 30, weight: 10, fragile: true, loadOrder: 3 },
-  { pkgId: "heavy", unit: 1, name: "Pintura", x: 0, y: 0, z: 0, l: 40, w: 40, h: 60, weight: 30, fragile: false, loadOrder: 1 },
-  { pkgId: "clothes", unit: 1, name: "Ropa", x: 40, y: 0, z: 0, l: 40, w: 40, h: 30, weight: 5, fragile: false, loadOrder: 2 },
+  {
+    pkgId: "glass",
+    unit: 1,
+    name: "Vidrio",
+    x: 0,
+    y: 0,
+    z: 60,
+    l: 40,
+    w: 40,
+    h: 30,
+    weight: 10,
+    fragile: true,
+    loadOrder: 3,
+  },
+  {
+    pkgId: "heavy",
+    unit: 1,
+    name: "Pintura",
+    x: 0,
+    y: 0,
+    z: 0,
+    l: 40,
+    w: 40,
+    h: 60,
+    weight: 30,
+    fragile: false,
+    loadOrder: 1,
+  },
+  {
+    pkgId: "clothes",
+    unit: 1,
+    name: "Ropa",
+    x: 40,
+    y: 0,
+    z: 0,
+    l: 40,
+    w: 40,
+    h: 30,
+    weight: 5,
+    fragile: false,
+    loadOrder: 2,
+  },
 ];
 
 describe("cargo loading guide", () => {

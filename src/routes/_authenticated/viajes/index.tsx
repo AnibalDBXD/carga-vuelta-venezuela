@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Copy, Repeat } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { CheckCheck, Copy, Repeat, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cityName } from "@/lib/venezuela";
 import { packCargo, type Pkg } from "@/lib/packing";
@@ -8,24 +9,61 @@ import { Button } from "@/components/ui/button";
 import { ShareTrip } from "@/components/TripRequests";
 
 export const Route = createFileRoute("/_authenticated/viajes/")({
-  head: () => ({ meta: [{ title: "Mis viajes — CargaRuta" }, { name: "description", content: "Historial de tus viajes de carga." }, { property: "og:title", content: "Mis viajes — CargaRuta" }, { property: "og:description", content: "Historial de tus viajes de carga." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
+  head: () => ({
+    meta: [
+      { title: "Mis viajes — CargaRuta" },
+      { name: "description", content: "Historial de tus viajes de carga." },
+      { property: "og:title", content: "Mis viajes — CargaRuta" },
+      { property: "og:description", content: "Historial de tus viajes de carga." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Viajes,
 });
 
 function Viajes() {
+  const qc = useQueryClient();
   const { data = [], isLoading } = useQuery({
     queryKey: ["trips"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("trips").select("*, vehicles(*)").order("departure_date", { ascending: false });
+      const { data, error } = await supabase
+        .from("trips")
+        .select("*, vehicles(*)")
+        .order("departure_date", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
+  // Completar despublica la oferta de la bolsa; reabrir no la reactiva
+  // (el conductor la reabre desde ShareTrip si quiere).
+  const toggleCompleted = async (t: { id: string; completed_at: string | null }) => {
+    const done = t.completed_at === null;
+    const { error } = await supabase
+      .from("trips")
+      .update({ completed_at: done ? new Date().toISOString() : null })
+      .eq("id", t.id);
+    if (error) return void toast.error("No se pudo actualizar el viaje");
+    if (done) await supabase.from("return_offers").update({ active: false }).eq("trip_id", t.id);
+    void qc.invalidateQueries({ queryKey: ["trip", t.id] });
+    void qc.invalidateQueries({ queryKey: ["trips"] });
+    void qc.invalidateQueries({ queryKey: ["return_offers"] });
+    toast.success(done ? "Viaje marcado como completado" : "Viaje reabierto");
+  };
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-4xl font-bold leading-[1.1] tracking-[-0.02em]">Mis viajes</h1>
-        <Button asChild><Link to="/viajes/nuevo" search={{}}>Nuevo viaje</Link></Button>
+        <h1
+          className="text-4xl font-bold leading-[1.1] tracking-[-0.02em]"
+          style={{ viewTransitionName: "page-title" }}
+        >
+          Mis viajes
+        </h1>
+        <Button asChild>
+          <Link to="/viajes/nuevo" search={{}}>
+            Nuevo viaje
+          </Link>
+        </Button>
       </div>
       <p className="mt-2 text-muted-foreground">
         Cada viaje guarda su plan de carga; desde acá puedes repetirlo o planear el regreso.
@@ -38,16 +76,69 @@ function Viajes() {
         {data.map((t) => {
           const pk = (t.packages as unknown as Pkg[]) ?? [];
           const free = t.vehicles
-            ? packCargo({ length: t.vehicles.length_cm, width: t.vehicles.width_cm, height: t.vehicles.height_cm, maxKg: t.vehicles.max_kg }, pk)
+            ? packCargo(
+                {
+                  length: t.vehicles.length_cm,
+                  width: t.vehicles.width_cm,
+                  height: t.vehicles.height_cm,
+                  maxKg: t.vehicles.max_kg,
+                },
+                pk,
+              )
             : null;
           return (
-            <div key={t.id} className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4">
+            <div
+              key={t.id}
+              className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4"
+            >
               <Link to="/viajes/$id" params={{ id: t.id }} className="min-w-0 flex-1">
-                <p className="text-lg font-bold">{cityName(t.origin)} → {cityName(t.destination)}</p>
-                <p className="text-sm text-muted-foreground">{t.departure_date}{t.departure_time ? ` · ${t.departure_time.slice(0, 5)}` : ""} · {t.vehicles?.name ?? "Sin vehículo"} · {pk.reduce((s, p) => s + p.qty, 0)} bultos</p>
+                <p
+                  className="flex flex-wrap items-center gap-2 text-lg font-bold"
+                  style={{ viewTransitionName: `trip-title-${t.id}` }}
+                >
+                  {cityName(t.origin)} → {cityName(t.destination)}
+                  {t.completed_at !== null && (
+                    <span className="rounded border border-primary/40 px-2 py-0.5 font-mono text-xs font-normal text-primary">
+                      Completado
+                    </span>
+                  )}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t.departure_date}
+                  {t.departure_time ? ` · ${t.departure_time.slice(0, 5)}` : ""} ·{" "}
+                  {t.vehicles?.name ?? "Sin vehículo"} · {pk.reduce((s, p) => s + p.qty, 0)} bultos
+                </p>
               </Link>
-              <Button asChild size="sm" variant="outline"><Link to="/viajes/nuevo" search={{ from: t.id }}><Copy /> Repetir</Link></Button>
-              {t.is_return ? <ShareTrip trip={t} vehicle={t.vehicles} freeM3={free?.freeM3} freeKg={free?.freeKg} /> : <Button asChild size="sm" variant="outline"><Link to="/viajes/nuevo" search={{ from: t.id, regreso: true }}><Repeat /> Planear regreso</Link></Button>}
+              <Button size="sm" variant="outline" onClick={() => void toggleCompleted(t)}>
+                {t.completed_at === null ? (
+                  <>
+                    <CheckCheck /> Completar
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw /> Reabrir
+                  </>
+                )}
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/viajes/nuevo" search={{ from: t.id }}>
+                  <Copy /> Repetir
+                </Link>
+              </Button>
+              {t.is_return ? (
+                <ShareTrip
+                  trip={t}
+                  vehicle={t.vehicles}
+                  freeM3={free?.freeM3}
+                  freeKg={free?.freeKg}
+                />
+              ) : (
+                <Button asChild size="sm" variant="outline">
+                  <Link to="/viajes/nuevo" search={{ from: t.id, regreso: true }}>
+                    <Repeat /> Planear regreso
+                  </Link>
+                </Button>
+              )}
             </div>
           );
         })}

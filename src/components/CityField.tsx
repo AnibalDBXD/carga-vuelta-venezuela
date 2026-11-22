@@ -84,7 +84,10 @@ export function CityField({
       setOpen(local.length > 0);
       return;
     }
+    // Las ciudades troncales se muestran de inmediato: si la red de Mapbox se
+    // cuelga, el dropdown no queda mudo esperando la respuesta remota.
     setOptions(local);
+    setOpen(local.length > 0);
     timer.current = setTimeout(async () => {
       const mySeq = ++seq.current;
       try {

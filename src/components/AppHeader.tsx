@@ -15,7 +15,8 @@ export function AppHeader() {
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   };
-  const link = "text-sm text-muted-foreground hover:text-foreground transition-colors [&.active]:text-primary";
+  const link =
+    "text-sm text-muted-foreground hover:text-foreground transition-colors [&.active]:text-primary";
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 pt-[env(safe-area-inset-top)] backdrop-blur">
       <div className="h-1 hazard-stripe" />
@@ -24,25 +25,45 @@ export function AppHeader() {
           <Logo />
         </Link>
         <nav className="hidden items-center gap-5 md:flex">
-          <Link to="/bolsa" className={link}>Bolsa de viajes</Link>
-          {session && (<>
-            <Link to="/viajes" className={link}>Mis viajes</Link>
-            <Link to="/vehiculos" className={link}>Mis vehículos</Link>
-          </>)}
+          <Link to="/bolsa" className={link}>
+            Bolsa de viajes
+          </Link>
+          {session && (
+            <>
+              <Link to="/viajes" className={link}>
+                Mis viajes
+              </Link>
+              <Link to="/vehiculos" className={link}>
+                Mis vehículos
+              </Link>
+            </>
+          )}
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          {session ? (<>
-            <Button size="sm" variant="ghost" onClick={signOut}>Salir</Button>
-          </>) : (
-            <Button asChild size="sm"><Link to="/auth">Entrar</Link></Button>
+          {session ? (
+            <>
+              <Button size="sm" variant="ghost" onClick={signOut}>
+                Salir
+              </Button>
+            </>
+          ) : (
+            <Button asChild size="sm">
+              <Link to="/auth">Entrar</Link>
+            </Button>
           )}
         </div>
       </div>
       {session && (
         <nav className="flex gap-4 overflow-x-auto border-t border-border px-4 py-2 md:hidden">
-          <Link to="/viajes" className={link}>Viajes</Link>
-          <Link to="/vehiculos" className={link}>Vehículos</Link>
-          <Link to="/bolsa" className={link}>Bolsa</Link>
+          <Link to="/viajes" className={link}>
+            Viajes
+          </Link>
+          <Link to="/vehiculos" className={link}>
+            Vehículos
+          </Link>
+          <Link to="/bolsa" className={link}>
+            Bolsa
+          </Link>
         </nav>
       )}
     </header>
