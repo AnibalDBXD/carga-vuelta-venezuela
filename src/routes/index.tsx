@@ -34,40 +34,57 @@ function Index() {
           <div>
             <p className="font-mono text-xs uppercase tracking-widest text-primary">Valencia · Caracas · Puerto Cabello</p>
             <h1 className="mt-3 text-4xl font-bold leading-tight md:text-6xl">Carga más.<br />No regreses vacío.</h1>
-            <p className="mt-5 max-w-lg text-lg text-muted-foreground">Describe tu camión y tus paquetes. CargaRuta acomoda la carga en 3D, estima la ruta por la ARC y publica tu viaje de regreso para que otros te contraten.</p>
+            <p className="mt-5 max-w-lg text-lg text-muted-foreground">Describe tu camión y tus paquetes. CargaRuta acomoda la carga en 3D, estima la ruta y publica el espacio libre de tus viajes de ida y vuelta para que otros te contraten.</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg"><Link to="/viajes/nuevo">Planificar un viaje <ArrowRight /></Link></Button>
               <Button asChild size="lg" variant="outline"><Link to="/retornos">Buscar camión de retorno</Link></Button>
             </div>
           </div>
-          <Truck3DView kind="camion350" length={420} width={200} height={200} boxes={boxes} colorKeys={["a", "b", "c"]} className="h-[380px] overflow-hidden rounded-lg border border-border" />
+          <Truck3DView kind="camion350" length={420} width={200} height={200} boxes={boxes} colorKeys={["a", "b", "c"]} spin className="h-[380px] overflow-hidden rounded-lg border border-border" />
+        </div>
+      </section>
+      <section className="border-b border-border">
+        <div className="mx-auto max-w-6xl px-4 py-14">
+          <div className="max-w-2xl">
+            <p className="font-mono text-xs uppercase tracking-widest text-primary">El modelo</p>
+            <h2 className="mt-3 text-3xl font-bold leading-tight md:text-4xl">Dos lados, el mismo viaje.</h2>
+            <p className="mt-3 text-muted-foreground">
+              El camión ya tiene que salir y la carga ya tiene que llegar. CargaRuta los pone en la
+              misma ruta: el conductor ofrece el espacio que le sobra, el cliente paga el flete y el
+              trato se cierra por WhatsApp. La app no retiene el pago ni cobra comisión por el flete.
+            </p>
+          </div>
+          <p className="mt-6 max-w-2xl text-sm text-muted-foreground">
+            Un viaje de ida y vuelta puede llevar carga en los dos sentidos: se aprovecha el
+            recorrido completo, no un solo tramo.
+          </p>
         </div>
       </section>
       <section className="mx-auto max-w-6xl px-4 py-14">
         <p className="font-mono text-xs uppercase tracking-widest text-primary">Beneficios</p>
         <h2 className="mt-3 max-w-2xl text-3xl font-bold leading-tight md:text-4xl">
-          Que el camión no vuelva vacío.
+          Carga en los dos sentidos.
         </h2>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          Cada tramo sin carga es dinero que se queda en la carretera. Así lo evita CargaRuta, con
-          datos que ya están en la app.
+          Hacer un viaje de ida y vuelta con un tramo vacío es dinero que se queda en la carretera.
+          Esto es lo que ya hace la app para evitarlo.
         </p>
         <div className="mt-10 grid gap-x-10 gap-y-8 md:grid-cols-2 lg:grid-cols-3">
           {[
             {
               icon: Share2,
-              t: "Publica el regreso antes de arrancar",
-              d: "Marca el viaje como retorno y comparte un enlace. Quien tenga carga en esa ruta pide la recogida sin crear cuenta; tú apruebas qué sube.",
+              t: "El viaje se comparte, no se pierde",
+              d: "Planificas la ida y la vuelta y compartes el tramo que llevas libre con un enlace. Quien tenga carga en esa ruta pide la recogida sin crear cuenta; tú apruebas qué sube.",
             },
             {
               icon: Wallet,
-              t: "Cobra el tramo que ibas a perder",
-              d: "Publicas los m³ y los kg libres y el interesado te escribe directo por WhatsApp. La app no cobra comisión ni retiene el pago.",
+              t: "El tramo sin carga también paga",
+              d: "Publicas los m³ y los kg disponibles y el interesado te escribe directo por WhatsApp. Sin comisión de la app ni pagos retenidos: el flete se cierra entre ustedes.",
             },
             {
               icon: MapPin,
               t: "La carga ya va para allá",
-              d: "En la bolsa de retornos se filtra por origen y destino: quien necesita enviar algo ve solo los camiones que salen hacia su ciudad, no la flota completa.",
+              d: "La bolsa filtra por origen y destino: quien necesita mover algo ve los camiones que ya salen hacia su ciudad, en ida o en vuelta.",
             },
             {
               icon: Boxes,
