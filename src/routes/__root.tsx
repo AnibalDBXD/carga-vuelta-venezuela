@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
+import { AppFooter } from "@/components/AppFooter";
 import {
   Outlet,
   Link,
@@ -144,8 +145,13 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <AppHeader />
-      <Outlet />
+      <div className="flex min-h-dvh flex-col">
+        <AppHeader />
+        <div className="flex-1">
+          <Outlet />
+        </div>
+        <AppFooter />
+      </div>
       <Toaster />
     </QueryClientProvider>
   );

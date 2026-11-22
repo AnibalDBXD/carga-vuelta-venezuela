@@ -220,6 +220,7 @@ sin textura ni bisel. El esténcil del wordmark y las líneas del símbolo son e
 | Componente | Especificación |
 |---|---|
 | Header | Asfalto 90 % + blur, franja hazard de 4 px arriba, símbolo 32 px |
+| Footer | Borde superior de 1 px, marca + tagline, columna "Navegar" y barra inferior en mono; el layout usa `min-h-dvh` + `flex-1` para que quede al pie en páginas cortas. Sin franja hazard: competía con la línea discontinua del símbolo |
 | Botón primario | Línea amarilla, texto Asfalto, radio 6 px, peso 600 |
 | Botón secundario | Borde `#232830`, texto Blanco de borde |
 | Tarjeta | Calzada, borde 1 px `#232830`, radio 8 px, padding 24 px |
